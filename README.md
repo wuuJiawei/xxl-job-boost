@@ -1,176 +1,85 @@
 # XXL-JOB Boost
 
-XXL-JOB Boost 是一个基于 XXL-JOB 的非官方增强发行版。
+XXL-JOB Boost 是基于 XXL-JOB 的增强发行版，目标不是重写调度核心，而是在保持原有调度模型、数据库结构和接入方式基本兼容的前提下，持续补齐现代团队更在意的后台体验和治理能力。
 
-它保留 XXL-JOB 轻量、稳定、易接入的调度核心，在兼容原有使用习惯的前提下，逐步补齐现代团队更关心的管理后台体验、告警能力、执行器注册、任务治理和可观测性能力。
+当前版本已经完成第一阶段的核心落地：新一代管理后台 `admin-next` 已可用，旧版控制台仍然保留，前后端可以并行运行和逐步切换。
 
-## Project Positioning
+## 当前状态
 
-- 保留 XXL-JOB 的调度核心，不从零重写调度器。
-- 优先做渐进式增强，不做一次性大改。
-- 优先保证兼容性，避免破坏现有接入方式。
-- 新能力优先以新增代码和独立前端承载，必要时直接修改现有源码实现。
+- 保留原版 `xxl-job-admin` 后端与旧控制台能力
+- 新增 Vue 3 + TypeScript + Vite 的 `admin-next` 管理后台
+- 新旧控制台并存，避免一次性替换
+- 新增 `/api/admin-next/**` 后端接口，供新前端独立消费
+- 保留样例执行器，方便本地联调
+- 已移除 GitHub Actions workflow，避免仓库默认依赖额外的 CI 权限配置
 
-英文定位：
+## 已交付能力
 
-`An unofficial enhanced distribution of XXL-JOB for modern Java teams.`
+当前 `admin-next` 已覆盖以下主要页面和链路：
 
-## Current Goal
-
-当前第一阶段目标只有一个：先把管理后台现代化，并且保证原控制台继续可用。
-
-具体原则：
-
-- 原 `xxl-job-admin` 页面保留。
-- 新增 `xxl-job-admin-ui` 前端工程。
-- 新 UI 先做“完整迁移”，后做“增强改造”。
-- 先保证现有控制台页面都能迁移过来，不追求一步到位。
-
-## Stage Plan
-
-### Phase 1: Admin UI Migration
-
-第一阶段先做控制台迁移，不先动底层通信层和任务模型。
-
-目标：
-
-- 新建 `xxl-job-admin-ui`
-- 使用 `Vue 3 + TypeScript + Vite + Naive UI`
-- 打包输出到 `xxl-job-admin/src/main/resources/static/admin-next`
-- 与旧页面并存
-- 完成旧控制台核心页面迁移
-
-第一阶段迁移范围：
-
-- 登录页
+- 登录
 - Dashboard
 - 执行器管理
 - 任务管理
-- 任务代码查看
+- GLUE 代码查看与保存
 - 调度日志列表
 - 调度日志详情
 - 用户管理
 - 帮助页
 
-验收标准：
+这意味着新控制台已经不是纯壳工程，而是具备日常试运行能力的可用版本。
 
-- 新 UI 可以登录
-- 核心列表页和详情页可用
-- 任务新增、编辑、启动、停止链路可用
-- 日志查询链路可用
-- 不影响旧页面访问和使用
-
-### Phase 2: Alerting
-
-- 告警通道
-- 告警规则
-- 告警记录
-- Webhook / 飞书 / 企业微信 / 钉钉适配
-
-### Phase 3: Executor Registration
-
-- 自动注册
-- 元数据注册
-- 健康状态
-- 环境、标签、负责人信息
-
-### Phase 4: Pluggable Transport
-
-- 抽象执行器通信层
-- 保留 Netty 兼容模式
-- 新增 Spring MVC / Spring Boot Adapter
-
-### Phase 5: Governance And Observability
-
-- 任务负责人
-- 任务标签
-- 慢任务分析
-- 失败聚合
-- 审计日志
-- 运营与治理 Dashboard
-
-## Repository Layout
-
-当前代码基线：
+## 仓库结构
 
 ```text
 xxl-job-boost
-├── xxl-job-admin
-├── xxl-job-core
-├── xxl-job-executor-samples
-└── docs
+├── xxl-job-admin                # 调度中心后端 + 旧控制台 + admin-next 静态资源
+├── xxl-job-admin-ui             # 新控制台前端源码（Soybean + Vue 3）
+├── xxl-job-admin-ui-legacy      # 保留的旧前端工程
+├── xxl-job-core                 # XXL-JOB 核心模块
+├── xxl-job-executor-samples     # 样例执行器
+├── scripts                      # 本地启动/停止/状态脚本
+├── launchd                      # 本机常驻启动配置
+├── docs                         # 项目文档、迁移方案、版本说明
+└── doc                          # 上游 XXL-JOB 原始文档与 SQL
 ```
 
-规划中的增强目录：
+## 访问入口
 
-```text
-xxl-job-boost
-├── xxl-job-admin
-├── xxl-job-admin-ui
-├── xxl-job-core
-├── xxl-job-alert
-├── xxl-job-registry
-├── xxl-job-transport-api
-├── xxl-job-transport-netty
-├── xxl-job-adapter-spring-mvc
-├── xxl-job-adapter-spring-boot-starter
-├── xxl-job-adapter-solon
-└── xxl-job-governance
-```
+默认本地启动后可访问：
 
-## Compatibility Strategy
+- 旧控制台：`http://127.0.0.1:8080/xxl-job-admin/`
+- 新控制台：`http://127.0.0.1:8080/xxl-job-admin/admin-next/`
+- 样例执行器：`http://127.0.0.1:8081/`
 
-- 旧控制台保留，避免一次性替换。
-- 旧接口协议保留，避免影响现有执行器。
-- 旧数据库表优先保持兼容，增强能力优先加表。
-- 旧 Netty 模式先保留，不在第一阶段移除。
+默认数据库初始化 SQL 会写入管理员账号：
 
-## Naming Strategy
+- 用户名：`admin`
+- 密码：`123456`
 
-项目名称：
+## 快速启动
 
-- Repository: `xxl-job-boost`
-- Product Name: `XXL-JOB Boost`
+### 环境要求
 
-当前仓库是 Boost 的开发基线，但为了降低改造成本，现阶段仍保留原有 Java 包名、模块名和大部分 artifact 命名。等第一阶段 UI 落稳后，再决定是否需要逐步调整发布坐标与模块命名。
+- JDK 17+
+- Maven
+- Docker
+- Node.js 20.19+
+- pnpm 10.5+
 
-## License
-
-本项目基于 XXL-JOB 派生开发。
-
-- XXL-JOB 使用 GPL-3.0
-- 本项目中的派生代码继续遵循 GPL-3.0
-
-如果后续对外分发修改后的程序、镜像或安装包，需要同时考虑 GPL-3.0 对源码提供和继续授权的要求。
-
-## Development Notes
-
-当前开发策略：
-
-- 先完成新旧 UI 共存
-- 先迁移、再增强
-- 先界面、再能力
-- 先可运行、再重构
-
-更详细的控制台迁移拆解见：
-
-- `docs/admin-ui-migration-plan.md`
-
-## Local Run
-
-本地快速启动：
+### 一键启动后端与样例执行器
 
 ```bash
 chmod +x scripts/dev-start.sh scripts/dev-stop.sh scripts/dev-status.sh
 bash scripts/dev-start.sh
 ```
 
-说明：
+脚本会自动处理以下事情：
 
-- 依赖 JDK 17、Maven、Docker
-- 会自动拉起或复用 `xxljob-mysql`
-- 首次缺少 jar 时会自动执行 Maven 打包
-- 会自动把日志目录切到 `/tmp/xxl-job-runtime-logs`，避免默认 `/data` 路径在本机不可写
+- 拉起或复用 `xxljob-mysql` 容器
+- 首次缺少产物时自动执行 Maven 打包
+- 启动调度中心和样例执行器
+- 将运行日志写到 `/tmp/xxl-job-runtime-logs`
 
 常用命令：
 
@@ -179,12 +88,84 @@ bash scripts/dev-status.sh
 bash scripts/dev-stop.sh
 ```
 
-如果需要在本机长期常驻，而不是依赖当前终端会话，可以用仓库内的 `launchd` 配置：
+### 启动前端开发模式
+
+后端启动后，可单独运行新前端开发服务器：
+
+```bash
+cd xxl-job-admin-ui
+pnpm install
+pnpm dev
+```
+
+默认开发地址：
+
+- 前端开发服务：`http://127.0.0.1:5173/`
+
+开发模式下会通过 Vite 代理请求后端 `http://127.0.0.1:8080/xxl-job-admin`。
+
+如果本机已经装好依赖，也可以直接使用仓库脚本：
+
+```bash
+bash scripts/run-admin-ui.sh
+```
+
+## 前后端关系
+
+### 后端
+
+`xxl-job-admin` 仍然是调度中心主应用，负责：
+
+- 调度核心管理
+- 登录态与权限
+- 旧控制台页面
+- `admin-next` 静态资源托管
+- `/api/admin-next/**` JSON 接口
+
+### 前端
+
+`xxl-job-admin-ui` 是新的管理后台工程，技术栈为：
+
+- Vue 3
+- TypeScript
+- Vite
+- Pinia
+- Naive UI
+- ECharts
+
+开发态由 Vite 独立运行，生产态静态资源挂载在 `xxl-job-admin/src/main/resources/static/admin-next`。
+
+## 兼容性原则
+
+- 不重写 XXL-JOB 调度核心
+- 不强制替换旧控制台
+- 优先新增接口和页面，降低对旧链路的破坏
+- 继续沿用现有数据库结构与执行器通信方式
+
+这套策略的目标很明确：先把新控制台做成可落地的替代入口，再逐步扩展告警、注册、治理和可观测性能力。
+
+## 文档索引
+
+- [项目版本说明](docs/release-notes-2026-06-10.md)
+- [管理后台迁移计划](docs/admin-ui-migration-plan.md)
+- [源码增强策略](docs/upstream-extension-strategy.md)
+
+## 本机常驻运行
+
+如果需要脱离当前终端常驻运行，可以使用：
 
 - `launchd/com.xxljob.boost.admin.plist`
 - `launchd/com.xxljob.boost.executor.plist`
+- `launchd/com.xxljob.boost.admin-ui.plist`
 
-它们会调用：
+对应脚本：
 
 - `scripts/run-admin.sh`
 - `scripts/run-executor.sh`
+- `scripts/run-admin-ui.sh`
+
+## License
+
+本项目基于 XXL-JOB 派生开发，继续遵循 GPL-3.0。
+
+使用、分发或二次发布时，请同时评估上游 XXL-JOB 与 GPL-3.0 的相关要求。
