@@ -48,10 +48,10 @@ public class JobGroupController {
 	@RequestMapping("/pageList")
 	@ResponseBody
 	@XxlSso(role = Consts.ADMIN_ROLE)
-	public Response<PageModel<XxlJobGroup>> pageList(@RequestParam(required = false, defaultValue = "0") int offset,
-													 @RequestParam(required = false, defaultValue = "10") int pagesize,
-													 String appname,
-													 String title) {
+	public Response<PageModel<XxlJobGroup>> pageList(@RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
+													 @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pagesize,
+													 @RequestParam(value = "appname", required = false, defaultValue = "") String appname,
+													 @RequestParam(value = "title", required = false, defaultValue = "") String title) {
 
 		// page query
 		List<XxlJobGroup> list = xxlJobGroupMapper.pageList(offset, pagesize, appname, title);

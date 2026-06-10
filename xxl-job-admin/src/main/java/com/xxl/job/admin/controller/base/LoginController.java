@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
@@ -48,7 +49,12 @@ public class LoginController {
 	@RequestMapping(value="/doLogin", method=RequestMethod.POST)
 	@ResponseBody
 	@XxlSso(login=false)
-	public Response<String> doLogin(HttpServletRequest request, HttpServletResponse response, String userName, String password, String ifRemember){
+	public Response<String> doLogin(
+			HttpServletRequest request,
+			HttpServletResponse response,
+			@RequestParam("userName") String userName,
+			@RequestParam("password") String password,
+			@RequestParam(value = "ifRemember", required = false) String ifRemember){
 
 		// param
 		boolean ifRem = StringTool.isNotBlank(ifRemember) && "on".equals(ifRemember);
@@ -89,7 +95,10 @@ public class LoginController {
 	@RequestMapping("/updatePwd")
 	@ResponseBody
 	@XxlSso
-	public Response<String> updatePwd(HttpServletRequest request, String oldPassword, String password){
+	public Response<String> updatePwd(
+			HttpServletRequest request,
+			@RequestParam("oldPassword") String oldPassword,
+			@RequestParam("password") String password){
 
 		// valid
 		if (oldPassword==null || oldPassword.trim().isEmpty()){

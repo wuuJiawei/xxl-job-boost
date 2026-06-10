@@ -110,12 +110,12 @@ public class JobLogController {
 	@RequestMapping("/pageList")
 	@ResponseBody
 	public Response<PageModel<XxlJobLog>> pageList(HttpServletRequest request,
-										@RequestParam(required = false, defaultValue = "0") int offset,
-										@RequestParam(required = false, defaultValue = "10") int pagesize,
-										@RequestParam int jobGroup,
-										@RequestParam int jobId,
-										@RequestParam int logStatus,
-										@RequestParam String filterTime) {
+										@RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
+										@RequestParam(value = "pagesize", required = false, defaultValue = "10") int pagesize,
+										@RequestParam(value = "jobGroup", required = false, defaultValue = "-1") int jobGroup,
+										@RequestParam(value = "jobId", required = false, defaultValue = "0") int jobId,
+										@RequestParam(value = "logStatus", required = false, defaultValue = "-1") int logStatus,
+										@RequestParam(value = "filterTime", required = false, defaultValue = "") String filterTime) {
 
 		// valid jobGroup permission
 		JobGroupPermissionUtil.validJobGroupPermission(request, jobGroup);

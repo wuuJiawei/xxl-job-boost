@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+JAVA_HOME_DEFAULT="/usr/local/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home"
+LOG_ROOT="${LOG_ROOT:-${LOG_HOME:-/tmp/xxl-job-runtime-logs}}"
+
+resolve_java_home() {
+  local candidate="${JAVA_HOME:-}"
+  local version=""
+
+  if [[ -n "$candidate" && -x "$candidate/bin/java" ]]; then
+    version="$("$candidate/bin/java" -version 2>&1 | awk -F '"' '/version/ {print $2; exit}')"
+    if [[ "$version" == 1.* ]]; then
+      version="$(echo "$version" | awk -F. '{print $2}')"
+    else
+      version="${version%%.*}"
+    fi
+    if [[ "$version" -ge 17 ]]; then
+      echo "$candidate"
+      return
+    fi
+  fi
+
+  echo "$JAVA_HOME_DEFAULT"
+}
+
+JAVA_HOME="$(resolve_java_home)"
+export JAVA_HOME
+export PATH="$JAVA_HOME/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+LOG_HOME="$LOG_ROOT"
+export LOG_HOME
+
+mkdir -p "$LOG_ROOT/xxl-job" "$LOG_ROOT/jobhandler"
+
+exec "$JAVA_HOME/bin/java" \
+  -DLOG_HOME="$LOG_HOME" \
+  -Dxxl.job.executor.logpath="$LOG_ROOT/jobhandler" \
+  -jar "$ROOT_DIR/xxl-job-executor-samples/xxl-job-executor-sample-springboot/target/xxl-job-executor-sample-springboot-3.4.1-SNAPSHOT.jar"

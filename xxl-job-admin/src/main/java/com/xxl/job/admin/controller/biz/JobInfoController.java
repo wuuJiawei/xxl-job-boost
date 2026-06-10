@@ -81,13 +81,13 @@ public class JobInfoController {
 	@RequestMapping("/pageList")
 	@ResponseBody
 	public Response<PageModel<XxlJobInfo>> pageList(HttpServletRequest request,
-													@RequestParam(required = false, defaultValue = "0") int offset,
-													@RequestParam(required = false, defaultValue = "10") int pagesize,
-													@RequestParam int jobGroup,
-													@RequestParam int triggerStatus,
-													@RequestParam String jobDesc,
-													@RequestParam String executorHandler,
-													@RequestParam String author) {
+													@RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
+													@RequestParam(value = "pagesize", required = false, defaultValue = "10") int pagesize,
+													@RequestParam(value = "jobGroup", required = false, defaultValue = "-1") int jobGroup,
+													@RequestParam(value = "triggerStatus", required = false, defaultValue = "-1") int triggerStatus,
+													@RequestParam(value = "jobDesc", required = false, defaultValue = "") String jobDesc,
+													@RequestParam(value = "executorHandler", required = false, defaultValue = "") String executorHandler,
+													@RequestParam(value = "author", required = false, defaultValue = "") String author) {
 
 		// valid jobGroup permission
 		JobGroupPermissionUtil.validJobGroupPermission(request, jobGroup);
