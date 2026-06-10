@@ -91,22 +91,237 @@ XXL-JOB Boost 是一个基于 XXL-JOB 的非官方增强发行版。
 - 将告警配置从硬编码或单一渠道扩展为可配置能力
 - 让任务失败、超时、异常等事件具备统一通知出口
 
-## Phase 3: Executor Registration
+## Phase 3: Executor Registration And Declarative Job Sync
 
-第三阶段增强执行器注册能力，从“地址注册”提升到“元数据注册”。
+第三阶段不再把“自动注册”理解成单纯的执行器地址上报，而是明确拆成两层能力：
 
-规划范围：
+- XXL-JOB 现有能力：执行器机器地址自动注册、下线自动摘除、`@XxlJob` 本地自动扫描
+- XXL-JOB Boost 目标能力：执行器分组自动建档、任务声明式注册、任务配置同步策略
 
-- 自动注册
-- 元数据注册
-- 健康状态上报
+这也是 Boost 最有差异化价值的一段，不重写调度内核，而是补齐工程化接入体验。
+
+### 边界澄清
+
+当前 XXL-JOB 已经具备：
+
+- 执行器机器地址自动注册
+- 执行器节点下线自动摘除
+- `@XxlJob` 方法在本地执行器容器内自动扫描注册
+
+但当前仍然缺少完整原生支持的能力：
+
+- 执行器分组自动创建或更新
+- 调度中心任务配置自动创建
+- 注解驱动的 Cron / 路由 / 超时 / 重试 / 告警声明
+- 任务配置同步策略
+- 多环境隔离下的安全注册机制
+
+因此，Boost 在这一阶段的核心不是“再做一个注册线程”，而是把下面这条链路补齐：
+
+```text
+业务服务启动
+  ↓
+扫描 @XxlJobBoost / @XxlJob
+  ↓
+生成任务元数据
+  ↓
+调用 xxl-job-admin OpenAPI / 内部接口
+  ↓
+自动创建或更新执行器分组
+  ↓
+自动创建或更新任务配置
+  ↓
+执行器继续按原生方式注册机器地址
+```
+
+### 规划范围
+
+#### 1. 执行器分组自动创建
+
+把“执行器 appname 已配置，但调度中心还要手工建组”这一步补齐。
+
+建议能力：
+
+- 启动时检查调度中心是否存在对应 `appname`
+- 不存在则自动创建执行器分组
+- 存在则按策略更新标题、排序、注册方式等字段
+
+示例配置：
+
+```yaml
+xxl:
+  job:
+    boost:
+      auto-register-group: true
+      app-name: mall-order-executor
+      title: 商城订单执行器
+```
+
+#### 2. 注解驱动任务声明式注册
+
+新增增强注解，例如：
+
+```java
+@XxlJobBoost(
+    value = "closeTimeoutOrderJob",
+    desc = "关闭超时未支付订单",
+    cron = "0 */5 * * * ?",
+    author = "武佳伟",
+    routeStrategy = RouteStrategyEnum.FIRST,
+    misfireStrategy = MisfireStrategyEnum.DO_NOTHING,
+    blockStrategy = BlockStrategyEnum.SERIAL_EXECUTION,
+    timeout = 60,
+    retryCount = 3,
+    autoStart = false
+)
+public void closeTimeoutOrderJob() {
+    // 任务逻辑
+}
+```
+
+目标是把当前接入流程：
+
+```text
+写代码
+→ 登录 XXL-JOB
+→ 新增执行器
+→ 新增任务
+→ 填 JobHandler / Cron / 策略
+→ 保存
+```
+
+改造成：
+
+```text
+写代码
+→ 启动服务
+→ 自动注册
+```
+
+#### 3. 任务同步策略
+
+任务同步不能默认“每次启动无脑覆盖”，否则线上临时调整容易被冲掉。
+
+建议至少支持三种模式：
+
+```text
+CREATE_ONLY
+CREATE_UPDATE
+DISABLED
+```
+
+含义：
+
+- `CREATE_ONLY`：只创建不存在的任务，不覆盖已有任务
+- `CREATE_UPDATE`：创建并更新注解声明字段
+- `DISABLED`：关闭任务自动同步
+
+默认建议：
+
+- 默认使用 `CREATE_ONLY`
+- 生产环境默认关闭更新能力，避免误覆盖
+
+可补充保护配置：
+
+```text
+xxl.job.boost.sync-mode=CREATE_ONLY
+xxl.job.boost.allow-update=false
+```
+
+#### 4. 多环境隔离
+
+注册能力必须把 dev / test / prod 隔开，否则很容易串环境。
+
+建议能力：
+
+- 按环境生成执行器 appname
+- 支持 `spring.profiles.active` 模板化命名
+- 启动阶段显式打印当前目标环境和调度中心地址
+
+示例：
+
+```text
+xxl.job.boost.env=dev
+xxl.job.executor.appname=mall-order-executor-dev
+```
+
+或：
+
+```text
+xxl.job.boost.app-name-pattern=${spring.application.name}-${spring.profiles.active}
+```
+
+#### 5. 元数据增强
+
+在“自动建组 + 自动建任务”之外，再为后续治理做铺垫。
+
+建议逐步补齐：
+
+- 负责人默认值
+- 标签
 - 环境标识
-- 标签、负责人信息
+- 健康状态
+- 变更来源
+- 启动注册结果与 Diff 日志
 
-目标：
+### 模块拆分建议
 
-- 让执行器不只是一个地址
-- 让平台能理解执行器属于哪个环境、哪个团队、是否健康
+这一阶段不应强依赖 Spring MVC，也不应该把能力死绑在某一种运行时里。
+
+建议结构：
+
+```text
+xxl-job-boost-core
+  元数据模型、注册协议、同步逻辑
+
+xxl-job-boost-spring-boot-starter
+  Spring Boot 自动配置、注解扫描、生命周期管理
+
+xxl-job-boost-admin-api
+  调用 xxl-job-admin 的客户端
+
+xxl-job-boost-ui
+  后台增强页面，可后置
+```
+
+这样后续如果要适配：
+
+- Spring Boot
+- Solon
+- Quarkus
+- Micronaut
+- 普通 Java main
+
+也不会被某一种 Web 技术栈绑死。
+
+### 这一阶段的版本优先级
+
+建议按下面顺序交付，不要一口气把所有治理能力都塞进来：
+
+第一版先闭环：
+
+- 执行器分组自动创建
+- `@XxlJobBoost` 自动扫描
+- 任务自动创建
+- 任务变更 Diff 日志
+- `CREATE_ONLY / CREATE_UPDATE / DISABLED` 策略
+- 启动时打印注册结果
+
+第二版再扩展：
+
+- 任务分组标签
+- 任务负责人默认值
+- 告警渠道扩展
+- 企业微信 / 钉钉 / 飞书通知
+- 任务变更审计
+- 任务导入导出
+
+这条路线的目标是：
+
+- 不重写 XXL-JOB 调度核心
+- 不破坏原有执行器地址注册机制
+- 重点补齐“声明式任务接入”和“调度中心配置同步”
+- 让 XXL-JOB Boost 真正形成工程化差异
 
 ## Phase 4: Pluggable Transport
 
