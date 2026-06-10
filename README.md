@@ -146,6 +146,7 @@ bash scripts/run-admin-ui.sh
 
 ## 文档索引
 
+- [功能路线图 / Roadmap](docs/feature-roadmap.md)
 - [项目版本说明](docs/release-notes-2026-06-10.md)
 - [管理后台迁移计划](docs/admin-ui-migration-plan.md)
 - [源码增强策略](docs/upstream-extension-strategy.md)
