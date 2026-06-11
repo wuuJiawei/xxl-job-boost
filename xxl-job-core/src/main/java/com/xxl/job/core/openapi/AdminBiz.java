@@ -1,6 +1,7 @@
 package com.xxl.job.core.openapi;
 
 import com.xxl.job.core.openapi.model.CallbackRequest;
+import com.xxl.job.core.openapi.model.JobSyncRequest;
 import com.xxl.job.core.openapi.model.RegistryRequest;
 import com.xxl.tool.response.Response;
 
@@ -40,6 +41,14 @@ public interface AdminBiz {
      * @return
      */
     public Response<String> registryRemove(RegistryRequest registryRequest);
+
+    /**
+     * sync executor group and jobs
+     *
+     * @param jobSyncRequest sync payload
+     * @return response
+     */
+    public Response<String> syncJobs(JobSyncRequest jobSyncRequest);
 
 
     // ---------------------- job operate ----------------------

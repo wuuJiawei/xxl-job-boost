@@ -31,6 +31,12 @@ public class XxlJobConfig {
     @Value("${xxl.job.executor.appname}")
     private String appname;
 
+    @Value("${xxl.job.executor.group-title:}")
+    private String groupTitle;
+
+    @Value("${xxl.job.executor.sync-mode:DISABLED}")
+    private String syncMode;
+
     @Value("${xxl.job.executor.address}")
     private String address;
 
@@ -59,6 +65,8 @@ public class XxlJobConfig {
         xxlJobSpringExecutor.setTimeout(timeout);
         xxlJobSpringExecutor.setEnabled(enabled);
         xxlJobSpringExecutor.setAppname(appname);
+        xxlJobSpringExecutor.setGroupTitle(groupTitle);
+        xxlJobSpringExecutor.setSyncMode(syncMode);
         xxlJobSpringExecutor.setAddress(address);
         xxlJobSpringExecutor.setIp(ip);
         xxlJobSpringExecutor.setPort(port);

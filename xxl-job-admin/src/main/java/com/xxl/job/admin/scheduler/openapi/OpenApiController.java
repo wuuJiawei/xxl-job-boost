@@ -4,6 +4,7 @@ import com.xxl.job.admin.scheduler.config.XxlJobAdminBootstrap;
 import com.xxl.job.core.constant.Const;
 import com.xxl.job.core.openapi.AdminBiz;
 import com.xxl.job.core.openapi.model.CallbackRequest;
+import com.xxl.job.core.openapi.model.JobSyncRequest;
 import com.xxl.job.core.openapi.model.RegistryRequest;
 import com.xxl.sso.core.annotation.XxlSso;
 import com.xxl.tool.core.StringTool;
@@ -67,7 +68,11 @@ public class OpenApiController {
                 case "registryRemove": {
                     RegistryRequest registryParam = GsonTool.fromJson(requestBody, RegistryRequest.class);
                     return adminBiz.registryRemove(registryParam);
-                    }
+                }
+                case "syncJobs": {
+                    JobSyncRequest syncRequest = GsonTool.fromJson(requestBody, JobSyncRequest.class);
+                    return adminBiz.syncJobs(syncRequest);
+                }
                 default:
                     return Response.ofFail("invalid request, uri-mapping("+ uri +") not found.");
             }

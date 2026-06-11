@@ -1,8 +1,11 @@
 package com.xxl.job.core.executor.impl;
 
 import com.xxl.job.core.executor.XxlJobExecutor;
+import com.xxl.job.core.executor.JobSyncHelper;
 import com.xxl.job.core.glue.GlueFactory;
 import com.xxl.job.core.handler.annotation.XxlJob;
+import com.xxl.job.core.handler.annotation.XxlJobBoost;
+import com.xxl.job.core.openapi.model.JobSyncItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -83,6 +86,8 @@ public class XxlJobSpringExecutor extends XxlJobExecutor implements ApplicationC
             return;
         }
 
+        List<JobSyncItem> jobSyncItems = JobSyncHelper.newItems();
+
         // 1、build excluded-package list
         List<String> excludedPackageList = new ArrayList<>();
         if (excludedPackage != null) {
@@ -157,9 +162,17 @@ public class XxlJobSpringExecutor extends XxlJobExecutor implements ApplicationC
                 XxlJob xxlJob = jobMethodEntry.getValue();
                 // regist
                 registryJobHandler(xxlJob, jobBean, jobMethod);
+
+                XxlJobBoost xxlJobBoost = AnnotatedElementUtils.findMergedAnnotation(jobMethod, XxlJobBoost.class);
+                JobSyncItem item = JobSyncHelper.toItem(xxlJob.value(), xxlJobBoost, jobMethod);
+                if (item != null) {
+                    jobSyncItems.add(item);
+                }
             }
 
         }
+
+        JobSyncHelper.sync(this, jobSyncItems);
     }
 
     /**

@@ -1,10 +1,13 @@
 package com.xxl.job.admin.service.impl;
 
 import com.xxl.job.admin.scheduler.config.XxlJobAdminBootstrap;
+import com.xxl.job.admin.service.JobSyncService;
 import com.xxl.job.core.openapi.AdminBiz;
 import com.xxl.job.core.openapi.model.CallbackRequest;
+import com.xxl.job.core.openapi.model.JobSyncRequest;
 import com.xxl.job.core.openapi.model.RegistryRequest;
 import com.xxl.tool.response.Response;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,6 +17,9 @@ import java.util.List;
  */
 @Service
 public class AdminBizImpl implements AdminBiz {
+
+    @Resource
+    private JobSyncService jobSyncService;
 
     @Override
     public Response<String> callback(List<CallbackRequest> callbackRequestList) {
@@ -28,6 +34,11 @@ public class AdminBizImpl implements AdminBiz {
     @Override
     public Response<String> registryRemove(RegistryRequest registryRequest) {
         return XxlJobAdminBootstrap.getInstance().getJobRegistryHelper().registryRemove(registryRequest);
+    }
+
+    @Override
+    public Response<String> syncJobs(JobSyncRequest jobSyncRequest) {
+        return jobSyncService.sync(jobSyncRequest);
     }
 
 }

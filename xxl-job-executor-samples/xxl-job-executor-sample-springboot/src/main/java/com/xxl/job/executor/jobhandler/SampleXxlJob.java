@@ -2,6 +2,7 @@ package com.xxl.job.executor.jobhandler;
 
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
+import com.xxl.job.core.handler.annotation.XxlJobBoost;
 import com.xxl.tool.core.StringTool;
 import com.xxl.tool.json.GsonTool;
 import com.xxl.tool.http.HttpTool;
@@ -39,6 +40,16 @@ public class SampleXxlJob {
      * 1、简单任务示例（Bean模式）
      */
     @XxlJob("demoJobHandler")
+    @XxlJobBoost(
+            desc = "示例任务01",
+            author = "XXL",
+            scheduleType = "CRON",
+            scheduleConf = "0 0 0 * * ? *",
+            routeStrategy = "FIRST",
+            misfireStrategy = "DO_NOTHING",
+            blockStrategy = "SERIAL_EXECUTION",
+            autoStart = false
+    )
     public void demoJobHandler() throws Exception {
         XxlJobHelper.log("XXL-JOB, Hello World.");
 
@@ -54,6 +65,15 @@ public class SampleXxlJob {
      * 2、分片广播任务
      */
     @XxlJob("shardingJobHandler")
+    @XxlJobBoost(
+            desc = "分片广播示例任务",
+            author = "XXL",
+            scheduleType = "NONE",
+            routeStrategy = "SHARDING_BROADCAST",
+            misfireStrategy = "DO_NOTHING",
+            blockStrategy = "SERIAL_EXECUTION",
+            autoStart = false
+    )
     public void shardingJobHandler() throws Exception {
 
         // 分片参数

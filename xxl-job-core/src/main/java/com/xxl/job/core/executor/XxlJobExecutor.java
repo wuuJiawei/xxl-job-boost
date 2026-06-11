@@ -41,6 +41,8 @@ public class XxlJobExecutor  {
     private int timeout;
     private Boolean enabled;
     private String appname;
+    private String groupTitle;
+    private String syncMode = "DISABLED";
     private String address;
     private String ip;
     private int port;
@@ -61,6 +63,12 @@ public class XxlJobExecutor  {
     }
     public void setAppname(String appname) {
         this.appname = appname;
+    }
+    public void setGroupTitle(String groupTitle) {
+        this.groupTitle = groupTitle;
+    }
+    public void setSyncMode(String syncMode) {
+        this.syncMode = syncMode;
     }
     public void setAddress(String address) {
         this.address = address;
@@ -142,6 +150,30 @@ public class XxlJobExecutor  {
         // 3、destroy TriggerCallbackThread
         TriggerCallbackThread.getInstance().toStop();
 
+    }
+
+    public String getAdminAddresses() {
+        return adminAddresses;
+    }
+
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public int getTimeout() {
+        return timeout;
+    }
+
+    public String getAppname() {
+        return appname;
+    }
+
+    public String getGroupTitle() {
+        return groupTitle;
+    }
+
+    public String getSyncMode() {
+        return syncMode;
     }
 
 
