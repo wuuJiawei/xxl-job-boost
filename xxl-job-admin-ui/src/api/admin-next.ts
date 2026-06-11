@@ -53,12 +53,25 @@ export type MetadataOption = {
   value: string;
 };
 
+export type AlarmChannelOption = {
+  id: number;
+  name: string;
+  type: string;
+  endpoint?: string | null;
+  recipients?: string | null;
+  headersJson?: string | null;
+  enabled: number;
+  remark?: string | null;
+};
+
 export type JobMetadata = {
   scheduleTypes: MetadataOption[];
   routeStrategies: MetadataOption[];
   misfireStrategies: MetadataOption[];
   blockStrategies: MetadataOption[];
   glueTypes: MetadataOption[];
+  alarmChannelTypes: MetadataOption[];
+  alarmChannels: AlarmChannelOption[];
 };
 
 export async function fetchSession() {
@@ -88,5 +101,21 @@ export async function fetchLogDetailMeta(logId: number) {
 
 export async function fetchJobMetadata() {
   const { data } = await http.get<ApiResponse<JobMetadata>>('/api/admin-next/job-metadata');
+  return data;
+}
+
+export async function fetchAlarmChannelDetail(id: number) {
+  const { data } = await http.get<ApiResponse<AlarmChannelOption>>(`/api/admin-next/alarm-channels/${id}`);
+  return data;
+}
+
+export async function fetchAlarmRecords(params: {
+  offset: number;
+  pagesize: number;
+  jobGroup: number;
+  channelType: string;
+  sendStatus: number;
+}) {
+  const { data } = await http.get<ApiResponse<{ data: unknown[]; total: number }>>('/api/admin-next/alarm-records', { params });
   return data;
 }

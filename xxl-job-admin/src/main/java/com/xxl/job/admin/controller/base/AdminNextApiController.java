@@ -1,11 +1,16 @@
 package com.xxl.job.admin.controller.base;
 
 import com.xxl.job.admin.constant.Consts;
+import com.xxl.job.admin.core.alarm.AlarmChannelType;
+import com.xxl.job.admin.mapper.XxlJobAlarmChannelMapper;
+import com.xxl.job.admin.mapper.XxlJobAlarmRecordMapper;
 import com.xxl.job.admin.mapper.XxlJobGroupMapper;
 import com.xxl.job.admin.mapper.XxlJobInfoMapper;
 import com.xxl.job.admin.mapper.XxlJobLogGlueMapper;
 import com.xxl.job.admin.mapper.XxlJobLogMapper;
 import com.xxl.job.admin.mapper.XxlJobUserMapper;
+import com.xxl.job.admin.model.XxlJobAlarmChannel;
+import com.xxl.job.admin.model.XxlJobAlarmRecord;
 import com.xxl.job.admin.model.XxlJobGroup;
 import com.xxl.job.admin.model.XxlJobInfo;
 import com.xxl.job.admin.model.XxlJobLogGlue;
@@ -59,6 +64,10 @@ public class AdminNextApiController {
     private XxlJobUserMapper xxlJobUserMapper;
     @Resource
     private XxlJobLogGlueMapper xxlJobLogGlueMapper;
+    @Resource
+    private XxlJobAlarmChannelMapper xxlJobAlarmChannelMapper;
+    @Resource
+    private XxlJobAlarmRecordMapper xxlJobAlarmRecordMapper;
 
     @GetMapping("/session")
     @ResponseBody
@@ -110,6 +119,8 @@ public class AdminNextApiController {
         data.put("misfireStrategies", toOptions(MisfireStrategyEnum.values(), MisfireStrategyEnum::name, MisfireStrategyEnum::getTitle));
         data.put("blockStrategies", toOptions(ExecutorBlockStrategyEnum.values(), ExecutorBlockStrategyEnum::name, ExecutorBlockStrategyEnum::getTitle));
         data.put("glueTypes", toOptions(GlueTypeEnum.values(), GlueTypeEnum::name, GlueTypeEnum::getDesc));
+        data.put("alarmChannelTypes", toOptions(AlarmChannelType.values(), AlarmChannelType::name, AlarmChannelType::name));
+        data.put("alarmChannels", xxlJobAlarmChannelMapper.findAllEnabled());
         return Response.ofSuccess(data);
     }
 
@@ -259,6 +270,37 @@ public class AdminNextApiController {
         }
         user.setPassword(null);
         return Response.ofSuccess(user);
+    }
+
+    @GetMapping("/alarm-channels/{channelId}")
+    @ResponseBody
+    @XxlSso(role = com.xxl.job.admin.constant.Consts.ADMIN_ROLE)
+    public Response<Object> alarmChannelDetail(@PathVariable int channelId) {
+        XxlJobAlarmChannel channel = xxlJobAlarmChannelMapper.load(channelId);
+        if (channel == null) {
+            return Response.ofFail("告警渠道不存在");
+        }
+        return Response.ofSuccess(channel);
+    }
+
+    @GetMapping("/alarm-records")
+    @ResponseBody
+    @XxlSso
+    public Response<Map<String, Object>> alarmRecords(HttpServletRequest request,
+                                                      @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
+                                                      @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pagesize,
+                                                      @RequestParam(value = "jobGroup", required = false, defaultValue = "-1") int jobGroup,
+                                                      @RequestParam(value = "channelType", required = false, defaultValue = "") String channelType,
+                                                      @RequestParam(value = "sendStatus", required = false, defaultValue = "-1") int sendStatus) {
+        if (jobGroup > 0) {
+            JobGroupPermissionUtil.validJobGroupPermission(request, jobGroup);
+        }
+        List<XxlJobAlarmRecord> list = xxlJobAlarmRecordMapper.pageList(offset, pagesize, jobGroup, channelType, sendStatus);
+        int count = xxlJobAlarmRecordMapper.pageListCount(offset, pagesize, jobGroup, channelType, sendStatus);
+        Map<String, Object> data = new HashMap<>();
+        data.put("data", list);
+        data.put("total", count);
+        return Response.ofSuccess(data);
     }
 
     @GetMapping("/help")

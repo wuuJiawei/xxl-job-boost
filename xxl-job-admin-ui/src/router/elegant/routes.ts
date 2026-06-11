@@ -40,6 +40,18 @@ export const generatedRoutes: GeneratedRoute[] = [
     }
   },
   {
+    name: 'alerts',
+    path: '/alerts',
+    component: 'layout.base$view.alerts',
+    meta: {
+      title: 'alerts',
+      i18nKey: 'route.alerts',
+      icon: 'mdi:bell-alert-outline',
+      order: 5,
+      roles: ['R_SUPER']
+    }
+  },
+  {
     name: 'executors',
     path: '/executors',
     component: 'layout.base$view.executors',
@@ -151,7 +163,7 @@ export const generatedRoutes: GeneratedRoute[] = [
       title: 'users',
       i18nKey: 'route.users',
       icon: 'mdi:account-group-outline',
-      order: 5
+      order: 6
     }
   }
 ];

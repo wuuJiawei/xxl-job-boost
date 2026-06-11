@@ -110,6 +110,72 @@ start_mysql() {
   fi
 }
 
+migrate_alarm_schema() {
+  require_cmd docker
+
+  docker exec -i "$MYSQL_CONTAINER" mysql -uroot "-p$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE" <<'SQL'
+CREATE TABLE IF NOT EXISTS `xxl_job_alarm_channel`
+(
+    `id`           int(11)      NOT NULL AUTO_INCREMENT,
+    `name`         varchar(64)  NOT NULL COMMENT '渠道名称',
+    `type`         varchar(32)  NOT NULL COMMENT '渠道类型：EMAIL/WEBHOOK/FEISHU/WECOM/DINGTALK',
+    `endpoint`     varchar(512)          DEFAULT NULL COMMENT 'Webhook地址',
+    `recipients`   varchar(512)          DEFAULT NULL COMMENT '邮件接收人，多个逗号分隔',
+    `secret`       varchar(255)          DEFAULT NULL COMMENT '预留密钥字段',
+    `headers_json` text                  DEFAULT NULL COMMENT '自定义请求头JSON',
+    `enabled`      tinyint(4)   NOT NULL DEFAULT '1' COMMENT '启用状态：0-停用，1-启用',
+    `remark`       varchar(255)          DEFAULT NULL COMMENT '备注',
+    `update_time`  datetime              DEFAULT NULL,
+    PRIMARY KEY (`id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `xxl_job_alarm_record`
+(
+    `id`            bigint(20)   NOT NULL AUTO_INCREMENT,
+    `job_group`     int(11)      NOT NULL COMMENT '执行器主键ID',
+    `job_id`        int(11)      NOT NULL COMMENT '任务主键ID',
+    `job_log_id`    bigint(20)   NOT NULL COMMENT '任务日志ID',
+    `job_desc`      varchar(255)          DEFAULT NULL COMMENT '任务描述',
+    `channel_id`    int(11)               DEFAULT NULL COMMENT '渠道ID，legacy邮件可为空',
+    `channel_name`  varchar(64)  NOT NULL COMMENT '渠道名称',
+    `channel_type`  varchar(32)  NOT NULL COMMENT '渠道类型',
+    `target`        varchar(512)          DEFAULT NULL COMMENT '目标地址或接收人',
+    `alarm_title`   varchar(255) NOT NULL COMMENT '告警标题',
+    `alarm_content` text                  DEFAULT NULL COMMENT '告警内容',
+    `send_status`   tinyint(4)   NOT NULL DEFAULT '0' COMMENT '发送状态：1-成功，2-失败',
+    `response_code` int(11)               DEFAULT NULL COMMENT '响应状态码',
+    `response_body` text                  DEFAULT NULL COMMENT '响应体',
+    `error_msg`     varchar(512)          DEFAULT NULL COMMENT '错误信息',
+    `create_time`   datetime              DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    KEY `i_job_group` (`job_group`),
+    KEY `i_job_id` (`job_id`),
+    KEY `i_job_log_id` (`job_log_id`),
+    KEY `i_channel_type` (`channel_type`),
+    KEY `i_send_status` (`send_status`),
+    KEY `i_create_time` (`create_time`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
+
+SET @has_alarm_channel_ids := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'xxl_job_info'
+      AND column_name = 'alarm_channel_ids'
+);
+SET @add_alarm_channel_ids_sql := IF(
+    @has_alarm_channel_ids = 0,
+    'ALTER TABLE `xxl_job_info` ADD COLUMN `alarm_channel_ids` varchar(255) DEFAULT NULL COMMENT ''告警渠道ID，多个逗号分隔'' AFTER `alarm_email`',
+    'SELECT 1'
+);
+PREPARE add_alarm_channel_ids_stmt FROM @add_alarm_channel_ids_sql;
+EXECUTE add_alarm_channel_ids_stmt;
+DEALLOCATE PREPARE add_alarm_channel_ids_stmt;
+SQL
+}
+
 build_jars() {
   require_cmd mvn
 
@@ -202,7 +268,24 @@ wait_for_port() {
   return 1
 }
 
+resolve_service_pid() {
+  local pattern="$1"
+  pgrep -f "$pattern" | tail -n 1
+}
+
+refresh_pid_file() {
+  local pid_file="$1"
+  local pattern="$2"
+  local pid=""
+
+  pid="$(resolve_service_pid "$pattern" || true)"
+  if [[ -n "$pid" ]]; then
+    echo "$pid" >"$pid_file"
+  fi
+}
+
 start_mysql
+migrate_alarm_schema
 resolve_java
 export LOG_HOME="$LOG_ROOT"
 build_jars
@@ -222,6 +305,7 @@ wait_for_port 8080 || {
   echo "admin failed to bind 8080, see $ADMIN_LOG_FILE" >&2
   exit 1
 }
+refresh_pid_file "$ADMIN_PID_FILE" "$ADMIN_JAR"
 
 start_service \
   executor \
@@ -241,6 +325,7 @@ wait_for_port 9999 || {
   echo "executor failed to bind 9999, see $EXECUTOR_LOG_FILE" >&2
   exit 1
 }
+refresh_pid_file "$EXECUTOR_PID_FILE" "$EXECUTOR_JAR"
 
 echo "admin:    http://127.0.0.1:8080/xxl-job-admin/"
 echo "admin-ui: http://127.0.0.1:8080/xxl-job-admin/admin-next/"

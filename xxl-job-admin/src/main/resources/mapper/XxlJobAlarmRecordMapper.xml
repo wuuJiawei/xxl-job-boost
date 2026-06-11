@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xxl.job.admin.mapper.XxlJobAlarmRecordMapper">
+
+    <resultMap id="XxlJobAlarmRecord" type="com.xxl.job.admin.model.XxlJobAlarmRecord">
+        <result column="id" property="id" />
+        <result column="job_group" property="jobGroup" />
+        <result column="job_id" property="jobId" />
+        <result column="job_log_id" property="jobLogId" />
+        <result column="job_desc" property="jobDesc" />
+        <result column="channel_id" property="channelId" />
+        <result column="channel_name" property="channelName" />
+        <result column="channel_type" property="channelType" />
+        <result column="target" property="target" />
+        <result column="alarm_title" property="alarmTitle" />
+        <result column="alarm_content" property="alarmContent" />
+        <result column="send_status" property="sendStatus" />
+        <result column="response_code" property="responseCode" />
+        <result column="response_body" property="responseBody" />
+        <result column="error_msg" property="errorMsg" />
+        <result column="create_time" property="createTime" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        t.id,
+        t.job_group,
+        t.job_id,
+        t.job_log_id,
+        t.job_desc,
+        t.channel_id,
+        t.channel_name,
+        t.channel_type,
+        t.target,
+        t.alarm_title,
+        t.alarm_content,
+        t.send_status,
+        t.response_code,
+        t.response_body,
+        t.error_msg,
+        t.create_time
+    </sql>
+
+    <select id="pageList" resultMap="XxlJobAlarmRecord">
+        SELECT <include refid="Base_Column_List" />
+        FROM xxl_job_alarm_record AS t
+        <trim prefix="WHERE" prefixOverrides="AND | OR">
+            <if test="jobGroup gt 0">
+                AND t.job_group = #{jobGroup}
+            </if>
+            <if test="channelType != null and channelType != ''">
+                AND t.channel_type = #{channelType}
+            </if>
+            <if test="sendStatus gte 0">
+                AND t.send_status = #{sendStatus}
+            </if>
+        </trim>
+        ORDER BY t.id DESC
+        LIMIT #{offset}, #{pagesize}
+    </select>
+
+    <select id="pageListCount" resultType="int">
+        SELECT count(1)
+        FROM xxl_job_alarm_record AS t
+        <trim prefix="WHERE" prefixOverrides="AND | OR">
+            <if test="jobGroup gt 0">
+                AND t.job_group = #{jobGroup}
+            </if>
+            <if test="channelType != null and channelType != ''">
+                AND t.channel_type = #{channelType}
+            </if>
+            <if test="sendStatus gte 0">
+                AND t.send_status = #{sendStatus}
+            </if>
+        </trim>
+    </select>
+
+    <insert id="save" parameterType="com.xxl.job.admin.model.XxlJobAlarmRecord" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO xxl_job_alarm_record (
+            job_group,
+            job_id,
+            job_log_id,
+            job_desc,
+            channel_id,
+            channel_name,
+            channel_type,
+            target,
+            alarm_title,
+            alarm_content,
+            send_status,
+            response_code,
+            response_body,
+            error_msg,
+            create_time
+        ) VALUES (
+            #{jobGroup},
+            #{jobId},
+            #{jobLogId},
+            #{jobDesc},
+            #{channelId},
+            #{channelName},
+            #{channelType},
+            #{target},
+            #{alarmTitle},
+            #{alarmContent},
+            #{sendStatus},
+            #{responseCode},
+            #{responseBody},
+            #{errorMsg},
+            #{createTime}
+        )
+    </insert>
+
+</mapper>

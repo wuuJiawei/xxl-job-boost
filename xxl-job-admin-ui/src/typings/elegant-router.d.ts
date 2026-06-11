@@ -20,6 +20,7 @@ declare module "@elegant-router/types" {
     "403": "/403";
     "404": "/404";
     "500": "/500";
+    "alerts": "/alerts";
     "executors": "/executors";
     "help": "/help";
     "home": "/home";
@@ -64,6 +65,7 @@ declare module "@elegant-router/types" {
     | "403"
     | "404"
     | "500"
+    | "alerts"
     | "executors"
     | "help"
     | "home"
@@ -95,6 +97,7 @@ declare module "@elegant-router/types" {
     | "500"
     | "iframe-page"
     | "login"
+    | "alerts"
     | "executors"
     | "help"
     | "home"

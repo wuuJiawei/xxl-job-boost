@@ -5,9 +5,18 @@ set -euo pipefail
 RUN_ROOT="${RUN_ROOT:-/tmp/xxl-job-boost-run}"
 MYSQL_CONTAINER="${MYSQL_CONTAINER:-xxljob-mysql}"
 
+ADMIN_PATTERN="${ADMIN_PATTERN:-xxl-job-admin/target/xxl-job-admin-3.4.1-SNAPSHOT.jar}"
+EXECUTOR_PATTERN="${EXECUTOR_PATTERN:-xxl-job-executor-samples/xxl-job-executor-sample-springboot/target/xxl-job-executor-sample-springboot-3.4.1-SNAPSHOT.jar}"
+
+resolve_service_pid() {
+  local pattern="$1"
+  pgrep -f "$pattern" | tail -n 1
+}
+
 print_service() {
   local name="$1"
   local pid_file="$2"
+  local pattern="$3"
 
   if [[ -f "$pid_file" ]]; then
     local pid
@@ -16,15 +25,21 @@ print_service() {
       echo "$name: running (pid $pid)"
       return
     fi
-    echo "$name: stale pid file ($pid)"
+  fi
+
+  local actual_pid
+  actual_pid="$(resolve_service_pid "$pattern" || true)"
+  if [[ -n "$actual_pid" ]]; then
+    echo "$actual_pid" >"$pid_file"
+    echo "$name: running (pid $actual_pid)"
     return
   fi
 
   echo "$name: stopped"
 }
 
-print_service admin "$RUN_ROOT/admin.pid"
-print_service executor "$RUN_ROOT/executor.pid"
+print_service admin "$RUN_ROOT/admin.pid" "$ADMIN_PATTERN"
+print_service executor "$RUN_ROOT/executor.pid" "$EXECUTOR_PATTERN"
 
 if command -v docker >/dev/null 2>&1; then
   if docker ps --format '{{.Names}}' | grep -qx "$MYSQL_CONTAINER"; then

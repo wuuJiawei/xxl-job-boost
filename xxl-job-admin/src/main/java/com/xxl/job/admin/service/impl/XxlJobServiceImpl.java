@@ -1,6 +1,7 @@
 package com.xxl.job.admin.service.impl;
 
 import com.xxl.job.admin.constant.TriggerStatus;
+import com.xxl.job.admin.core.alarm.AlarmChannelService;
 import com.xxl.job.admin.mapper.*;
 import com.xxl.job.admin.model.XxlJobGroup;
 import com.xxl.job.admin.model.XxlJobInfo;
@@ -49,6 +50,8 @@ public class XxlJobServiceImpl implements XxlJobService {
 	private XxlJobLogGlueMapper xxlJobLogGlueMapper;
 	@Resource
 	private XxlJobLogReportMapper xxlJobLogReportMapper;
+	@Resource
+	private AlarmChannelService alarmChannelService;
 	
 	@Override
 	public Response<PageModel<XxlJobInfo>> pageList(int offset, int pagesize, int jobGroup, int triggerStatus, String jobDesc, String executorHandler, String author) {
@@ -78,6 +81,14 @@ public class XxlJobServiceImpl implements XxlJobService {
 		}
 		if (StringTool.isBlank(jobInfo.getAuthor())) {
 			return Response.ofFail ( (I18nUtil.getString("system_please_input")+I18nUtil.getString("jobinfo_field_author")) );
+		}
+		if (jobInfo.getAlarmEmail() != null) {
+			jobInfo.setAlarmEmail(jobInfo.getAlarmEmail().trim());
+		}
+		try {
+			jobInfo.setAlarmChannelIds(alarmChannelService.normalizeChannelIdsToString(jobInfo.getAlarmChannelIds()));
+		} catch (IllegalArgumentException e) {
+			return Response.ofFail(e.getMessage());
 		}
 
 		// valid trigger
@@ -184,6 +195,14 @@ public class XxlJobServiceImpl implements XxlJobService {
 		}
 		if (StringTool.isBlank(jobInfo.getAuthor())) {
 			return Response.ofFail ( (I18nUtil.getString("system_please_input")+I18nUtil.getString("jobinfo_field_author")) );
+		}
+		if (jobInfo.getAlarmEmail() != null) {
+			jobInfo.setAlarmEmail(jobInfo.getAlarmEmail().trim());
+		}
+		try {
+			jobInfo.setAlarmChannelIds(alarmChannelService.normalizeChannelIdsToString(jobInfo.getAlarmChannelIds()));
+		} catch (IllegalArgumentException e) {
+			return Response.ofFail(e.getMessage());
 		}
 
 		// valid trigger
@@ -292,6 +311,7 @@ public class XxlJobServiceImpl implements XxlJobService {
 		exists_jobInfo.setJobDesc(jobInfo.getJobDesc());
 		exists_jobInfo.setAuthor(jobInfo.getAuthor());
 		exists_jobInfo.setAlarmEmail(jobInfo.getAlarmEmail());
+		exists_jobInfo.setAlarmChannelIds(jobInfo.getAlarmChannelIds());
 		exists_jobInfo.setScheduleType(jobInfo.getScheduleType());
 		exists_jobInfo.setScheduleConf(jobInfo.getScheduleConf());
 		exists_jobInfo.setMisfireStrategy(jobInfo.getMisfireStrategy());

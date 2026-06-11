@@ -44,6 +44,7 @@ CREATE TABLE `xxl_job_info`
     `update_time`               datetime              DEFAULT NULL,
     `author`                    varchar(64)           DEFAULT NULL COMMENT '作者',
     `alarm_email`               varchar(255)          DEFAULT NULL COMMENT '报警邮件',
+    `alarm_channel_ids`         varchar(255)          DEFAULT NULL COMMENT '告警渠道ID，多个逗号分隔',
     `schedule_type`             varchar(50)  NOT NULL DEFAULT 'NONE' COMMENT '调度类型',
     `schedule_conf`             varchar(128)          DEFAULT NULL COMMENT '调度配置，值含义取决于调度类型',
     `misfire_strategy`          varchar(50)  NOT NULL DEFAULT 'DO_NOTHING' COMMENT '调度过期策略',
@@ -61,6 +62,22 @@ CREATE TABLE `xxl_job_info`
     `trigger_status`            tinyint(4)   NOT NULL DEFAULT '0' COMMENT '调度状态：0-停止，1-运行',
     `trigger_last_time`         bigint(13)   NOT NULL DEFAULT '0' COMMENT '上次调度时间',
     `trigger_next_time`         bigint(13)   NOT NULL DEFAULT '0' COMMENT '下次调度时间',
+    PRIMARY KEY (`id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
+
+CREATE TABLE `xxl_job_alarm_channel`
+(
+    `id`           int(11)      NOT NULL AUTO_INCREMENT,
+    `name`         varchar(64)  NOT NULL COMMENT '渠道名称',
+    `type`         varchar(32)  NOT NULL COMMENT '渠道类型：EMAIL/WEBHOOK/FEISHU/WECOM/DINGTALK',
+    `endpoint`     varchar(512)          DEFAULT NULL COMMENT 'Webhook地址',
+    `recipients`   varchar(512)          DEFAULT NULL COMMENT '邮件接收人，多个逗号分隔',
+    `secret`       varchar(255)          DEFAULT NULL COMMENT '预留密钥字段',
+    `headers_json` text                  DEFAULT NULL COMMENT '自定义请求头JSON',
+    `enabled`      tinyint(4)   NOT NULL DEFAULT '1' COMMENT '启用状态：0-停用，1-启用',
+    `remark`       varchar(255)          DEFAULT NULL COMMENT '备注',
+    `update_time`  datetime              DEFAULT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
@@ -118,6 +135,34 @@ CREATE TABLE `xxl_job_log_report`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
+CREATE TABLE `xxl_job_alarm_record`
+(
+    `id`            bigint(20)   NOT NULL AUTO_INCREMENT,
+    `job_group`     int(11)      NOT NULL COMMENT '执行器主键ID',
+    `job_id`        int(11)      NOT NULL COMMENT '任务主键ID',
+    `job_log_id`    bigint(20)   NOT NULL COMMENT '任务日志ID',
+    `job_desc`      varchar(255)          DEFAULT NULL COMMENT '任务描述',
+    `channel_id`    int(11)               DEFAULT NULL COMMENT '渠道ID，legacy邮件可为空',
+    `channel_name`  varchar(64)  NOT NULL COMMENT '渠道名称',
+    `channel_type`  varchar(32)  NOT NULL COMMENT '渠道类型',
+    `target`        varchar(512)          DEFAULT NULL COMMENT '目标地址或接收人',
+    `alarm_title`   varchar(255) NOT NULL COMMENT '告警标题',
+    `alarm_content` text                  DEFAULT NULL COMMENT '告警内容',
+    `send_status`   tinyint(4)   NOT NULL DEFAULT '0' COMMENT '发送状态：1-成功，2-失败',
+    `response_code` int(11)               DEFAULT NULL COMMENT '响应状态码',
+    `response_body` text                  DEFAULT NULL COMMENT '响应体',
+    `error_msg`     varchar(512)          DEFAULT NULL COMMENT '错误信息',
+    `create_time`   datetime              DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    KEY `i_job_group` (`job_group`),
+    KEY `i_job_id` (`job_id`),
+    KEY `i_job_log_id` (`job_log_id`),
+    KEY `i_channel_type` (`channel_type`),
+    KEY `i_send_status` (`send_status`),
+    KEY `i_create_time` (`create_time`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
+
 ## —————————————————————— lock ——————————————————
 
 CREATE TABLE `xxl_job_lock`
@@ -150,21 +195,21 @@ INSERT INTO `xxl_job_group`(`id`, `app_name`, `title`, `address_type`, `address_
            (2, 'xxl-job-executor-sample-ai', 'AI执行器Sample', 0, NULL, now());
 
 INSERT INTO `xxl_job_info`(`id`, `job_group`, `job_desc`, `add_time`, `update_time`, `author`, `alarm_email`,
-                           `schedule_type`, `schedule_conf`, `misfire_strategy`, `executor_route_strategy`,
+                           `alarm_channel_ids`, `schedule_type`, `schedule_conf`, `misfire_strategy`, `executor_route_strategy`,
                            `executor_handler`, `executor_param`, `executor_block_strategy`, `executor_timeout`,
                            `executor_fail_retry_count`, `glue_type`, `glue_source`, `glue_remark`, `glue_updatetime`,
                            `child_jobid`)
-VALUES (1, 1, '示例任务01', now(), now(), 'XXL', '', 'CRON', '0 0 0 * * ? *',
+VALUES (1, 1, '示例任务01', now(), now(), 'XXL', '', '', 'CRON', '0 0 0 * * ? *',
         'DO_NOTHING', 'FIRST', 'demoJobHandler', '', 'SERIAL_EXECUTION', 0, 0, 'BEAN', '', 'GLUE代码初始化',
         now(), ''),
-       (2, 2, 'Ollama示例任务', now(), now(), 'XXL', '', 'NONE', '',
+       (2, 2, 'Ollama示例任务', now(), now(), 'XXL', '', '', 'NONE', '',
         'DO_NOTHING', 'FIRST', 'ollamaJobHandler', '{
     "input": "Java实现二叉树层序遍历",
     "prompt": "你是一个研发工程师，擅长解决技术类问题。",
     "model": "qwen3.5:2b"
 }', 'SERIAL_EXECUTION', 0, 0, 'BEAN', '', 'GLUE代码初始化',
         now(), ''),
-       (3, 2, 'Dify示例任务', now(), now(), 'XXL', '', 'NONE', '',
+       (3, 2, 'Dify示例任务', now(), now(), 'XXL', '', '', 'NONE', '',
         'DO_NOTHING', 'FIRST', 'difyWorkflowJobHandler', '{
     "inputs":{
         "input":"查询班级各学科前三名"
@@ -174,7 +219,7 @@ VALUES (1, 1, '示例任务01', now(), now(), 'XXL', '', 'CRON', '0 0 0 * * ? *'
     "apiKey": "app-OUVgNUOQRIMokfmuJvBJoUTN"
 }', 'SERIAL_EXECUTION', 0, 0, 'BEAN', '', 'GLUE代码初始化',
         now(), ''),
-       (4, 2, 'OpenClaw示例任务', now(), now(), 'XXL', '', 'NONE', '',
+       (4, 2, 'OpenClaw示例任务', now(), now(), 'XXL', '', '', 'NONE', '',
         'DO_NOTHING', 'FIRST', 'openClawJobHandler', '{
     "input": "查看下上海今天得天气，给出出游建议",
     "prompt": "你是一个出游助手，擅长做旅游规划"

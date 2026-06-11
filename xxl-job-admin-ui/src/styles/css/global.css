@@ -80,6 +80,14 @@ body {
   grid-template-columns: 1.1fr 1fr 0.9fr 1.5fr auto;
 }
 
+.alerts-filter-grid {
+  grid-template-columns: 1.2fr 1fr 0.9fr auto;
+}
+
+.alerts-record-filter-grid {
+  grid-template-columns: 1.2fr 1fr 0.9fr auto;
+}
+
 .range-picker {
   width: 100%;
 }
@@ -298,6 +306,8 @@ body {
 @media (width <= 1200px) {
   .jobs-filter-grid,
   .logs-filter-grid,
+  .alerts-filter-grid,
+  .alerts-record-filter-grid,
   .filter-grid,
   .job-code-layout {
     grid-template-columns: 1fr;

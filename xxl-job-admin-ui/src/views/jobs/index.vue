@@ -79,6 +79,14 @@
           <n-form-item-gi path="alarmEmail" label="报警邮件">
             <n-input v-model:value="formValue.alarmEmail" placeholder="多个邮箱用逗号分隔，可选" />
           </n-form-item-gi>
+          <n-form-item-gi path="alarmChannelIds" label="告警渠道">
+            <n-select
+              v-model:value="formValue.alarmChannelIds"
+              multiple
+              :options="alarmChannelOptions"
+              placeholder="选择失败告警渠道，可选"
+            />
+          </n-form-item-gi>
         </n-grid>
 
         <div class="table-header">
@@ -243,6 +251,7 @@ import {
 import {
   fetchJobGroups,
   fetchJobMetadata,
+  type AlarmChannelOption,
   type JobGroupOption,
   type JobMetadata,
   type MetadataOption
@@ -298,6 +307,7 @@ const formValue = reactive({
   jobDesc: '',
   author: '',
   alarmEmail: '',
+  alarmChannelIds: [] as number[],
   scheduleType: 'CRON',
   scheduleConf: '',
   glueType: 'BEAN',
@@ -399,6 +409,12 @@ const routeStrategyOptions = computed<SelectOption[]>(() => toSelectOptions(meta
 const misfireStrategyOptions = computed<SelectOption[]>(() => toSelectOptions(metadata.value?.misfireStrategies || []));
 const blockStrategyOptions = computed<SelectOption[]>(() => toSelectOptions(metadata.value?.blockStrategies || []));
 const glueTypeOptions = computed<SelectOption[]>(() => toSelectOptions(metadata.value?.glueTypes || []));
+const alarmChannelOptions = computed<SelectOption[]>(() =>
+  (metadata.value?.alarmChannels || []).map((item: AlarmChannelOption) => ({
+    label: `${item.name} [${item.type}]`,
+    value: item.id
+  }))
+);
 
 const scheduleConfLabel = computed(() => (formValue.scheduleType === 'CRON' ? 'Cron' : '固定频率(秒)'));
 const scheduleConfPlaceholder = computed(() =>
@@ -528,6 +544,7 @@ function resetFormValue() {
   formValue.jobDesc = '';
   formValue.author = '';
   formValue.alarmEmail = '';
+  formValue.alarmChannelIds = [];
   formValue.scheduleType = metadata.value?.scheduleTypes.find((item) => item.value === 'CRON')?.value || 'CRON';
   formValue.scheduleConf = '';
   formValue.glueType = 'BEAN';
@@ -547,6 +564,11 @@ function hydrateForm(job: JobInfo) {
   formValue.jobDesc = job.jobDesc || '';
   formValue.author = job.author || '';
   formValue.alarmEmail = job.alarmEmail || '';
+  formValue.alarmChannelIds = (job.alarmChannelIds || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((item) => Number(item));
   formValue.scheduleType = job.scheduleType || 'CRON';
   formValue.scheduleConf = job.scheduleConf || '';
   formValue.glueType = job.glueType || 'BEAN';
@@ -566,6 +588,7 @@ function buildPayload() {
     jobDesc: formValue.jobDesc.trim(),
     author: formValue.author.trim(),
     alarmEmail: formValue.alarmEmail.trim(),
+    alarmChannelIds: formValue.alarmChannelIds.join(','),
     scheduleType: formValue.scheduleType,
     scheduleConf: formValue.scheduleType === 'NONE' ? '' : formValue.scheduleConf.trim(),
     glueType: formValue.glueType,
