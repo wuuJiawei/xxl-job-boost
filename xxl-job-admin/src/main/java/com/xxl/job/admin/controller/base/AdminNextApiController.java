@@ -2,6 +2,7 @@ package com.xxl.job.admin.controller.base;
 
 import com.xxl.job.admin.constant.Consts;
 import com.xxl.job.admin.core.alarm.AlarmChannelType;
+import com.xxl.job.admin.core.alarm.AlarmEventType;
 import com.xxl.job.admin.mapper.XxlJobAlarmChannelMapper;
 import com.xxl.job.admin.mapper.XxlJobAlarmRecordMapper;
 import com.xxl.job.admin.mapper.XxlJobGroupMapper;
@@ -120,6 +121,7 @@ public class AdminNextApiController {
         data.put("blockStrategies", toOptions(ExecutorBlockStrategyEnum.values(), ExecutorBlockStrategyEnum::name, ExecutorBlockStrategyEnum::getTitle));
         data.put("glueTypes", toOptions(GlueTypeEnum.values(), GlueTypeEnum::name, GlueTypeEnum::getDesc));
         data.put("alarmChannelTypes", toOptions(AlarmChannelType.values(), AlarmChannelType::name, AlarmChannelType::name));
+        data.put("alarmEventTypes", toOptions(AlarmEventType.values(), AlarmEventType::name, AlarmEventType::getTitle));
         data.put("alarmChannels", xxlJobAlarmChannelMapper.findAllEnabled());
         return Response.ofSuccess(data);
     }

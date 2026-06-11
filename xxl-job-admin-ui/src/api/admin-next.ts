@@ -71,6 +71,7 @@ export type JobMetadata = {
   blockStrategies: MetadataOption[];
   glueTypes: MetadataOption[];
   alarmChannelTypes: MetadataOption[];
+  alarmEventTypes: MetadataOption[];
   alarmChannels: AlarmChannelOption[];
 };
 

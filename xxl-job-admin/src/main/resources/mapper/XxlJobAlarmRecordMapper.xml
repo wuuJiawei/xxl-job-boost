@@ -12,6 +12,7 @@
         <result column="channel_id" property="channelId" />
         <result column="channel_name" property="channelName" />
         <result column="channel_type" property="channelType" />
+        <result column="alarm_event" property="alarmEvent" />
         <result column="target" property="target" />
         <result column="alarm_title" property="alarmTitle" />
         <result column="alarm_content" property="alarmContent" />
@@ -31,6 +32,7 @@
         t.channel_id,
         t.channel_name,
         t.channel_type,
+        t.alarm_event,
         t.target,
         t.alarm_title,
         t.alarm_content,
@@ -84,6 +86,7 @@
             channel_id,
             channel_name,
             channel_type,
+            alarm_event,
             target,
             alarm_title,
             alarm_content,
@@ -100,6 +103,7 @@
             #{channelId},
             #{channelName},
             #{channelType},
+            #{alarmEvent},
             #{target},
             #{alarmTitle},
             #{alarmContent},

@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,7 +79,51 @@ public class AlarmChannelService {
         return ids.stream().map(String::valueOf).collect(Collectors.joining(","));
     }
 
+    public List<AlarmEventType> normalizeEventTypes(String alarmEventTypes) {
+        if (StringTool.isBlank(alarmEventTypes)) {
+            return java.util.Collections.emptyList();
+        }
+
+        List<AlarmEventType> result = new ArrayList<>();
+        Set<AlarmEventType> unique = EnumSet.noneOf(AlarmEventType.class);
+        for (String item : alarmEventTypes.split(",")) {
+            AlarmEventType eventType = AlarmEventType.match(item);
+            if (eventType == null) {
+                throw new IllegalArgumentException("告警事件类型非法: " + item);
+            }
+            unique.add(eventType);
+        }
+        result.addAll(unique);
+        return result;
+    }
+
+    public String normalizeEventTypesToString(String alarmEventTypes) {
+        List<AlarmEventType> types = normalizeEventTypes(alarmEventTypes);
+        if (types.isEmpty()) {
+            return "";
+        }
+        return types.stream().map(AlarmEventType::name).collect(Collectors.joining(","));
+    }
+
+    public boolean shouldAlarm(XxlJobInfo info, XxlJobLog jobLog) {
+        AlarmEventType currentEvent = currentEvent(jobLog);
+        if (currentEvent == null) {
+            return false;
+        }
+
+        List<AlarmEventType> configured = normalizeEventTypes(info.getAlarmEventTypes());
+        if (configured.isEmpty()) {
+            return true;
+        }
+        return configured.contains(currentEvent);
+    }
+
     public boolean sendBoundChannels(XxlJobInfo info, XxlJobLog jobLog) {
+        AlarmEventType alarmEvent = currentEvent(jobLog);
+        if (alarmEvent == null || !shouldAlarm(info, jobLog)) {
+            return true;
+        }
+
         List<Integer> ids = normalizeChannelIds(info.getAlarmChannelIds());
         if (ids.isEmpty()) {
             return true;
@@ -93,13 +138,13 @@ public class AlarmChannelService {
             XxlJobAlarmChannel channel = channelMap.get(channelId);
             if (channel == null || channel.getEnabled() != 1) {
                 persistRecord(info, jobLog, channel, "N/A", AlarmContentHelper.buildTitle(info),
-                        AlarmContentHelper.buildHtmlContent(info, jobLog),
+                        AlarmContentHelper.buildHtmlContent(info, jobLog), alarmEvent,
                         AlarmDeliveryResult.fail(null, null, channel == null ? "渠道不存在" : "渠道已停用"));
                 success = false;
                 continue;
             }
 
-            AlarmDeliveryResult result = sendByChannel(channel, info, jobLog);
+            AlarmDeliveryResult result = sendByChannel(channel, info, jobLog, alarmEvent);
             if (!result.isSuccess()) {
                 success = false;
             }
@@ -108,15 +153,19 @@ public class AlarmChannelService {
     }
 
     public void recordLegacyEmail(XxlJobInfo info, XxlJobLog jobLog, String target, String title, String content, AlarmDeliveryResult result) {
-        persistRecord(info, jobLog, null, target, title, content, result);
+        AlarmEventType alarmEvent = currentEvent(jobLog);
+        if (alarmEvent == null || !shouldAlarm(info, jobLog)) {
+            return;
+        }
+        persistRecord(info, jobLog, null, target, title, content, alarmEvent, result);
     }
 
-    private AlarmDeliveryResult sendByChannel(XxlJobAlarmChannel channel, XxlJobInfo info, XxlJobLog jobLog) {
+    private AlarmDeliveryResult sendByChannel(XxlJobAlarmChannel channel, XxlJobInfo info, XxlJobLog jobLog, AlarmEventType alarmEvent) {
         AlarmChannelType type = AlarmChannelType.match(channel.getType());
         if (type == null) {
             AlarmDeliveryResult result = AlarmDeliveryResult.fail(null, null, "不支持的渠道类型");
             persistRecord(info, jobLog, channel, targetOf(channel), AlarmContentHelper.buildTitle(info),
-                    AlarmContentHelper.buildHtmlContent(info, jobLog), result);
+                    AlarmContentHelper.buildHtmlContent(info, jobLog), alarmEvent, result);
             return result;
         }
 
@@ -139,7 +188,7 @@ public class AlarmChannelService {
             result = AlarmDeliveryResult.fail(null, null, e.getMessage());
         }
 
-        persistRecord(info, jobLog, channel, targetOf(channel), title, htmlContent, result);
+        persistRecord(info, jobLog, channel, targetOf(channel), title, htmlContent, alarmEvent, result);
         return result;
     }
 
@@ -255,6 +304,7 @@ public class AlarmChannelService {
                                String target,
                                String title,
                                String content,
+                               AlarmEventType alarmEvent,
                                AlarmDeliveryResult result) {
         XxlJobAlarmRecord record = new XxlJobAlarmRecord();
         record.setJobGroup(info.getJobGroup());
@@ -264,6 +314,7 @@ public class AlarmChannelService {
         record.setChannelId(channel != null ? channel.getId() : null);
         record.setChannelName(channel != null ? channel.getName() : "Legacy Email");
         record.setChannelType(channel != null ? channel.getType() : AlarmChannelType.EMAIL.name());
+        record.setAlarmEvent(alarmEvent != null ? alarmEvent.name() : "");
         record.setTarget(target);
         record.setAlarmTitle(title);
         record.setAlarmContent(content);
@@ -280,5 +331,9 @@ public class AlarmChannelService {
             return value;
         }
         return value.substring(0, maxLength);
+    }
+
+    private AlarmEventType currentEvent(XxlJobLog jobLog) {
+        return AlarmEventType.of(jobLog.getTriggerCode(), jobLog.getHandleCode());
     }
 }

@@ -173,6 +173,38 @@ SET @add_alarm_channel_ids_sql := IF(
 PREPARE add_alarm_channel_ids_stmt FROM @add_alarm_channel_ids_sql;
 EXECUTE add_alarm_channel_ids_stmt;
 DEALLOCATE PREPARE add_alarm_channel_ids_stmt;
+
+SET @has_alarm_event_types := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'xxl_job_info'
+      AND column_name = 'alarm_event_types'
+);
+SET @add_alarm_event_types_sql := IF(
+    @has_alarm_event_types = 0,
+    'ALTER TABLE `xxl_job_info` ADD COLUMN `alarm_event_types` varchar(255) DEFAULT NULL COMMENT ''告警事件类型，多个逗号分隔：EXECUTOR_FAIL,EXECUTOR_TIMEOUT,TRIGGER_FAIL'' AFTER `alarm_channel_ids`',
+    'SELECT 1'
+);
+PREPARE add_alarm_event_types_stmt FROM @add_alarm_event_types_sql;
+EXECUTE add_alarm_event_types_stmt;
+DEALLOCATE PREPARE add_alarm_event_types_stmt;
+
+SET @has_alarm_event := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'xxl_job_alarm_record'
+      AND column_name = 'alarm_event'
+);
+SET @add_alarm_event_sql := IF(
+    @has_alarm_event = 0,
+    'ALTER TABLE `xxl_job_alarm_record` ADD COLUMN `alarm_event` varchar(32) NOT NULL DEFAULT ''EXECUTOR_FAIL'' COMMENT ''告警事件类型'' AFTER `channel_type`',
+    'SELECT 1'
+);
+PREPARE add_alarm_event_stmt FROM @add_alarm_event_sql;
+EXECUTE add_alarm_event_stmt;
+DEALLOCATE PREPARE add_alarm_event_stmt;
 SQL
 }
 

@@ -15,6 +15,7 @@
 	    <result column="author" property="author" />
 	    <result column="alarm_email" property="alarmEmail" />
 	    <result column="alarm_channel_ids" property="alarmChannelIds" />
+	    <result column="alarm_event_types" property="alarmEventTypes" />
 
 		<result column="schedule_type" property="scheduleType" />
 		<result column="schedule_conf" property="scheduleConf" />
@@ -48,6 +49,7 @@
 		t.author,
 		t.alarm_email,
 		t.alarm_channel_ids,
+		t.alarm_event_types,
 		t.schedule_type,
 		t.schedule_conf,
 		t.misfire_strategy,
@@ -122,6 +124,7 @@
 			author,
 			alarm_email,
 			alarm_channel_ids,
+			alarm_event_types,
 			schedule_type,
 			schedule_conf,
 			misfire_strategy,
@@ -147,6 +150,7 @@
 			#{author},
 			#{alarmEmail},
 			#{alarmChannelIds},
+			#{alarmEventTypes},
 			#{scheduleType},
 			#{scheduleConf},
 			#{misfireStrategy},
@@ -186,6 +190,7 @@
 			author = #{author},
 			alarm_email = #{alarmEmail},
 			alarm_channel_ids = #{alarmChannelIds},
+			alarm_event_types = #{alarmEventTypes},
 			schedule_type = #{scheduleType},
 			schedule_conf = #{scheduleConf},
 			misfire_strategy = #{misfireStrategy},

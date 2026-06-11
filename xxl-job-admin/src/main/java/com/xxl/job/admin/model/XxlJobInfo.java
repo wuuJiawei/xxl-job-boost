@@ -20,6 +20,7 @@ public class XxlJobInfo {
 	private String author;		// 负责人
 	private String alarmEmail;	// 报警邮件
 	private String alarmChannelIds;	// 告警渠道ID，多个逗号分隔
+	private String alarmEventTypes;	// 告警事件类型，多个逗号分隔
 
 	private String scheduleType;			// 调度类型：ScheduleTypeEnum
 	private String scheduleConf;			// 调度配置，值含义取决于调度类型
@@ -106,6 +107,14 @@ public class XxlJobInfo {
 
 	public void setAlarmChannelIds(String alarmChannelIds) {
 		this.alarmChannelIds = alarmChannelIds;
+	}
+
+	public String getAlarmEventTypes() {
+		return alarmEventTypes;
+	}
+
+	public void setAlarmEventTypes(String alarmEventTypes) {
+		this.alarmEventTypes = alarmEventTypes;
 	}
 
 	public String getScheduleType() {

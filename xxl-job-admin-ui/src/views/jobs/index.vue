@@ -87,6 +87,14 @@
               placeholder="选择失败告警渠道，可选"
             />
           </n-form-item-gi>
+          <n-form-item-gi path="alarmEventTypes" label="告警事件">
+            <n-select
+              v-model:value="formValue.alarmEventTypes"
+              multiple
+              :options="alarmEventOptions"
+              placeholder="选择需要触发告警的事件，留空表示全部失败事件"
+            />
+          </n-form-item-gi>
         </n-grid>
 
         <div class="table-header">
@@ -308,6 +316,7 @@ const formValue = reactive({
   author: '',
   alarmEmail: '',
   alarmChannelIds: [] as number[],
+  alarmEventTypes: [] as string[],
   scheduleType: 'CRON',
   scheduleConf: '',
   glueType: 'BEAN',
@@ -415,6 +424,7 @@ const alarmChannelOptions = computed<SelectOption[]>(() =>
     value: item.id
   }))
 );
+const alarmEventOptions = computed<SelectOption[]>(() => toSelectOptions(metadata.value?.alarmEventTypes || []));
 
 const scheduleConfLabel = computed(() => (formValue.scheduleType === 'CRON' ? 'Cron' : '固定频率(秒)'));
 const scheduleConfPlaceholder = computed(() =>
@@ -545,6 +555,7 @@ function resetFormValue() {
   formValue.author = '';
   formValue.alarmEmail = '';
   formValue.alarmChannelIds = [];
+  formValue.alarmEventTypes = [];
   formValue.scheduleType = metadata.value?.scheduleTypes.find((item) => item.value === 'CRON')?.value || 'CRON';
   formValue.scheduleConf = '';
   formValue.glueType = 'BEAN';
@@ -569,6 +580,10 @@ function hydrateForm(job: JobInfo) {
     .map((item) => item.trim())
     .filter(Boolean)
     .map((item) => Number(item));
+  formValue.alarmEventTypes = (job.alarmEventTypes || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
   formValue.scheduleType = job.scheduleType || 'CRON';
   formValue.scheduleConf = job.scheduleConf || '';
   formValue.glueType = job.glueType || 'BEAN';
@@ -589,6 +604,7 @@ function buildPayload() {
     author: formValue.author.trim(),
     alarmEmail: formValue.alarmEmail.trim(),
     alarmChannelIds: formValue.alarmChannelIds.join(','),
+    alarmEventTypes: formValue.alarmEventTypes.join(','),
     scheduleType: formValue.scheduleType,
     scheduleConf: formValue.scheduleType === 'NONE' ? '' : formValue.scheduleConf.trim(),
     glueType: formValue.glueType,

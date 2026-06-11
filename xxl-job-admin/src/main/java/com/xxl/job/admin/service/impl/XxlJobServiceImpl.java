@@ -87,6 +87,7 @@ public class XxlJobServiceImpl implements XxlJobService {
 		}
 		try {
 			jobInfo.setAlarmChannelIds(alarmChannelService.normalizeChannelIdsToString(jobInfo.getAlarmChannelIds()));
+			jobInfo.setAlarmEventTypes(alarmChannelService.normalizeEventTypesToString(jobInfo.getAlarmEventTypes()));
 		} catch (IllegalArgumentException e) {
 			return Response.ofFail(e.getMessage());
 		}
@@ -201,6 +202,7 @@ public class XxlJobServiceImpl implements XxlJobService {
 		}
 		try {
 			jobInfo.setAlarmChannelIds(alarmChannelService.normalizeChannelIdsToString(jobInfo.getAlarmChannelIds()));
+			jobInfo.setAlarmEventTypes(alarmChannelService.normalizeEventTypesToString(jobInfo.getAlarmEventTypes()));
 		} catch (IllegalArgumentException e) {
 			return Response.ofFail(e.getMessage());
 		}

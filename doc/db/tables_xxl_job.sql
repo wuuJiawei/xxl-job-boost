@@ -45,6 +45,7 @@ CREATE TABLE `xxl_job_info`
     `author`                    varchar(64)           DEFAULT NULL COMMENT '作者',
     `alarm_email`               varchar(255)          DEFAULT NULL COMMENT '报警邮件',
     `alarm_channel_ids`         varchar(255)          DEFAULT NULL COMMENT '告警渠道ID，多个逗号分隔',
+    `alarm_event_types`         varchar(255)          DEFAULT NULL COMMENT '告警事件类型，多个逗号分隔：EXECUTOR_FAIL,EXECUTOR_TIMEOUT,TRIGGER_FAIL',
     `schedule_type`             varchar(50)  NOT NULL DEFAULT 'NONE' COMMENT '调度类型',
     `schedule_conf`             varchar(128)          DEFAULT NULL COMMENT '调度配置，值含义取决于调度类型',
     `misfire_strategy`          varchar(50)  NOT NULL DEFAULT 'DO_NOTHING' COMMENT '调度过期策略',
@@ -145,6 +146,7 @@ CREATE TABLE `xxl_job_alarm_record`
     `channel_id`    int(11)               DEFAULT NULL COMMENT '渠道ID，legacy邮件可为空',
     `channel_name`  varchar(64)  NOT NULL COMMENT '渠道名称',
     `channel_type`  varchar(32)  NOT NULL COMMENT '渠道类型',
+    `alarm_event`   varchar(32)  NOT NULL COMMENT '告警事件类型',
     `target`        varchar(512)          DEFAULT NULL COMMENT '目标地址或接收人',
     `alarm_title`   varchar(255) NOT NULL COMMENT '告警标题',
     `alarm_content` text                  DEFAULT NULL COMMENT '告警内容',
@@ -195,21 +197,21 @@ INSERT INTO `xxl_job_group`(`id`, `app_name`, `title`, `address_type`, `address_
            (2, 'xxl-job-executor-sample-ai', 'AI执行器Sample', 0, NULL, now());
 
 INSERT INTO `xxl_job_info`(`id`, `job_group`, `job_desc`, `add_time`, `update_time`, `author`, `alarm_email`,
-                           `alarm_channel_ids`, `schedule_type`, `schedule_conf`, `misfire_strategy`, `executor_route_strategy`,
+                           `alarm_channel_ids`, `alarm_event_types`, `schedule_type`, `schedule_conf`, `misfire_strategy`, `executor_route_strategy`,
                            `executor_handler`, `executor_param`, `executor_block_strategy`, `executor_timeout`,
                            `executor_fail_retry_count`, `glue_type`, `glue_source`, `glue_remark`, `glue_updatetime`,
                            `child_jobid`)
-VALUES (1, 1, '示例任务01', now(), now(), 'XXL', '', '', 'CRON', '0 0 0 * * ? *',
+VALUES (1, 1, '示例任务01', now(), now(), 'XXL', '', '', '', 'CRON', '0 0 0 * * ? *',
         'DO_NOTHING', 'FIRST', 'demoJobHandler', '', 'SERIAL_EXECUTION', 0, 0, 'BEAN', '', 'GLUE代码初始化',
         now(), ''),
-       (2, 2, 'Ollama示例任务', now(), now(), 'XXL', '', '', 'NONE', '',
+       (2, 2, 'Ollama示例任务', now(), now(), 'XXL', '', '', '', 'NONE', '',
         'DO_NOTHING', 'FIRST', 'ollamaJobHandler', '{
     "input": "Java实现二叉树层序遍历",
     "prompt": "你是一个研发工程师，擅长解决技术类问题。",
     "model": "qwen3.5:2b"
 }', 'SERIAL_EXECUTION', 0, 0, 'BEAN', '', 'GLUE代码初始化',
         now(), ''),
-       (3, 2, 'Dify示例任务', now(), now(), 'XXL', '', '', 'NONE', '',
+       (3, 2, 'Dify示例任务', now(), now(), 'XXL', '', '', '', 'NONE', '',
         'DO_NOTHING', 'FIRST', 'difyWorkflowJobHandler', '{
     "inputs":{
         "input":"查询班级各学科前三名"
@@ -219,7 +221,7 @@ VALUES (1, 1, '示例任务01', now(), now(), 'XXL', '', '', 'CRON', '0 0 0 * * 
     "apiKey": "app-OUVgNUOQRIMokfmuJvBJoUTN"
 }', 'SERIAL_EXECUTION', 0, 0, 'BEAN', '', 'GLUE代码初始化',
         now(), ''),
-       (4, 2, 'OpenClaw示例任务', now(), now(), 'XXL', '', '', 'NONE', '',
+       (4, 2, 'OpenClaw示例任务', now(), now(), 'XXL', '', '', '', 'NONE', '',
         'DO_NOTHING', 'FIRST', 'openClawJobHandler', '{
     "input": "查看下上海今天得天气，给出出游建议",
     "prompt": "你是一个出游助手，擅长做旅游规划"

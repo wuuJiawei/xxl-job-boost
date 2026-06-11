@@ -222,6 +222,10 @@ const channelTypeOptions = computed<SelectOption[]>(() => [
   ...((metadata.value?.alarmChannelTypes || []).map(item => ({ label: item.label, value: item.value })) as SelectOption[])
 ]);
 
+const alarmEventLabelMap = computed<Record<string, string>>(() =>
+  Object.fromEntries((metadata.value?.alarmEventTypes || []).map(item => [item.value, item.label]))
+);
+
 const recordChannelTypeOptions = computed<SelectOption[]>(() => channelTypeOptions.value);
 
 const jobGroupOptions = computed<SelectOption[]>(() => [
@@ -330,6 +334,7 @@ const channelColumns: DataTableColumns<AlarmChannel> = [
 const recordColumns: DataTableColumns<AlarmRecord> = [
   { title: '时间', key: 'createTime', width: 180 },
   { title: '任务', key: 'jobDesc', minWidth: 180 },
+  { title: '事件', key: 'alarmEvent', width: 120, render: row => alarmEventLabelMap.value[row.alarmEvent] || row.alarmEvent },
   { title: '渠道', key: 'channelName', minWidth: 180, render: row => `${row.channelName} [${row.channelType}]` },
   { title: '目标', key: 'target', minWidth: 220 },
   {

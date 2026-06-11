@@ -12,6 +12,7 @@ public class XxlJobAlarmRecord {
     private Integer channelId;
     private String channelName;
     private String channelType;
+    private String alarmEvent;
     private String target;
     private String alarmTitle;
     private String alarmContent;
@@ -83,6 +84,14 @@ public class XxlJobAlarmRecord {
 
     public void setChannelType(String channelType) {
         this.channelType = channelType;
+    }
+
+    public String getAlarmEvent() {
+        return alarmEvent;
+    }
+
+    public void setAlarmEvent(String alarmEvent) {
+        this.alarmEvent = alarmEvent;
     }
 
     public String getTarget() {

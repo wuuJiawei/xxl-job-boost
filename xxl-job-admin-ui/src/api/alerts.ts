@@ -33,6 +33,7 @@ export type AlarmRecord = {
   channelId?: number | null;
   channelName: string;
   channelType: string;
+  alarmEvent: string;
   target?: string | null;
   alarmTitle: string;
   alarmContent?: string | null;

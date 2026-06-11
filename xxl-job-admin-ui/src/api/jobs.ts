@@ -18,6 +18,7 @@ export type JobInfo = {
   author: string;
   alarmEmail?: string;
   alarmChannelIds?: string;
+  alarmEventTypes?: string;
   scheduleType: string;
   scheduleConf: string;
   executorHandler: string;
