@@ -1,5 +1,6 @@
 package com.xxl.job.admin.scheduler.route;
 
+import com.xxl.job.admin.core.trigger.ExecutorBizProvider;
 import com.xxl.job.core.openapi.model.TriggerRequest;
 import com.xxl.tool.response.Response;
 import org.slf4j.Logger;
@@ -19,6 +20,6 @@ public abstract class ExecutorRouter {
      * @param addressList  executor address list
      * @return  ReturnT.content=address
      */
-    public abstract Response<String> route(TriggerRequest triggerParam, List<String> addressList);
+    public abstract Response<String> route(TriggerRequest triggerParam, List<String> addressList, ExecutorBizProvider executorBizProvider);
 
 }

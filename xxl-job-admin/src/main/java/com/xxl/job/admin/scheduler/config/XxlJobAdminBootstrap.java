@@ -5,8 +5,6 @@ import com.xxl.job.admin.scheduler.alarm.JobAlarmer;
 import com.xxl.job.admin.scheduler.complete.JobCompleter;
 import com.xxl.job.admin.scheduler.thread.*;
 import com.xxl.job.admin.scheduler.trigger.JobTrigger;
-import com.xxl.job.core.openapi.ExecutorBiz;
-import com.xxl.job.core.openapi.ExecutorBizClientFactory;
 import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,17 +125,6 @@ public class XxlJobAdminBootstrap implements InitializingBean, DisposableBean {
 
         logger.info(">>>>>>>>> xxl-job admin stopped.");
     }
-
-
-    // ---------------------- executor-client ----------------------
-
-    public static ExecutorBiz getExecutorBiz(String address) throws Exception {
-        return ExecutorBizClientFactory.getExecutorBiz(
-                address,
-                XxlJobAdminBootstrap.getInstance().getAccessToken(),
-                XxlJobAdminBootstrap.getInstance().getTimeout());
-    }
-
 
     // ---------------------- field ----------------------
 

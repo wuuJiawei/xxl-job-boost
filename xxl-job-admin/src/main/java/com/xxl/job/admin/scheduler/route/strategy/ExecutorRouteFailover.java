@@ -1,6 +1,6 @@
 package com.xxl.job.admin.scheduler.route.strategy;
 
-import com.xxl.job.admin.scheduler.config.XxlJobAdminBootstrap;
+import com.xxl.job.admin.core.trigger.ExecutorBizProvider;
 import com.xxl.job.admin.scheduler.route.ExecutorRouter;
 import com.xxl.job.admin.util.I18nUtil;
 import com.xxl.job.core.openapi.ExecutorBiz;
@@ -15,14 +15,14 @@ import java.util.List;
 public class ExecutorRouteFailover extends ExecutorRouter {
 
     @Override
-    public Response<String> route(TriggerRequest triggerParam, List<String> addressList) {
+    public Response<String> route(TriggerRequest triggerParam, List<String> addressList, ExecutorBizProvider executorBizProvider) {
 
         StringBuffer beatResultSB = new StringBuffer();
         for (String address : addressList) {
             // beat
             Response<String> beatResult = null;
             try {
-                ExecutorBiz executorBiz = XxlJobAdminBootstrap.getExecutorBiz(address);
+                ExecutorBiz executorBiz = executorBizProvider.getExecutorBiz(address);
                 beatResult = executorBiz.beat();
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);

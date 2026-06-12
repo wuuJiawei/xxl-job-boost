@@ -1,12 +1,12 @@
 package com.xxl.job.admin.scheduler.trigger;
 
+import com.xxl.job.admin.core.trigger.ExecutorBizProvider;
 import com.xxl.job.admin.mapper.XxlJobGroupMapper;
 import com.xxl.job.admin.mapper.XxlJobInfoMapper;
 import com.xxl.job.admin.mapper.XxlJobLogMapper;
 import com.xxl.job.admin.model.XxlJobGroup;
 import com.xxl.job.admin.model.XxlJobInfo;
 import com.xxl.job.admin.model.XxlJobLog;
-import com.xxl.job.admin.scheduler.config.XxlJobAdminBootstrap;
 import com.xxl.job.admin.scheduler.route.ExecutorRouteStrategyEnum;
 import com.xxl.job.admin.util.I18nUtil;
 import com.xxl.job.core.constant.ExecutorBlockStrategyEnum;
@@ -40,6 +40,8 @@ public class JobTrigger {
     private XxlJobGroupMapper xxlJobGroupMapper;
     @Resource
     private XxlJobLogMapper xxlJobLogMapper;
+    @Resource
+    private ExecutorBizProvider executorBizProvider;
 
 
     /**
@@ -178,7 +180,7 @@ public class JobTrigger {
                     address = group.getRegistryList().get(0);
                 }
             } else {
-                routeAddressResult = executorRouteStrategyEnum.getRouter().route(triggerParam, group.getRegistryList());
+                routeAddressResult = executorRouteStrategyEnum.getRouter().route(triggerParam, group.getRegistryList(), executorBizProvider);
                 if (routeAddressResult.isSuccess()) {
                     address = routeAddressResult.getData();
                 }
@@ -258,7 +260,7 @@ public class JobTrigger {
     private Response<String> doTrigger(TriggerRequest triggerParam, String address){
         try {
             // build client
-            ExecutorBiz executorBiz = XxlJobAdminBootstrap.getExecutorBiz(address);
+            ExecutorBiz executorBiz = executorBizProvider.getExecutorBiz(address);
 
             // invoke
             Response<String> runResult = executorBiz.run(triggerParam);

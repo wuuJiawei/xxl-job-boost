@@ -3,16 +3,12 @@ package com.xxl.job.core.openapi.client;
 import com.xxl.job.core.openapi.ExecutorBiz;
 import com.xxl.tool.core.StringTool;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class ExecutorBizClientTransportFactory {
 
-    private static final List<ExecutorBizClientTransport> TRANSPORTS = Arrays.asList(
-            new HttpExecutorBizClientTransport()
-    );
     private static final ConcurrentMap<String, ExecutorBiz> EXECUTOR_BIZ_REPOSITORY = new ConcurrentHashMap<String, ExecutorBiz>();
 
     public static ExecutorBiz getExecutorBiz(String address, String accessToken, int timeout) {
@@ -34,7 +30,8 @@ public class ExecutorBizClientTransportFactory {
     }
 
     public static ExecutorBizClientTransport match(String address) {
-        for (ExecutorBizClientTransport transport : TRANSPORTS) {
+        List<ExecutorBizClientTransport> transports = ExecutorBizClientTransportRegistry.list();
+        for (ExecutorBizClientTransport transport : transports) {
             if (transport.supports(address)) {
                 return transport;
             }
@@ -42,8 +39,8 @@ public class ExecutorBizClientTransportFactory {
         throw new IllegalArgumentException("Unsupported executor address: " + address);
     }
 
-    private static String buildCacheKey(ExecutorBizClientTransportType type, String address, String accessToken, int timeout) {
-        return type.name() + "|" + address + "|" + timeout + "|" + (accessToken == null ? "" : accessToken);
+    private static String buildCacheKey(String type, String address, String accessToken, int timeout) {
+        return type + "|" + address + "|" + timeout + "|" + (accessToken == null ? "" : accessToken);
     }
 
     private ExecutorBizClientTransportFactory() {

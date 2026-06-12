@@ -4,7 +4,7 @@ import com.xxl.job.core.openapi.ExecutorBiz;
 
 public interface ExecutorBizClientTransport {
 
-    ExecutorBizClientTransportType type();
+    String type();
 
     boolean supports(String address);
 

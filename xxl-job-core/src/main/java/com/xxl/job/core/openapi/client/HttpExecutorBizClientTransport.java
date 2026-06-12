@@ -8,8 +8,8 @@ import com.xxl.tool.http.HttpTool;
 public class HttpExecutorBizClientTransport implements ExecutorBizClientTransport {
 
     @Override
-    public ExecutorBizClientTransportType type() {
-        return ExecutorBizClientTransportType.HTTP;
+    public String type() {
+        return "HTTP";
     }
 
     @Override

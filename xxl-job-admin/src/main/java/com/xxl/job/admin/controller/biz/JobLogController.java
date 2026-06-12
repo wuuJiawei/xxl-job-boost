@@ -1,12 +1,13 @@
 package com.xxl.job.admin.controller.biz;
 
+import com.xxl.job.admin.core.trigger.ExecutorBizProvider;
 import com.xxl.job.admin.mapper.XxlJobGroupMapper;
 import com.xxl.job.admin.mapper.XxlJobInfoMapper;
 import com.xxl.job.admin.mapper.XxlJobLogMapper;
 import com.xxl.job.admin.model.XxlJobGroup;
 import com.xxl.job.admin.model.XxlJobInfo;
 import com.xxl.job.admin.model.XxlJobLog;
-import com.xxl.job.admin.scheduler.config.XxlJobAdminBootstrap;
+import com.xxl.job.admin.scheduler.complete.JobCompleter;
 import com.xxl.job.admin.scheduler.exception.XxlJobException;
 import com.xxl.job.admin.service.XxlJobService;
 import com.xxl.job.admin.util.I18nUtil;
@@ -55,6 +56,10 @@ public class JobLogController {
 	public XxlJobLogMapper xxlJobLogMapper;
     @Autowired
     private XxlJobService xxlJobService;
+    @Resource
+    private ExecutorBizProvider executorBizProvider;
+    @Resource
+    private JobCompleter jobCompleter;
 
 	@RequestMapping
 	public String index(HttpServletRequest request,
@@ -196,7 +201,7 @@ public class JobLogController {
 		// request of kill
 		Response<String> runResult = null;
 		try {
-			ExecutorBiz executorBiz = XxlJobAdminBootstrap.getExecutorBiz(log.getExecutorAddress());
+            ExecutorBiz executorBiz = executorBizProvider.getExecutorBiz(log.getExecutorAddress());
 			runResult = executorBiz.kill(new KillRequest(jobInfo.getId()));
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
@@ -207,7 +212,7 @@ public class JobLogController {
 			log.setHandleCode(XxlJobContext.HANDLE_CODE_FAIL);
 			log.setHandleMsg( I18nUtil.getString("joblog_kill_log_byman")+":" + (runResult.getMsg()!=null?runResult.getMsg():""));
 			log.setHandleTime(new Date());
-			XxlJobAdminBootstrap.getInstance().getJobCompleter().complete(log);
+			jobCompleter.complete(log);
 			return Response.ofSuccess(runResult.getMsg());
 		} else {
 			return Response.ofFail(runResult.getMsg());
@@ -298,7 +303,7 @@ public class JobLogController {
 			}
 
 			// log cat
-			ExecutorBiz executorBiz = XxlJobAdminBootstrap.getExecutorBiz(jobLog.getExecutorAddress());
+            ExecutorBiz executorBiz = executorBizProvider.getExecutorBiz(jobLog.getExecutorAddress());
 			Response<LogResult> logResult = executorBiz.log(new LogRequest(jobLog.getTriggerTime().getTime(), logId, fromLineNum));
 
 			// is end

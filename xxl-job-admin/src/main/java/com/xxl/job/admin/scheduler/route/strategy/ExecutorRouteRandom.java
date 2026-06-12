@@ -1,5 +1,6 @@
 package com.xxl.job.admin.scheduler.route.strategy;
 
+import com.xxl.job.admin.core.trigger.ExecutorBizProvider;
 import com.xxl.job.admin.scheduler.route.ExecutorRouter;
 import com.xxl.job.core.openapi.model.TriggerRequest;
 import com.xxl.tool.response.Response;
@@ -15,7 +16,7 @@ public class ExecutorRouteRandom extends ExecutorRouter {
     private static Random localRandom = new Random();
 
     @Override
-    public Response<String> route(TriggerRequest triggerParam, List<String> addressList) {
+    public Response<String> route(TriggerRequest triggerParam, List<String> addressList, ExecutorBizProvider executorBizProvider) {
         String address = addressList.get(localRandom.nextInt(addressList.size()));
         return Response.ofSuccess(address);
     }
