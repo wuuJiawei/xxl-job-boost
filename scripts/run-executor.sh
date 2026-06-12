@@ -5,6 +5,9 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 JAVA_HOME_DEFAULT="/usr/local/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home"
 LOG_ROOT="${LOG_ROOT:-${LOG_HOME:-/tmp/xxl-job-runtime-logs}}"
+RUNTIME_ROOT="${RUNTIME_ROOT:-/tmp/xxl-job-boost-run/runtime}"
+SOURCE_JAR="$ROOT_DIR/xxl-job-executor-samples/xxl-job-executor-sample-springboot/target/xxl-job-executor-sample-springboot-3.4.1-SNAPSHOT.jar"
+RUNTIME_JAR="$RUNTIME_ROOT/xxl-job-executor-sample-springboot.jar"
 
 resolve_java_home() {
   local candidate="${JAVA_HOME:-}"
@@ -33,8 +36,11 @@ LOG_HOME="$LOG_ROOT"
 export LOG_HOME
 
 mkdir -p "$LOG_ROOT/xxl-job" "$LOG_ROOT/jobhandler"
+mkdir -p "$RUNTIME_ROOT"
+
+cp "$SOURCE_JAR" "$RUNTIME_JAR"
 
 exec "$JAVA_HOME/bin/java" \
   -DLOG_HOME="$LOG_HOME" \
   -Dxxl.job.executor.logpath="$LOG_ROOT/jobhandler" \
-  -jar "$ROOT_DIR/xxl-job-executor-samples/xxl-job-executor-sample-springboot/target/xxl-job-executor-sample-springboot-3.4.1-SNAPSHOT.jar"
+  -jar "$RUNTIME_JAR"

@@ -5,6 +5,9 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 JAVA_HOME_DEFAULT="/usr/local/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home"
 LOG_ROOT="${LOG_ROOT:-${LOG_HOME:-/tmp/xxl-job-runtime-logs}}"
+RUNTIME_ROOT="${RUNTIME_ROOT:-/tmp/xxl-job-boost-run/runtime}"
+SOURCE_JAR="$ROOT_DIR/xxl-job-admin/target/xxl-job-admin-3.4.1-SNAPSHOT.jar"
+RUNTIME_JAR="$RUNTIME_ROOT/xxl-job-admin.jar"
 
 resolve_java_home() {
   local candidate="${JAVA_HOME:-}"
@@ -33,7 +36,10 @@ LOG_HOME="$LOG_ROOT"
 export LOG_HOME
 
 mkdir -p "$LOG_ROOT/xxl-job"
+mkdir -p "$RUNTIME_ROOT"
+
+cp "$SOURCE_JAR" "$RUNTIME_JAR"
 
 exec "$JAVA_HOME/bin/java" \
   -DLOG_HOME="$LOG_HOME" \
-  -jar "$ROOT_DIR/xxl-job-admin/target/xxl-job-admin-3.4.1-SNAPSHOT.jar"
+  -jar "$RUNTIME_JAR"
