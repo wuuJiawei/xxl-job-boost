@@ -16,6 +16,7 @@ export type JobInfo = {
   jobGroup: number;
   jobDesc: string;
   author: string;
+  jobTag?: string;
   alarmEmail?: string;
   alarmChannelIds?: string;
   alarmEventTypes?: string;
@@ -43,6 +44,7 @@ export type JobQuery = {
   jobDesc: string;
   executorHandler: string;
   author: string;
+  jobTag: string;
 };
 
 export async function fetchJobs(params: JobQuery) {

@@ -54,11 +54,11 @@ public class XxlJobServiceImpl implements XxlJobService {
 	private AlarmChannelService alarmChannelService;
 	
 	@Override
-	public Response<PageModel<XxlJobInfo>> pageList(int offset, int pagesize, int jobGroup, int triggerStatus, String jobDesc, String executorHandler, String author) {
+	public Response<PageModel<XxlJobInfo>> pageList(int offset, int pagesize, int jobGroup, int triggerStatus, String jobDesc, String executorHandler, String author, String jobTag) {
 
 		// page list
-		List<XxlJobInfo> list = xxlJobInfoMapper.pageList(offset, pagesize, jobGroup, triggerStatus, jobDesc, executorHandler, author);
-		int list_count = xxlJobInfoMapper.pageListCount(offset, pagesize, jobGroup, triggerStatus, jobDesc, executorHandler, author);
+		List<XxlJobInfo> list = xxlJobInfoMapper.pageList(offset, pagesize, jobGroup, triggerStatus, jobDesc, executorHandler, author, jobTag);
+		int list_count = xxlJobInfoMapper.pageListCount(offset, pagesize, jobGroup, triggerStatus, jobDesc, executorHandler, author, jobTag);
 
 		// package result
 		PageModel<XxlJobInfo> pageModel = new PageModel<>();
@@ -85,6 +85,7 @@ public class XxlJobServiceImpl implements XxlJobService {
 		if (jobInfo.getAlarmEmail() != null) {
 			jobInfo.setAlarmEmail(jobInfo.getAlarmEmail().trim());
 		}
+		jobInfo.setJobTag(normalizeJobTag(jobInfo.getJobTag()));
 		try {
 			jobInfo.setAlarmChannelIds(alarmChannelService.normalizeChannelIdsToString(jobInfo.getAlarmChannelIds()));
 			jobInfo.setAlarmEventTypes(alarmChannelService.normalizeEventTypesToString(jobInfo.getAlarmEventTypes()));
@@ -200,6 +201,7 @@ public class XxlJobServiceImpl implements XxlJobService {
 		if (jobInfo.getAlarmEmail() != null) {
 			jobInfo.setAlarmEmail(jobInfo.getAlarmEmail().trim());
 		}
+		jobInfo.setJobTag(normalizeJobTag(jobInfo.getJobTag()));
 		try {
 			jobInfo.setAlarmChannelIds(alarmChannelService.normalizeChannelIdsToString(jobInfo.getAlarmChannelIds()));
 			jobInfo.setAlarmEventTypes(alarmChannelService.normalizeEventTypesToString(jobInfo.getAlarmEventTypes()));
@@ -312,6 +314,7 @@ public class XxlJobServiceImpl implements XxlJobService {
 		exists_jobInfo.setJobGroup(jobInfo.getJobGroup());
 		exists_jobInfo.setJobDesc(jobInfo.getJobDesc());
 		exists_jobInfo.setAuthor(jobInfo.getAuthor());
+		exists_jobInfo.setJobTag(jobInfo.getJobTag());
 		exists_jobInfo.setAlarmEmail(jobInfo.getAlarmEmail());
 		exists_jobInfo.setAlarmChannelIds(jobInfo.getAlarmChannelIds());
 		exists_jobInfo.setScheduleType(jobInfo.getScheduleType());
@@ -335,6 +338,25 @@ public class XxlJobServiceImpl implements XxlJobService {
 				loginInfo.getUserName(), "jobinfo-update", GsonTool.toJson(exists_jobInfo));
 
 		return Response.ofSuccess();
+	}
+
+	private String normalizeJobTag(String jobTag) {
+		if (StringTool.isBlank(jobTag)) {
+			return null;
+		}
+
+		LinkedHashSet<String> tags = new LinkedHashSet<>();
+		for (String item : jobTag.split(",")) {
+			String normalized = item == null ? null : item.trim();
+			if (StringTool.isNotBlank(normalized)) {
+				tags.add(normalized);
+			}
+		}
+
+		if (tags.isEmpty()) {
+			return null;
+		}
+		return String.join(",", tags);
 	}
 
 	@Override

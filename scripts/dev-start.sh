@@ -190,6 +190,22 @@ PREPARE add_alarm_event_types_stmt FROM @add_alarm_event_types_sql;
 EXECUTE add_alarm_event_types_stmt;
 DEALLOCATE PREPARE add_alarm_event_types_stmt;
 
+SET @has_job_tag := (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'xxl_job_info'
+      AND column_name = 'job_tag'
+);
+SET @add_job_tag_sql := IF(
+    @has_job_tag = 0,
+    'ALTER TABLE `xxl_job_info` ADD COLUMN `job_tag` varchar(255) DEFAULT NULL COMMENT ''任务标签，多个逗号分隔'' AFTER `author`',
+    'SELECT 1'
+);
+PREPARE add_job_tag_stmt FROM @add_job_tag_sql;
+EXECUTE add_job_tag_stmt;
+DEALLOCATE PREPARE add_job_tag_stmt;
+
 SET @has_alarm_event := (
     SELECT COUNT(*)
     FROM information_schema.columns

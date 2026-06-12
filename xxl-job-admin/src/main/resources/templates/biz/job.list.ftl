@@ -55,6 +55,11 @@
 							<input type="text" class="form-control" id="author" placeholder="${I18n.system_please_input}${I18n.jobinfo_field_author}" >
 						</div>
 					</div>
+					<div class="col-xs-2">
+						<div class="input-group">
+							<input type="text" class="form-control" id="jobTag" placeholder="${I18n.system_please_input}${I18n.jobinfo_field_jobtag}" >
+						</div>
+					</div>
 
 					<div class="col-xs-1">
 						<button class="btn btn-block btn-primary searchBtn" >${I18n.system_search}</button>
@@ -125,6 +130,10 @@
 								<div class="col-sm-4"><input type="text" class="form-control" name="author" placeholder="${I18n.system_please_input}${I18n.jobinfo_field_author}" maxlength="50" ></div>
 								<label for="lastname" class="col-sm-2 control-label">${I18n.jobinfo_field_alarmemail}<font color="black">*</font></label>
 								<div class="col-sm-4"><input type="text" class="form-control" name="alarmEmail" placeholder="${I18n.jobinfo_field_alarmemail_placeholder}" maxlength="100" ></div>
+							</div>
+							<div class="form-group">
+								<label for="lastname" class="col-sm-2 control-label">${I18n.jobinfo_field_jobtag}</label>
+								<div class="col-sm-10"><input type="text" class="form-control" name="jobTag" placeholder="${I18n.jobinfo_field_jobtag_placeholder}" maxlength="255" ></div>
 							</div>
 
 							<br>
@@ -386,6 +395,10 @@ exit 0
 								<label for="lastname" class="col-sm-2 control-label">${I18n.jobinfo_field_alarmemail}<font color="black">*</font></label>
 								<div class="col-sm-4"><input type="text" class="form-control" name="alarmEmail" placeholder="${I18n.jobinfo_field_alarmemail_placeholder}" maxlength="100" ></div>
 							</div>
+							<div class="form-group">
+								<label for="lastname" class="col-sm-2 control-label">${I18n.jobinfo_field_jobtag}</label>
+								<div class="col-sm-10"><input type="text" class="form-control" name="jobTag" placeholder="${I18n.jobinfo_field_jobtag_placeholder}" maxlength="255" ></div>
+							</div>
 
 							<br>
 							<p style="margin: 0 0 10px;text-align: left;border-bottom: 1px solid #e5e5e5;color: gray;">${I18n.jobinfo_conf_schedule}</p>    <#-- 调度配置 -->
@@ -588,6 +601,7 @@ exit 0
 				obj.jobDesc = $('#jobDesc').val();
 				obj.executorHandler = $('#executorHandler').val();
 				obj.author = $('#author').val();
+				obj.jobTag = $('#jobTag').val();
 				obj.offset = params.offset;
 				obj.pagesize = params.limit;
 				return obj;
@@ -681,6 +695,14 @@ exit 0
 					field: 'author',
 					width: '10',
 					widthUnit: '%'
+				},{
+					title: I18n.jobinfo_field_jobtag,
+					field: 'jobTag',
+					width: '15',
+					widthUnit: '%',
+					formatter: function(value) {
+						return value || '';
+					}
 				}
 			]
 		});
@@ -1180,6 +1202,7 @@ exit 0
 				$("#updateModal .form input[name='jobDesc']").val( row.jobDesc );
 				$("#updateModal .form input[name='author']").val( row.author );
 				$("#updateModal .form input[name='alarmEmail']").val( row.alarmEmail );
+				$("#updateModal .form input[name='jobTag']").val( row.jobTag );
 
 				// fill trigger
 				$('#updateModal .form select[name=scheduleType] option[value='+ row.scheduleType +']').prop('selected', true);
@@ -1271,6 +1294,7 @@ exit 0
 			$("#addModal .form input[name='jobDesc']").val( row.jobDesc );
 			$("#addModal .form input[name='author']").val( row.author );
 			$("#addModal .form input[name='alarmEmail']").val( row.alarmEmail );
+			$("#addModal .form input[name='jobTag']").val( row.jobTag );
 
 			// fill trigger
 			$('#addModal .form select[name=scheduleType] option[value='+ row.scheduleType +']').prop('selected', true);

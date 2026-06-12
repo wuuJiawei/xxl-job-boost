@@ -43,6 +43,7 @@ CREATE TABLE `xxl_job_info`
     `add_time`                  datetime              DEFAULT NULL,
     `update_time`               datetime              DEFAULT NULL,
     `author`                    varchar(64)           DEFAULT NULL COMMENT '作者',
+    `job_tag`                   varchar(255)          DEFAULT NULL COMMENT '任务标签，多个逗号分隔',
     `alarm_email`               varchar(255)          DEFAULT NULL COMMENT '报警邮件',
     `alarm_channel_ids`         varchar(255)          DEFAULT NULL COMMENT '告警渠道ID，多个逗号分隔',
     `alarm_event_types`         varchar(255)          DEFAULT NULL COMMENT '告警事件类型，多个逗号分隔：EXECUTOR_FAIL,EXECUTOR_TIMEOUT,TRIGGER_FAIL',

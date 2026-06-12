@@ -87,13 +87,14 @@ public class JobInfoController {
 													@RequestParam(value = "triggerStatus", required = false, defaultValue = "-1") int triggerStatus,
 													@RequestParam(value = "jobDesc", required = false, defaultValue = "") String jobDesc,
 													@RequestParam(value = "executorHandler", required = false, defaultValue = "") String executorHandler,
-													@RequestParam(value = "author", required = false, defaultValue = "") String author) {
+													@RequestParam(value = "author", required = false, defaultValue = "") String author,
+													@RequestParam(value = "jobTag", required = false, defaultValue = "") String jobTag) {
 
 		// valid jobGroup permission
 		JobGroupPermissionUtil.validJobGroupPermission(request, jobGroup);
 
 		// page
-		return xxlJobService.pageList(offset, pagesize, jobGroup, triggerStatus, jobDesc, executorHandler, author);
+		return xxlJobService.pageList(offset, pagesize, jobGroup, triggerStatus, jobDesc, executorHandler, author, jobTag);
 	}
 	
 	@RequestMapping("/insert")

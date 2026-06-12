@@ -18,6 +18,7 @@ public class XxlJobInfo {
 	private Date updateTime;
 	
 	private String author;		// 负责人
+	private String jobTag;		// 任务标签，多个逗号分隔
 	private String alarmEmail;	// 报警邮件
 	private String alarmChannelIds;	// 告警渠道ID，多个逗号分隔
 	private String alarmEventTypes;	// 告警事件类型，多个逗号分隔
@@ -91,6 +92,14 @@ public class XxlJobInfo {
 
 	public void setAuthor(String author) {
 		this.author = author;
+	}
+
+	public String getJobTag() {
+		return jobTag;
+	}
+
+	public void setJobTag(String jobTag) {
+		this.jobTag = jobTag;
 	}
 
 	public String getAlarmEmail() {

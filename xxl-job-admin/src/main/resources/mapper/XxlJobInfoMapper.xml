@@ -13,6 +13,7 @@
 	    <result column="update_time" property="updateTime" />
 
 	    <result column="author" property="author" />
+	    <result column="job_tag" property="jobTag" />
 	    <result column="alarm_email" property="alarmEmail" />
 	    <result column="alarm_channel_ids" property="alarmChannelIds" />
 	    <result column="alarm_event_types" property="alarmEventTypes" />
@@ -47,6 +48,7 @@
 		t.add_time,
 		t.update_time,
 		t.author,
+		t.job_tag,
 		t.alarm_email,
 		t.alarm_channel_ids,
 		t.alarm_event_types,
@@ -88,6 +90,9 @@
 			<if test="author != null and author != ''">
 				AND t.author like CONCAT(CONCAT('%', #{author}), '%')
 			</if>
+			<if test="jobTag != null and jobTag != ''">
+				AND t.job_tag like CONCAT(CONCAT('%', #{jobTag}), '%')
+			</if>
 		</trim>
 		ORDER BY id DESC
 		LIMIT #{offset}, #{pagesize}
@@ -112,6 +117,9 @@
 			<if test="author != null and author != ''">
 				AND t.author like CONCAT(CONCAT('%', #{author}), '%')
 			</if>
+			<if test="jobTag != null and jobTag != ''">
+				AND t.job_tag like CONCAT(CONCAT('%', #{jobTag}), '%')
+			</if>
 		</trim>
 	</select>
 
@@ -122,6 +130,7 @@
 			add_time,
 			update_time,
 			author,
+			job_tag,
 			alarm_email,
 			alarm_channel_ids,
 			alarm_event_types,
@@ -148,6 +157,7 @@
 			#{addTime},
 			#{updateTime},
 			#{author},
+			#{jobTag},
 			#{alarmEmail},
 			#{alarmChannelIds},
 			#{alarmEventTypes},
@@ -196,6 +206,7 @@
 			job_desc = #{jobDesc},
 			update_time = #{updateTime},
 			author = #{author},
+			job_tag = #{jobTag},
 			alarm_email = #{alarmEmail},
 			alarm_channel_ids = #{alarmChannelIds},
 			alarm_event_types = #{alarmEventTypes},

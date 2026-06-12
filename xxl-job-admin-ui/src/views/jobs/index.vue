@@ -7,6 +7,7 @@
         <n-input v-model:value="filters.jobDesc" placeholder="按任务描述查询" clearable />
         <n-input v-model:value="filters.executorHandler" placeholder="按 JobHandler 查询" clearable />
         <n-input v-model:value="filters.author" placeholder="按负责人查询" clearable />
+        <n-input v-model:value="filters.jobTag" placeholder="按任务标签查询" clearable />
         <div class="filter-actions">
           <n-button type="primary" @click="search">查询</n-button>
           <n-button @click="reset">重置</n-button>
@@ -75,6 +76,9 @@
           </n-form-item-gi>
           <n-form-item-gi path="author" label="负责人">
             <n-input v-model:value="formValue.author" placeholder="请输入负责人" />
+          </n-form-item-gi>
+          <n-form-item-gi path="jobTag" label="任务标签">
+            <n-input v-model:value="formValue.jobTag" placeholder="多个标签用逗号分隔，可选" />
           </n-form-item-gi>
           <n-form-item-gi path="alarmEmail" label="报警邮件">
             <n-input v-model:value="formValue.alarmEmail" placeholder="多个邮箱用逗号分隔，可选" />
@@ -301,7 +305,8 @@ const filters = reactive({
   triggerStatus: -1,
   jobDesc: '',
   executorHandler: '',
-  author: ''
+  author: '',
+  jobTag: ''
 });
 
 const triggerForm = reactive({
@@ -314,6 +319,7 @@ const formValue = reactive({
   jobGroup: -1,
   jobDesc: '',
   author: '',
+  jobTag: '',
   alarmEmail: '',
   alarmChannelIds: [] as number[],
   alarmEventTypes: [] as string[],
@@ -496,6 +502,12 @@ const columns: DataTableColumns<JobInfo> = [
     width: 120
   },
   {
+    title: '任务标签',
+    key: 'jobTag',
+    minWidth: 180,
+    render: (row) => row.jobTag || '-'
+  },
+  {
     title: '操作',
     key: 'actions',
     width: 230,
@@ -553,6 +565,7 @@ function resetFormValue() {
   formValue.jobGroup = filters.jobGroup > 0 ? filters.jobGroup : jobGroups.value[0]?.id || -1;
   formValue.jobDesc = '';
   formValue.author = '';
+  formValue.jobTag = '';
   formValue.alarmEmail = '';
   formValue.alarmChannelIds = [];
   formValue.alarmEventTypes = [];
@@ -574,6 +587,7 @@ function hydrateForm(job: JobInfo) {
   formValue.jobGroup = job.jobGroup;
   formValue.jobDesc = job.jobDesc || '';
   formValue.author = job.author || '';
+  formValue.jobTag = job.jobTag || '';
   formValue.alarmEmail = job.alarmEmail || '';
   formValue.alarmChannelIds = (job.alarmChannelIds || '')
     .split(',')
@@ -602,6 +616,7 @@ function buildPayload() {
     jobGroup: String(formValue.jobGroup),
     jobDesc: formValue.jobDesc.trim(),
     author: formValue.author.trim(),
+    jobTag: formValue.jobTag.trim(),
     alarmEmail: formValue.alarmEmail.trim(),
     alarmChannelIds: formValue.alarmChannelIds.join(','),
     alarmEventTypes: formValue.alarmEventTypes.join(','),
@@ -698,7 +713,8 @@ async function loadData() {
       triggerStatus: filters.triggerStatus,
       jobDesc: filters.jobDesc,
       executorHandler: filters.executorHandler,
-      author: filters.author
+      author: filters.author,
+      jobTag: filters.jobTag
     });
     if (response.code !== 200) {
       throw new Error(response.msg || '任务列表加载失败');
@@ -724,6 +740,7 @@ function reset() {
   filters.jobDesc = '';
   filters.executorHandler = '';
   filters.author = '';
+  filters.jobTag = '';
   pagination.page = 1;
   void loadData();
 }
