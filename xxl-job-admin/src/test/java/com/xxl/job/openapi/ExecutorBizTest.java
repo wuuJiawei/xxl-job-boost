@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 public class ExecutorBizTest {
     private static final Logger logger = LoggerFactory.getLogger(ExecutorBizTest.class);
 
-    private static String addressUrl = "http://127.0.0.1:9999/";
+    private static String addressUrl = "http://127.0.0.1:8081/";
     private static String accessToken = "default_token";
 
     private ExecutorBiz buildClient(){
