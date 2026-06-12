@@ -12,12 +12,13 @@ public class ExecutorBizClientTransportFactory {
     private static final ConcurrentMap<String, ExecutorBiz> EXECUTOR_BIZ_REPOSITORY = new ConcurrentHashMap<String, ExecutorBiz>();
 
     public static ExecutorBiz getExecutorBiz(String address, String accessToken, int timeout) {
-        if (StringTool.isBlank(address)) {
+        ExecutorBizEndpoint endpoint = ExecutorBizEndpointParser.parse(address);
+        if (StringTool.isBlank(endpoint.getAddress())) {
             return null;
         }
 
-        ExecutorBizClientTransport transport = match(address);
-        String normalizedAddress = transport.normalizeAddress(address);
+        ExecutorBizClientTransport transport = match(endpoint);
+        String normalizedAddress = transport.normalizeAddress(endpoint.getAddress());
         String cacheKey = buildCacheKey(transport.type(), normalizedAddress, accessToken, timeout);
         ExecutorBiz executorBiz = EXECUTOR_BIZ_REPOSITORY.get(cacheKey);
         if (executorBiz != null) {
@@ -30,13 +31,26 @@ public class ExecutorBizClientTransportFactory {
     }
 
     public static ExecutorBizClientTransport match(String address) {
+        return match(ExecutorBizEndpointParser.parse(address));
+    }
+
+    public static ExecutorBizClientTransport match(ExecutorBizEndpoint endpoint) {
+        if (endpoint == null || StringTool.isBlank(endpoint.getAddress())) {
+            throw new IllegalArgumentException("Unsupported executor address: " + endpoint);
+        }
         List<ExecutorBizClientTransport> transports = ExecutorBizClientTransportRegistry.list();
         for (ExecutorBizClientTransport transport : transports) {
-            if (transport.supports(address)) {
+            if (endpoint.hasExplicitTransport()) {
+                if (transport.type().equalsIgnoreCase(endpoint.getTransport())) {
+                    return transport;
+                }
+                continue;
+            }
+            if (transport.supports(endpoint.getAddress())) {
                 return transport;
             }
         }
-        throw new IllegalArgumentException("Unsupported executor address: " + address);
+        throw new IllegalArgumentException("Unsupported executor address: " + endpoint.getAddress());
     }
 
     private static String buildCacheKey(String type, String address, String accessToken, int timeout) {

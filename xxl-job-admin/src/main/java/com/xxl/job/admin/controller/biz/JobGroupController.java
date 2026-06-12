@@ -1,6 +1,7 @@
 package com.xxl.job.admin.controller.biz;
 
 import com.xxl.job.admin.constant.Consts;
+import com.xxl.job.admin.core.trigger.ExecutorBizEndpointResolver;
 import com.xxl.job.admin.model.XxlJobGroup;
 import com.xxl.job.admin.model.XxlJobRegistry;
 import com.xxl.job.admin.util.I18nUtil;
@@ -12,7 +13,6 @@ import com.xxl.job.core.constant.RegistType;
 import com.xxl.sso.core.annotation.XxlSso;
 import com.xxl.tool.core.CollectionTool;
 import com.xxl.tool.core.StringTool;
-import com.xxl.tool.http.HttpTool;
 import com.xxl.tool.response.PageModel;
 import com.xxl.tool.response.Response;
 import jakarta.annotation.Resource;
@@ -38,6 +38,8 @@ public class JobGroupController {
 	public XxlJobGroupMapper xxlJobGroupMapper;
 	@Resource
 	private XxlJobRegistryMapper xxlJobRegistryMapper;
+	@Resource
+	private ExecutorBizEndpointResolver executorBizEndpointResolver;
 
 	@RequestMapping
 	@XxlSso(role = Consts.ADMIN_ROLE)
@@ -99,7 +101,7 @@ public class JobGroupController {
 				if (StringTool.isBlank(item)) {
 					return Response.ofFail( I18nUtil.getString("jobgroup_field_registryList_invalid") );
 				}
-                if (!(HttpTool.isHttp(item) || HttpTool.isHttps(item))) {
+                if (!executorBizEndpointResolver.supports(item)) {
                     return Response.ofFail( I18nUtil.getString("jobgroup_field_registryList_invalid")+"[2]" );
                 }
 			}
@@ -145,7 +147,7 @@ public class JobGroupController {
 				if (StringTool.isBlank(item)) {
 					return Response.ofFail(I18nUtil.getString("jobgroup_field_registryList_invalid") );
 				}
-                if (!(HttpTool.isHttp(item) || HttpTool.isHttps(item))) {
+                if (!executorBizEndpointResolver.supports(item)) {
                     return Response.ofFail( I18nUtil.getString("jobgroup_field_registryList_invalid")+"[2]" );
                 }
 			}

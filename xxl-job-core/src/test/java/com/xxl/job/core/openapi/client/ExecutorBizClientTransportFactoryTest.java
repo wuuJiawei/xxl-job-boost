@@ -12,4 +12,13 @@ public class ExecutorBizClientTransportFactoryTest {
         Assert.assertEquals("http://127.0.0.1:8081/", transport.normalizeAddress("127.0.0.1:8081"));
         Assert.assertEquals("http://127.0.0.1:8081/", transport.normalizeAddress("http://127.0.0.1:8081"));
     }
+
+    @Test
+    public void shouldSupportExplicitTransportPrefix() {
+        ExecutorBizEndpoint endpoint = ExecutorBizEndpointParser.parse("HTTP::127.0.0.1:8081");
+        Assert.assertTrue(endpoint.hasExplicitTransport());
+        Assert.assertEquals("HTTP", endpoint.getTransport());
+        Assert.assertEquals("127.0.0.1:8081", endpoint.getAddress());
+        Assert.assertEquals("HTTP", ExecutorBizClientTransportFactory.match(endpoint).type());
+    }
 }
