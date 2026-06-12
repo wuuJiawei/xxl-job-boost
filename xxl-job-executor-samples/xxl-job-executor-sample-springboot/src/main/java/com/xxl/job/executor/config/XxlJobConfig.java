@@ -46,6 +46,9 @@ public class XxlJobConfig {
     @Value("${xxl.job.executor.port}")
     private int port;
 
+    @Value("${xxl.job.executor.transport:NETTY_EMBED}")
+    private String transport;
+
     @Value("${xxl.job.executor.logpath}")
     private String logPath;
 
@@ -70,6 +73,7 @@ public class XxlJobConfig {
         xxlJobSpringExecutor.setAddress(address);
         xxlJobSpringExecutor.setIp(ip);
         xxlJobSpringExecutor.setPort(port);
+        xxlJobSpringExecutor.setTransport(transport);
         xxlJobSpringExecutor.setLogPath(logPath);
         xxlJobSpringExecutor.setLogRetentionDays(logRetentionDays);
         xxlJobSpringExecutor.setExcludedPackage(excludedPackage);

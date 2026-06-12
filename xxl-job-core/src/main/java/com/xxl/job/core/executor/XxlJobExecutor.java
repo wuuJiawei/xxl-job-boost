@@ -6,7 +6,8 @@ import com.xxl.job.core.handler.IJobHandler;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import com.xxl.job.core.handler.impl.MethodJobHandler;
 import com.xxl.job.core.log.XxlJobFileAppender;
-import com.xxl.job.core.server.EmbedServer;
+import com.xxl.job.core.server.ExecutorTransport;
+import com.xxl.job.core.server.ExecutorTransportFactory;
 import com.xxl.job.core.thread.JobLogFileCleanThread;
 import com.xxl.job.core.thread.JobThread;
 import com.xxl.job.core.thread.TriggerCallbackThread;
@@ -48,6 +49,7 @@ public class XxlJobExecutor  {
     private int port;
     private String logPath;
     private int logRetentionDays;
+    private String transport = "NETTY_EMBED";
 
     public void setAdminAddresses(String adminAddresses) {
         this.adminAddresses = adminAddresses;
@@ -84,6 +86,9 @@ public class XxlJobExecutor  {
     }
     public void setLogRetentionDays(int logRetentionDays) {
         this.logRetentionDays = logRetentionDays;
+    }
+    public void setTransport(String transport) {
+        this.transport = transport;
     }
 
 
@@ -176,6 +181,10 @@ public class XxlJobExecutor  {
         return syncMode;
     }
 
+    public String getTransport() {
+        return transport;
+    }
+
 
     // ---------------------- admin-client (rpc invoker) ----------------------
     private static List<AdminBiz> adminBizList;
@@ -218,7 +227,7 @@ public class XxlJobExecutor  {
     }
 
     // ---------------------- executor-server (rpc provider) ----------------------
-    private EmbedServer embedServer = null;
+    private ExecutorTransport executorTransport = null;
 
     private void initEmbedServer(String address, String ip, int port, String appname, String accessToken) throws Exception {
 
@@ -239,15 +248,14 @@ public class XxlJobExecutor  {
         }
 
         // start
-        embedServer = new EmbedServer();
-        embedServer.start(address, port, appname, accessToken);
+        executorTransport = ExecutorTransportFactory.create(transport);
+        executorTransport.start(address, port, appname, accessToken);
     }
 
     private void stopEmbedServer() {
-        // stop provider factory
-        if (embedServer != null) {
+        if (executorTransport != null) {
             try {
-                embedServer.stop();
+                executorTransport.stop();
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
