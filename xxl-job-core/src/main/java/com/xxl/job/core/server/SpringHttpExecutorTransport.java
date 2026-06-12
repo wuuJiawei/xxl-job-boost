@@ -11,12 +11,17 @@ public class SpringHttpExecutorTransport implements ExecutorTransport {
     private ExecutorTransportContext context;
 
     @Override
+    public String type() {
+        return "SPRING_HTTP";
+    }
+
+    @Override
     public void start(String address, int port, String appname, String accessToken) {
         this.context = new ExecutorTransportContext(address, port, appname, accessToken);
         activeContext = this.context;
-        ExecutorRegistryThread.getInstance().start(appname, address);
+        ExecutorRegistryThread.getInstance().start(appname, registryValue(address));
         logger.info(">>>>>>>>>>> xxl-job transport ready, type:{}, address:{}, port:{}",
-                ExecutorTransportType.SPRING_HTTP.name(), address, port);
+                type(), address, port);
     }
 
     @Override
@@ -26,7 +31,7 @@ public class SpringHttpExecutorTransport implements ExecutorTransport {
             activeContext = null;
         }
         logger.info(">>>>>>>>>>> xxl-job transport stop, type:{}, address:{}",
-                ExecutorTransportType.SPRING_HTTP.name(), context == null ? null : context.getAddress());
+                type(), context == null ? null : context.getAddress());
     }
 
     public static ExecutorTransportContext getActiveContext() {

@@ -23,10 +23,7 @@ public class DefaultExecutorBizProvider implements ExecutorBizProvider {
 
     @Override
     public ExecutorBiz getExecutorBiz(String address) {
-        ExecutorBizEndpoint endpoint = endpointResolver.resolve(address);
-        String rawEndpoint = endpoint.hasExplicitTransport()
-                ? endpoint.getTransport() + "::" + endpoint.getAddress()
-                : endpoint.getAddress();
+        String rawEndpoint = endpointResolver.normalize(address);
         return ExecutorBizClientTransportFactory.getExecutorBiz(rawEndpoint, accessToken, timeout);
     }
 }

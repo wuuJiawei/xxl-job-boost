@@ -12,6 +12,7 @@ import com.xxl.job.admin.util.I18nUtil;
 import com.xxl.job.core.constant.ExecutorBlockStrategyEnum;
 import com.xxl.job.core.context.XxlJobContext;
 import com.xxl.job.core.openapi.ExecutorBiz;
+import com.xxl.job.core.openapi.client.ExecutorBizEndpointListHelper;
 import com.xxl.job.core.openapi.model.TriggerRequest;
 import com.xxl.tool.core.StringTool;
 import com.xxl.tool.error.ThrowableTool;
@@ -84,7 +85,7 @@ public class JobTrigger {
         // cover addressList
         if (StringTool.isNotBlank(addressList)) {
             group.setAddressType(1);
-            group.setAddressList(addressList.trim());
+            group.setAddressList(ExecutorBizEndpointListHelper.normalizeAndJoin(addressList));
         }
 
         // sharding param

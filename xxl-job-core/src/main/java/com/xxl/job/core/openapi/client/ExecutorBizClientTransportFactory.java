@@ -30,6 +30,17 @@ public class ExecutorBizClientTransportFactory {
         return executorBiz;
     }
 
+    public static String normalizeEndpoint(String address) {
+        ExecutorBizEndpoint endpoint = ExecutorBizEndpointParser.parse(address);
+        if (StringTool.isBlank(endpoint.getAddress())) {
+            return null;
+        }
+
+        ExecutorBizClientTransport transport = match(endpoint);
+        String normalizedAddress = transport.normalizeAddress(endpoint.getAddress());
+        return transport.type() + "::" + normalizedAddress;
+    }
+
     public static ExecutorBizClientTransport match(String address) {
         return match(ExecutorBizEndpointParser.parse(address));
     }

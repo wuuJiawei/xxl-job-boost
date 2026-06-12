@@ -27,6 +27,11 @@ public class NettyEmbedExecutorTransport implements ExecutorTransport {
     private Thread thread;
 
     @Override
+    public String type() {
+        return "NETTY_EMBED";
+    }
+
+    @Override
     public void start(final String address, final int port, final String appname, final String accessToken) {
         executorBiz = new ExecutorBizImpl();
         dispatcher = new ExecutorTransportDispatcher(executorBiz, accessToken);
@@ -71,9 +76,9 @@ public class NettyEmbedExecutorTransport implements ExecutorTransport {
 
                     ChannelFuture future = bootstrap.bind(port).sync();
                     logger.info(">>>>>>>>>>> xxl-job remoting server start success, transport:{}, port:{}",
-                            ExecutorTransportType.NETTY_EMBED.name(), port);
+                            type(), port);
 
-                    startRegistry(appname, address);
+                    startRegistry(appname, registryValue(address));
                     future.channel().closeFuture().sync();
                 } catch (InterruptedException e) {
                     logger.info(">>>>>>>>>>> xxl-job remoting server stop.");
@@ -103,8 +108,8 @@ public class NettyEmbedExecutorTransport implements ExecutorTransport {
         logger.info(">>>>>>>>>>> xxl-job remoting server destroy success.");
     }
 
-    private void startRegistry(final String appname, final String address) {
-        ExecutorRegistryThread.getInstance().start(appname, address);
+    private void startRegistry(final String appname, final String registryValue) {
+        ExecutorRegistryThread.getInstance().start(appname, registryValue);
     }
 
     private void stopRegistry() {

@@ -9,14 +9,16 @@ import org.springframework.stereotype.Component;
 public class ExecutorBizEndpointResolver {
 
     public ExecutorBizEndpoint resolve(String endpoint) {
-        ExecutorBizEndpoint parsed = ExecutorBizEndpointParser.parse(endpoint);
-        ExecutorBizClientTransportFactory.match(parsed);
-        return parsed;
+        return ExecutorBizEndpointParser.parse(normalize(endpoint));
+    }
+
+    public String normalize(String endpoint) {
+        return ExecutorBizClientTransportFactory.normalizeEndpoint(endpoint);
     }
 
     public boolean supports(String endpoint) {
         try {
-            resolve(endpoint);
+            normalize(endpoint);
             return true;
         } catch (Exception ignored) {
             return false;

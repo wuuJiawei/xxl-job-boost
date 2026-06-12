@@ -21,4 +21,10 @@ public class ExecutorBizClientTransportFactoryTest {
         Assert.assertEquals("127.0.0.1:8081", endpoint.getAddress());
         Assert.assertEquals("HTTP", ExecutorBizClientTransportFactory.match(endpoint).type());
     }
+
+    @Test
+    public void shouldNormalizeEndpointWithTransportPrefix() {
+        Assert.assertEquals("HTTP::http://127.0.0.1:8081/", ExecutorBizClientTransportFactory.normalizeEndpoint("127.0.0.1:8081"));
+        Assert.assertEquals("HTTP::http://127.0.0.1:8081/", ExecutorBizClientTransportFactory.normalizeEndpoint("HTTP::127.0.0.1:8081"));
+    }
 }

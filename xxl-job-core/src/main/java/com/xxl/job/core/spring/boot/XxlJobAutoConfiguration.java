@@ -4,7 +4,6 @@ import com.xxl.job.core.executor.impl.XxlJobSpringExecutor;
 import com.xxl.job.core.openapi.ExecutorBiz;
 import com.xxl.job.core.openapi.impl.ExecutorBizImpl;
 import com.xxl.job.core.server.ExecutorTransportDispatcher;
-import com.xxl.job.core.server.ExecutorTransportType;
 import com.xxl.job.core.server.SpringHttpExecutorTransportController;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -67,7 +66,7 @@ public class XxlJobAutoConfiguration {
     }
 
     private int resolveExecutorPort(XxlJobProperties properties, Environment environment) {
-        if (ExecutorTransportType.SPRING_HTTP.name().equalsIgnoreCase(properties.getExecutor().getTransport())) {
+        if ("SPRING_HTTP".equalsIgnoreCase(properties.getExecutor().getTransport())) {
             Integer port = environment.getProperty("server.port", Integer.class);
             if (port != null) {
                 return port;

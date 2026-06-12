@@ -4,6 +4,7 @@ import com.xxl.job.admin.model.XxlJobGroup;
 import com.xxl.job.admin.model.XxlJobRegistry;
 import com.xxl.job.admin.scheduler.config.XxlJobAdminBootstrap;
 import com.xxl.job.core.constant.RegistType;
+import com.xxl.job.core.openapi.client.ExecutorBizClientTransportFactory;
 import com.xxl.job.core.openapi.model.RegistryRequest;
 import com.xxl.job.core.constant.Const;
 import com.xxl.tool.core.StringTool;
@@ -77,15 +78,18 @@ public class JobRegistryHelper {
 								for (XxlJobRegistry item: list) {
 									if (RegistType.EXECUTOR.name().equals(item.getRegistryGroup())) {
 										String appname = item.getRegistryKey();
-										List<String> registryList = appAddressMap.get(appname);
-										if (registryList == null) {
-											registryList = new ArrayList<String>();
+										List<String> registryList = appAddressMap.computeIfAbsent(appname, k -> new ArrayList<String>());
+										String normalizedEndpoint;
+										try {
+											normalizedEndpoint = ExecutorBizClientTransportFactory.normalizeEndpoint(item.getRegistryValue());
+										} catch (Exception e) {
+											logger.warn(">>>>>>>>>>> xxl-job, ignore illegal executor registry endpoint: {}", item.getRegistryValue());
+											continue;
 										}
 
-										if (!registryList.contains(item.getRegistryValue())) {
-											registryList.add(item.getRegistryValue());
+										if (!registryList.contains(normalizedEndpoint)) {
+											registryList.add(normalizedEndpoint);
 										}
-										appAddressMap.put(appname, registryList);
 									}
 								}
 							}
@@ -93,17 +97,10 @@ public class JobRegistryHelper {
 							// fresh group address
 							for (XxlJobGroup group: groupList) {
 								List<String> registryList = appAddressMap.get(group.getAppname());
-								String addressListStr = null;
 								if (registryList!=null && !registryList.isEmpty()) {
 									Collections.sort(registryList);
-									StringBuilder addressListSB = new StringBuilder();
-									for (String item:registryList) {
-										addressListSB.append(item).append(",");
-									}
-									addressListStr = addressListSB.toString();
-									addressListStr = addressListStr.substring(0, addressListStr.length()-1);
 								}
-								group.setAddressList(addressListStr);
+								group.setRegistryList(registryList);
 								group.setUpdateTime(new Date());
 
 								XxlJobAdminBootstrap.getInstance().getXxlJobGroupMapper().update(group);
@@ -163,6 +160,11 @@ public class JobRegistryHelper {
 				|| StringTool.isBlank(registryParam.getRegistryValue())) {
 			return Response.ofFail("Illegal Argument.");
 		}
+		try {
+			registryParam.setRegistryValue(ExecutorBizClientTransportFactory.normalizeEndpoint(registryParam.getRegistryValue()));
+		} catch (Exception e) {
+			return Response.ofFail("Illegal registry endpoint.");
+		}
 
 		// async execute
 		registryOrRemoveThreadPool.execute(new Runnable() {
@@ -197,6 +199,11 @@ public class JobRegistryHelper {
 				|| StringTool.isBlank(registryParam.getRegistryKey())
 				|| StringTool.isBlank(registryParam.getRegistryValue())) {
 			return Response.ofFail("Illegal Argument.");
+		}
+		try {
+			registryParam.setRegistryValue(ExecutorBizClientTransportFactory.normalizeEndpoint(registryParam.getRegistryValue()));
+		} catch (Exception e) {
+			return Response.ofFail("Illegal registry endpoint.");
 		}
 
 		// async execute

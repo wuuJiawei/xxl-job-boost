@@ -1,9 +1,8 @@
 package com.xxl.job.admin.model;
 
+import com.xxl.job.core.openapi.client.ExecutorBizEndpointListHelper;
 import com.xxl.tool.core.StringTool;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -23,9 +22,14 @@ public class XxlJobGroup {
     private List<String> registryList;  // 执行器地址列表(系统注册)
     public List<String> getRegistryList() {
         if (StringTool.isNotBlank(addressList)) {
-            registryList = new ArrayList<>(Arrays.asList(addressList.split(",")));
+            registryList = ExecutorBizEndpointListHelper.split(addressList);
         }
         return registryList;
+    }
+
+    public void setRegistryList(List<String> registryList) {
+        this.registryList = registryList;
+        this.addressList = ExecutorBizEndpointListHelper.join(registryList);
     }
 
     public int getId() {
@@ -74,6 +78,7 @@ public class XxlJobGroup {
 
     public void setAddressList(String addressList) {
         this.addressList = addressList;
+        this.registryList = null;
     }
 
 }

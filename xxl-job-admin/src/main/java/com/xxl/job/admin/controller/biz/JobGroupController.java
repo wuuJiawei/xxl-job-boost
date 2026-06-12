@@ -10,6 +10,7 @@ import com.xxl.job.admin.mapper.XxlJobInfoMapper;
 import com.xxl.job.admin.mapper.XxlJobRegistryMapper;
 import com.xxl.job.core.constant.Const;
 import com.xxl.job.core.constant.RegistType;
+import com.xxl.job.core.openapi.client.ExecutorBizEndpointListHelper;
 import com.xxl.sso.core.annotation.XxlSso;
 import com.xxl.tool.core.CollectionTool;
 import com.xxl.tool.core.StringTool;
@@ -96,14 +97,10 @@ public class JobGroupController {
 				return Response.ofFail(I18nUtil.getString("jobgroup_field_registryList")+I18nUtil.getString("system_invalid") );
 			}
 
-			String[] addresss = xxlJobGroup.getAddressList().split(",");
-			for (String item: addresss) {
-				if (StringTool.isBlank(item)) {
-					return Response.ofFail( I18nUtil.getString("jobgroup_field_registryList_invalid") );
-				}
-                if (!executorBizEndpointResolver.supports(item)) {
-                    return Response.ofFail( I18nUtil.getString("jobgroup_field_registryList_invalid")+"[2]" );
-                }
+			try {
+				xxlJobGroup.setAddressList(ExecutorBizEndpointListHelper.normalizeAndJoin(xxlJobGroup.getAddressList()));
+			} catch (Exception e) {
+				return Response.ofFail( I18nUtil.getString("jobgroup_field_registryList_invalid")+"[2]" );
 			}
 		}
 
@@ -131,25 +128,19 @@ public class JobGroupController {
 		if (xxlJobGroup.getAddressType() == 0) {
 			// 0=自动注册
 			List<String> registryList = findRegistryByAppName(xxlJobGroup.getAppname());
-			String addressListStr = null;
 			if (CollectionTool.isNotEmpty(registryList)) {
 				Collections.sort(registryList);
-				addressListStr = String.join(",", registryList);
 			}
-			xxlJobGroup.setAddressList(addressListStr);
+			xxlJobGroup.setRegistryList(registryList);
 		} else {
 			// 1=手动录入
 			if (StringTool.isBlank(xxlJobGroup.getAddressList())) {
 				return Response.ofFail( I18nUtil.getString("jobgroup_field_addressType_limit") );
 			}
-			String[] addresss = xxlJobGroup.getAddressList().split(",");
-			for (String item: addresss) {
-				if (StringTool.isBlank(item)) {
-					return Response.ofFail(I18nUtil.getString("jobgroup_field_registryList_invalid") );
-				}
-                if (!executorBizEndpointResolver.supports(item)) {
-                    return Response.ofFail( I18nUtil.getString("jobgroup_field_registryList_invalid")+"[2]" );
-                }
+			try {
+				xxlJobGroup.setAddressList(ExecutorBizEndpointListHelper.normalizeAndJoin(xxlJobGroup.getAddressList()));
+			} catch (Exception e) {
+				return Response.ofFail( I18nUtil.getString("jobgroup_field_registryList_invalid")+"[2]" );
 			}
 		}
 
@@ -172,8 +163,15 @@ public class JobGroupController {
 				String appname = item.getRegistryKey();
                 List<String> registryList = appAddressMap.computeIfAbsent(appname, k -> new ArrayList<>());
 
-                if (!registryList.contains(item.getRegistryValue())) {
-					registryList.add(item.getRegistryValue());
+                String normalizedEndpoint;
+                try {
+                    normalizedEndpoint = executorBizEndpointResolver.normalize(item.getRegistryValue());
+                } catch (Exception e) {
+                    continue;
+                }
+
+                if (!registryList.contains(normalizedEndpoint)) {
+					registryList.add(normalizedEndpoint);
 				}
 			}
 		}
