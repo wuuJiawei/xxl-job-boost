@@ -234,6 +234,7 @@ const local: App.I18n.Schema = {
     alerts: 'Alerts',
     executors: 'Executors',
     'failure-aggregates': 'Failure Aggregates',
+    governance: 'Governance Overview',
     'slow-tasks': 'Slow Task Analysis',
     jobs: 'Jobs',
     logs: 'Logs',
@@ -347,6 +348,28 @@ const local: App.I18n.Schema = {
         title: 'Slow Task Analysis',
         subtitle: 'Surface high-latency jobs first, then move to deeper performance diagnostics.',
         description: 'Aggregate slow execution count, average duration, max duration and the latest slow run by job, with filters for threshold, owner, tags and time range.'
+      },
+      governance: {
+        title: 'Governance Overview',
+        subtitle: 'Bring key governance metrics into one entry first, then expand into deeper specialized views.',
+        description:
+          'Summarize job ownership, tag coverage, failure hotspots, slow-task hotspots and recent audit events as a single starting point for governance work.',
+        jobs: 'Jobs',
+        ownedJobs: 'Owned Jobs',
+        taggedJobs: 'Tagged Jobs',
+        auditEvents: 'Audit Events',
+        jobsHint: 'All jobs baseline',
+        ownedHint: 'author is not empty',
+        taggedHint: 'job_tag is not empty',
+        auditHint: 'Accumulated governance traces',
+        quickActions: 'Quick Links',
+        quickActionsHint: 'Use dedicated pages to continue drilling into hotspots and governance records.',
+        failureTitle: 'Failure Hotspots',
+        failureSubtitle: 'Top 5 by failure count',
+        slowTitle: 'Slow Task Hotspots',
+        slowSubtitle: 'Top 5 with 30-second threshold',
+        auditTitle: 'Recent Audits',
+        auditSubtitle: 'Latest 8 governance events'
       },
       audits: {
         title: 'Audit Logs',

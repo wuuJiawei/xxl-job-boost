@@ -14,6 +14,7 @@ import com.xxl.job.admin.mapper.XxlJobUserMapper;
 import com.xxl.job.admin.model.XxlJobAlarmChannel;
 import com.xxl.job.admin.model.XxlJobAlarmRecord;
 import com.xxl.job.admin.model.XxlJobAuditLog;
+import com.xxl.job.admin.model.GovernanceOverview;
 import com.xxl.job.admin.model.XxlJobGroup;
 import com.xxl.job.admin.model.XxlJobInfo;
 import com.xxl.job.admin.model.JobFailureAggregate;
@@ -99,6 +100,52 @@ public class AdminNextApiController {
     @XxlSso
     public Response<Map<String, Object>> dashboardSummary() {
         return Response.ofSuccess(xxlJobService.dashboardInfo());
+    }
+
+    @GetMapping("/governance/overview")
+    @ResponseBody
+    @XxlSso(role = Consts.ADMIN_ROLE)
+    public Response<GovernanceOverview> governanceOverview(HttpServletRequest request) {
+        List<XxlJobGroup> permittedGroups = JobGroupPermissionUtil.filterJobGroupByPermission(request, xxlJobGroupMapper.findAll());
+        List<Integer> permittedGroupIds = permittedGroups.stream().map(XxlJobGroup::getId).toList();
+
+        GovernanceOverview data = new GovernanceOverview();
+        data.setTotalJobs(xxlJobInfoMapper.findAllCount());
+        data.setOwnedJobs(xxlJobInfoMapper.countWithAuthor());
+        data.setTaggedJobs(xxlJobInfoMapper.countWithJobTag());
+        data.setAuditEvents(xxlJobAuditLogMapper.countAll());
+
+        if (permittedGroupIds.isEmpty()) {
+            data.setFailureTopList(new ArrayList<>());
+            data.setSlowTopList(new ArrayList<>());
+        } else {
+            data.setFailureTopList(xxlJobLogMapper.pageFailureAggregates(
+                    0,
+                    5,
+                    permittedGroupIds,
+                    -1,
+                    0,
+                    "",
+                    "",
+                    null,
+                    null
+            ));
+            data.setSlowTopList(xxlJobLogMapper.pageSlowAggregates(
+                    0,
+                    5,
+                    permittedGroupIds,
+                    -1,
+                    0,
+                    "",
+                    "",
+                    30,
+                    null,
+                    null
+            ));
+        }
+
+        data.setRecentAuditList(xxlJobAuditLogMapper.findRecent(8));
+        return Response.ofSuccess(data);
     }
 
     @GetMapping("/jobgroups")

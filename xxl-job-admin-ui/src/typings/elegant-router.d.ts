@@ -24,6 +24,7 @@ declare module "@elegant-router/types" {
     "audits": "/audits";
     "executors": "/executors";
     "failure-aggregates": "/failure-aggregates";
+    "governance": "/governance";
     "help": "/help";
     "home": "/home";
     "iframe-page": "/iframe-page/:url";
@@ -72,6 +73,7 @@ declare module "@elegant-router/types" {
     | "audits"
     | "executors"
     | "failure-aggregates"
+    | "governance"
     | "help"
     | "home"
     | "iframe-page"
@@ -107,6 +109,7 @@ declare module "@elegant-router/types" {
     | "audits"
     | "executors"
     | "failure-aggregates"
+    | "governance"
     | "help"
     | "home"
     | "job-code"

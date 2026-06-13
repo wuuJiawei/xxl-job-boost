@@ -45,6 +45,10 @@ public interface XxlJobInfoMapper {
 
 	public int findAllCount();
 
+	public int countWithAuthor();
+
+	public int countWithJobTag();
+
 	/**
 	 * find schedule job, limit "trigger_status = 1"
 	 *

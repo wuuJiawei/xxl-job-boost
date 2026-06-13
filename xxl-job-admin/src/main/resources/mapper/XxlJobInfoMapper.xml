@@ -247,6 +247,20 @@
 		FROM xxl_job_info
 	</select>
 
+	<select id="countWithAuthor" resultType="int">
+		SELECT count(1)
+		FROM xxl_job_info
+		WHERE author IS NOT NULL
+		  AND TRIM(author) != ''
+	</select>
+
+	<select id="countWithJobTag" resultType="int">
+		SELECT count(1)
+		FROM xxl_job_info
+		WHERE job_tag IS NOT NULL
+		  AND TRIM(job_tag) != ''
+	</select>
+
 
 	<select id="scheduleJobQuery" parameterType="java.util.HashMap" resultMap="XxlJobInfo">
 		SELECT <include refid="Base_Column_List" />
