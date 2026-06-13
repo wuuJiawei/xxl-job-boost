@@ -1,6 +1,7 @@
 package com.xxl.job.admin.service.impl;
 
 import com.xxl.job.admin.constant.TriggerStatus;
+import com.xxl.job.admin.core.alarm.AlarmChannelService;
 import com.xxl.job.admin.core.sync.JobSyncMode;
 import com.xxl.job.admin.mapper.XxlJobGroupMapper;
 import com.xxl.job.admin.mapper.XxlJobInfoMapper;
@@ -30,6 +31,8 @@ public class JobSyncServiceImpl implements JobSyncService {
     private XxlJobGroupMapper xxlJobGroupMapper;
     @Resource
     private XxlJobInfoMapper xxlJobInfoMapper;
+    @Resource
+    private AlarmChannelService alarmChannelService;
 
     @Override
     public Response<String> sync(JobSyncRequest request) {
@@ -50,7 +53,7 @@ public class JobSyncServiceImpl implements JobSyncService {
         for (JobSyncItem item : request.getJobs()) {
             syncJob(group, item, syncMode);
         }
-        return Response.ofSuccess();
+        return Response.ofSuccess(String.format("group=%s, jobs=%d, mode=%s", group.getAppname(), request.getJobs().size(), syncMode.name()));
     }
 
     private XxlJobGroup ensureGroup(JobSyncRequest request) {
@@ -131,9 +134,10 @@ public class JobSyncServiceImpl implements JobSyncService {
         jobInfo.setJobGroup(jobGroupId);
         jobInfo.setJobDesc(item.getJobDesc().trim());
         jobInfo.setAuthor(item.getAuthor().trim());
-        jobInfo.setAlarmEmail("");
-        jobInfo.setAlarmChannelIds("");
-        jobInfo.setAlarmEventTypes("");
+        jobInfo.setJobTag(normalizeText(item.getJobTag()));
+        jobInfo.setAlarmEmail(normalizeText(item.getAlarmEmail()));
+        jobInfo.setAlarmChannelIds(alarmChannelService.normalizeChannelIdsToString(item.getAlarmChannelIds()));
+        jobInfo.setAlarmEventTypes(alarmChannelService.normalizeEventTypesToString(item.getAlarmEventTypes()));
         jobInfo.setScheduleType(item.getScheduleType());
         jobInfo.setScheduleConf(item.getScheduleConf());
         jobInfo.setMisfireStrategy(item.getMisfireStrategy());
@@ -147,6 +151,10 @@ public class JobSyncServiceImpl implements JobSyncService {
         if (jobInfo.getGlueType() == null) {
             jobInfo.setGlueType(GlueTypeEnum.BEAN.name());
         }
+    }
+
+    private String normalizeText(String value) {
+        return value == null ? "" : value.trim();
     }
 
     private void startJob(XxlJobInfo jobInfo) {

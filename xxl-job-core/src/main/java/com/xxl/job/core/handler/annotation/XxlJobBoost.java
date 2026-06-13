@@ -15,6 +15,14 @@ public @interface XxlJobBoost {
 
     String author();
 
+    String jobTag() default "";
+
+    String alarmEmail() default "";
+
+    String alarmChannelIds() default "";
+
+    String alarmEventTypes() default "";
+
     String scheduleType() default "CRON";
 
     String scheduleConf() default "";

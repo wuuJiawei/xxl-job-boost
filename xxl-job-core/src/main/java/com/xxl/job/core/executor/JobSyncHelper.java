@@ -68,6 +68,10 @@ public class JobSyncHelper {
         item.setExecutorHandler(handlerName.trim());
         item.setJobDesc(xxlJobBoost.desc().trim());
         item.setAuthor(xxlJobBoost.author().trim());
+        item.setJobTag(xxlJobBoost.jobTag().trim());
+        item.setAlarmEmail(xxlJobBoost.alarmEmail().trim());
+        item.setAlarmChannelIds(xxlJobBoost.alarmChannelIds().trim());
+        item.setAlarmEventTypes(xxlJobBoost.alarmEventTypes().trim());
         item.setScheduleType(xxlJobBoost.scheduleType().trim());
         item.setScheduleConf(xxlJobBoost.scheduleConf().trim());
         item.setExecutorParam(xxlJobBoost.executorParam());

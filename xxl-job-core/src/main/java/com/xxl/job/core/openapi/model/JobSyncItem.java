@@ -5,6 +5,10 @@ public class JobSyncItem {
     private String executorHandler;
     private String jobDesc;
     private String author;
+    private String jobTag;
+    private String alarmEmail;
+    private String alarmChannelIds;
+    private String alarmEventTypes;
     private String scheduleType;
     private String scheduleConf;
     private String executorParam;
@@ -37,6 +41,38 @@ public class JobSyncItem {
 
     public void setAuthor(String author) {
         this.author = author;
+    }
+
+    public String getJobTag() {
+        return jobTag;
+    }
+
+    public void setJobTag(String jobTag) {
+        this.jobTag = jobTag;
+    }
+
+    public String getAlarmEmail() {
+        return alarmEmail;
+    }
+
+    public void setAlarmEmail(String alarmEmail) {
+        this.alarmEmail = alarmEmail;
+    }
+
+    public String getAlarmChannelIds() {
+        return alarmChannelIds;
+    }
+
+    public void setAlarmChannelIds(String alarmChannelIds) {
+        this.alarmChannelIds = alarmChannelIds;
+    }
+
+    public String getAlarmEventTypes() {
+        return alarmEventTypes;
+    }
+
+    public void setAlarmEventTypes(String alarmEventTypes) {
+        this.alarmEventTypes = alarmEventTypes;
     }
 
     public String getScheduleType() {

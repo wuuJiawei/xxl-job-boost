@@ -3,6 +3,8 @@ package com.xxl.job.openapi;
 import com.xxl.job.core.constant.RegistType;
 import com.xxl.job.core.openapi.AdminBiz;
 import com.xxl.job.core.openapi.model.CallbackRequest;
+import com.xxl.job.core.openapi.model.JobSyncItem;
+import com.xxl.job.core.openapi.model.JobSyncRequest;
 import com.xxl.job.core.openapi.model.RegistryRequest;
 import com.xxl.job.core.context.XxlJobContext;
 import com.xxl.job.core.constant.Const;
@@ -81,6 +83,37 @@ public class AdminBizTest {
         Response<String> returnT = adminBiz.registryRemove(registryParam);
         assertTrue(returnT.isSuccess());
 
+    }
+
+    @Test
+    public void syncJobs() {
+        AdminBiz adminBiz = buildClient();
+
+        JobSyncItem item = new JobSyncItem();
+        item.setExecutorHandler("syncTestHandler");
+        item.setJobDesc("sync test job");
+        item.setAuthor("tester");
+        item.setJobTag("test,sync");
+        item.setAlarmEmail("sync@example.com");
+        item.setAlarmEventTypes("EXECUTOR_FAIL");
+        item.setScheduleType("NONE");
+        item.setScheduleConf("");
+        item.setExecutorRouteStrategy("FIRST");
+        item.setMisfireStrategy("DO_NOTHING");
+        item.setExecutorBlockStrategy("SERIAL_EXECUTION");
+        item.setExecutorTimeout(0);
+        item.setExecutorFailRetryCount(0);
+        item.setAutoStart(false);
+
+        JobSyncRequest request = new JobSyncRequest();
+        request.setAppname("xxl-job-executor-sample");
+        request.setGroupTitle("通用执行器Sample");
+        request.setAddressType(0);
+        request.setSyncMode("CREATE_ONLY");
+        request.setJobs(List.of(item));
+
+        Response<String> returnT = adminBiz.syncJobs(request);
+        assertTrue(returnT.isSuccess());
     }
 
     // ---------------------- job opt ----------------------

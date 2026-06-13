@@ -43,6 +43,9 @@ public class SampleXxlJob {
     @XxlJobBoost(
             desc = "示例任务01",
             author = "XXL",
+            jobTag = "sample,demo",
+            alarmEmail = "demo@example.com",
+            alarmEventTypes = "EXECUTOR_FAIL,TRIGGER_FAIL",
             scheduleType = "CRON",
             scheduleConf = "0 0 0 * * ? *",
             routeStrategy = "FIRST",
@@ -68,6 +71,8 @@ public class SampleXxlJob {
     @XxlJobBoost(
             desc = "分片广播示例任务",
             author = "XXL",
+            jobTag = "sample,sharding",
+            alarmEventTypes = "EXECUTOR_FAIL",
             scheduleType = "NONE",
             routeStrategy = "SHARDING_BROADCAST",
             misfireStrategy = "DO_NOTHING",
