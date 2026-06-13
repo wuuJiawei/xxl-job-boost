@@ -114,6 +114,12 @@
 3. 增强执行器注册与元数据管理
 4. 增强任务治理、审计与观测能力
 
+## 后续增量升级
+
+如果不是全新初始化数据库，而是基于旧库继续升级，请额外执行增量 SQL。
+
+- [审计日志 operator_user_id 升级脚本](../doc/db/migrations/2026-06-13-add-operator-user-id-to-audit-log.sql)
+
 ## 相关文档
 
 - [README](../README.md)

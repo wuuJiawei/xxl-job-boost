@@ -57,6 +57,14 @@ xxl-job-boost
 - 用户名：`admin`
 - 密码：`123456`
 
+## 数据库升级
+
+如果你是从较早版本升级，而不是全量重建数据库，除了初始化 SQL 之外还需要执行增量升级脚本。
+
+当前已补充的升级脚本：
+
+- [2026-06-13-add-operator-user-id-to-audit-log.sql](./doc/db/migrations/2026-06-13-add-operator-user-id-to-audit-log.sql)
+
 ## 快速启动
 
 ### 环境要求
