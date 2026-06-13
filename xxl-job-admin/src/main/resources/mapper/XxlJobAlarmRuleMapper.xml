@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xxl.job.admin.mapper.XxlJobAlarmRuleMapper">
+
+    <resultMap id="XxlJobAlarmRule" type="com.xxl.job.admin.model.XxlJobAlarmRule">
+        <result column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="job_group" property="jobGroup" />
+        <result column="job_id" property="jobId" />
+        <result column="alarm_event" property="alarmEvent" />
+        <result column="channel_ids" property="channelIds" />
+        <result column="enabled" property="enabled" />
+        <result column="remark" property="remark" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        t.id,
+        t.name,
+        t.job_group,
+        t.job_id,
+        t.alarm_event,
+        t.channel_ids,
+        t.enabled,
+        t.remark,
+        t.update_time
+    </sql>
+
+    <select id="pageList" resultMap="XxlJobAlarmRule">
+        SELECT <include refid="Base_Column_List" />
+        FROM xxl_job_alarm_rule t
+        <trim prefix="WHERE" prefixOverrides="AND | OR">
+            <if test="jobGroup gt 0">
+                AND t.job_group = #{jobGroup}
+            </if>
+            <if test="jobId gt 0">
+                AND t.job_id = #{jobId}
+            </if>
+            <if test="alarmEvent != null and alarmEvent != ''">
+                AND t.alarm_event = #{alarmEvent}
+            </if>
+            <if test="enabled gte 0">
+                AND t.enabled = #{enabled}
+            </if>
+        </trim>
+        ORDER BY t.id DESC
+        LIMIT #{offset}, #{pagesize}
+    </select>
+
+    <select id="pageListCount" resultType="int">
+        SELECT count(1)
+        FROM xxl_job_alarm_rule t
+        <trim prefix="WHERE" prefixOverrides="AND | OR">
+            <if test="jobGroup gt 0">
+                AND t.job_group = #{jobGroup}
+            </if>
+            <if test="jobId gt 0">
+                AND t.job_id = #{jobId}
+            </if>
+            <if test="alarmEvent != null and alarmEvent != ''">
+                AND t.alarm_event = #{alarmEvent}
+            </if>
+            <if test="enabled gte 0">
+                AND t.enabled = #{enabled}
+            </if>
+        </trim>
+    </select>
+
+    <insert id="save" parameterType="com.xxl.job.admin.model.XxlJobAlarmRule" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO xxl_job_alarm_rule (
+            name,
+            job_group,
+            job_id,
+            alarm_event,
+            channel_ids,
+            enabled,
+            remark,
+            update_time
+        ) VALUES (
+            #{name},
+            #{jobGroup},
+            #{jobId},
+            #{alarmEvent},
+            #{channelIds},
+            #{enabled},
+            #{remark},
+            #{updateTime}
+        )
+    </insert>
+
+    <update id="update" parameterType="com.xxl.job.admin.model.XxlJobAlarmRule">
+        UPDATE xxl_job_alarm_rule
+        SET
+            name = #{name},
+            job_group = #{jobGroup},
+            job_id = #{jobId},
+            alarm_event = #{alarmEvent},
+            channel_ids = #{channelIds},
+            enabled = #{enabled},
+            remark = #{remark},
+            update_time = #{updateTime}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="remove">
+        DELETE FROM xxl_job_alarm_rule
+        WHERE id = #{id}
+    </delete>
+
+    <select id="load" resultMap="XxlJobAlarmRule">
+        SELECT <include refid="Base_Column_List" />
+        FROM xxl_job_alarm_rule t
+        WHERE t.id = #{id}
+    </select>
+
+    <select id="findMatched" resultMap="XxlJobAlarmRule">
+        SELECT <include refid="Base_Column_List" />
+        FROM xxl_job_alarm_rule t
+        WHERE t.enabled = 1
+          AND t.job_group = #{jobGroup}
+          AND t.alarm_event = #{alarmEvent}
+          AND (t.job_id IS NULL OR t.job_id = 0 OR t.job_id = #{jobId})
+        ORDER BY CASE WHEN t.job_id = #{jobId} THEN 0 ELSE 1 END, t.id DESC
+    </select>
+
+</mapper>

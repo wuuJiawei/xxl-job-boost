@@ -64,6 +64,7 @@ xxl-job-boost
 当前已补充的升级脚本：
 
 - [2026-06-13-add-operator-user-id-to-audit-log.sql](./doc/db/migrations/2026-06-13-add-operator-user-id-to-audit-log.sql)
+- [2026-06-13-add-alarm-rule-table.sql](./doc/db/migrations/2026-06-13-add-alarm-rule-table.sql)
 
 ## 快速启动
 

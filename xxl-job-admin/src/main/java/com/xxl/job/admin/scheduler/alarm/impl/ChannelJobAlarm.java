@@ -16,9 +16,14 @@ public class ChannelJobAlarm implements JobAlarm {
 
     @Override
     public boolean doAlarm(XxlJobInfo info, XxlJobLog jobLog) {
-        if (info == null || StringTool.isBlank(info.getAlarmChannelIds())) {
+        if (info == null) {
             return true;
         }
-        return alarmChannelService.sendBoundChannels(info, jobLog);
+        boolean boundResult = true;
+        if (StringTool.isNotBlank(info.getAlarmChannelIds())) {
+            boundResult = alarmChannelService.sendBoundChannels(info, jobLog);
+        }
+        boolean ruleResult = alarmChannelService.sendMatchedRules(info, jobLog);
+        return boundResult && ruleResult;
     }
 }

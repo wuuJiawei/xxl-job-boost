@@ -44,6 +44,18 @@ export type AlarmRecord = {
   createTime?: string | null;
 };
 
+export type AlarmRule = {
+  id: number;
+  name: string;
+  jobGroup: number;
+  jobId?: number | null;
+  alarmEvent: string;
+  channelIds: string;
+  enabled: number;
+  remark?: string | null;
+  updateTime?: string | null;
+};
+
 export async function fetchAlarmChannels(params: {
   offset: number;
   pagesize: number;
@@ -77,6 +89,45 @@ export async function deleteAlarmChannel(id: number) {
   const form = new URLSearchParams();
   form.append('ids[]', String(id));
   const { data } = await http.post<ApiResponse<string>>('/alarmchannel/delete', form, {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+  });
+  return data;
+}
+
+export async function fetchAlarmRules(params: {
+  offset: number;
+  pagesize: number;
+  jobGroup: number;
+  jobId: number;
+  alarmEvent: string;
+  enabled: number;
+}) {
+  const { data } = await http.get<ApiResponse<PageModel<AlarmRule>>>('/api/admin-next/alarm-rules', { params });
+  return data;
+}
+
+export async function createAlarmRule(payload: Record<string, string>) {
+  const form = new URLSearchParams();
+  Object.entries(payload).forEach(([key, value]) => form.set(key, value));
+  const { data } = await http.post<ApiResponse<string>>('/alarmrule/insert', form, {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+  });
+  return data;
+}
+
+export async function updateAlarmRule(payload: Record<string, string>) {
+  const form = new URLSearchParams();
+  Object.entries(payload).forEach(([key, value]) => form.set(key, value));
+  const { data } = await http.post<ApiResponse<string>>('/alarmrule/update', form, {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+  });
+  return data;
+}
+
+export async function deleteAlarmRule(id: number) {
+  const form = new URLSearchParams();
+  form.append('ids[]', String(id));
+  const { data } = await http.post<ApiResponse<string>>('/alarmrule/delete', form, {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
   });
   return data;

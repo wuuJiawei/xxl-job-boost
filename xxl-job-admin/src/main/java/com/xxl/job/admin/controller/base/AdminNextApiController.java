@@ -5,6 +5,7 @@ import com.xxl.job.admin.core.alarm.AlarmChannelType;
 import com.xxl.job.admin.core.alarm.AlarmEventType;
 import com.xxl.job.admin.mapper.XxlJobAlarmChannelMapper;
 import com.xxl.job.admin.mapper.XxlJobAlarmRecordMapper;
+import com.xxl.job.admin.mapper.XxlJobAlarmRuleMapper;
 import com.xxl.job.admin.mapper.XxlJobAuditLogMapper;
 import com.xxl.job.admin.mapper.XxlJobGroupMapper;
 import com.xxl.job.admin.mapper.XxlJobInfoMapper;
@@ -13,6 +14,7 @@ import com.xxl.job.admin.mapper.XxlJobLogMapper;
 import com.xxl.job.admin.mapper.XxlJobUserMapper;
 import com.xxl.job.admin.model.XxlJobAlarmChannel;
 import com.xxl.job.admin.model.XxlJobAlarmRecord;
+import com.xxl.job.admin.model.XxlJobAlarmRule;
 import com.xxl.job.admin.model.XxlJobAuditLog;
 import com.xxl.job.admin.model.GovernanceOverview;
 import com.xxl.job.admin.model.XxlJobGroup;
@@ -76,6 +78,8 @@ public class AdminNextApiController {
     private XxlJobAlarmChannelMapper xxlJobAlarmChannelMapper;
     @Resource
     private XxlJobAlarmRecordMapper xxlJobAlarmRecordMapper;
+    @Resource
+    private XxlJobAlarmRuleMapper xxlJobAlarmRuleMapper;
     @Resource
     private XxlJobAuditLogMapper xxlJobAuditLogMapper;
     @Resource
@@ -341,6 +345,39 @@ public class AdminNextApiController {
             return Response.ofFail("告警渠道不存在");
         }
         return Response.ofSuccess(channel);
+    }
+
+    @GetMapping("/alarm-rules/{ruleId}")
+    @ResponseBody
+    @XxlSso
+    public Response<Object> alarmRuleDetail(HttpServletRequest request, @PathVariable int ruleId) {
+        XxlJobAlarmRule rule = xxlJobAlarmRuleMapper.load(ruleId);
+        if (rule == null) {
+            return Response.ofFail("告警规则不存在");
+        }
+        JobGroupPermissionUtil.validJobGroupPermission(request, rule.getJobGroup());
+        return Response.ofSuccess(rule);
+    }
+
+    @GetMapping("/alarm-rules")
+    @ResponseBody
+    @XxlSso
+    public Response<Map<String, Object>> alarmRules(HttpServletRequest request,
+                                                    @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
+                                                    @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pagesize,
+                                                    @RequestParam(value = "jobGroup", required = false, defaultValue = "-1") int jobGroup,
+                                                    @RequestParam(value = "jobId", required = false, defaultValue = "0") int jobId,
+                                                    @RequestParam(value = "alarmEvent", required = false, defaultValue = "") String alarmEvent,
+                                                    @RequestParam(value = "enabled", required = false, defaultValue = "-1") int enabled) {
+        if (jobGroup > 0) {
+            JobGroupPermissionUtil.validJobGroupPermission(request, jobGroup);
+        }
+        List<XxlJobAlarmRule> list = xxlJobAlarmRuleMapper.pageList(offset, pagesize, jobGroup, jobId, alarmEvent, enabled);
+        int count = xxlJobAlarmRuleMapper.pageListCount(offset, pagesize, jobGroup, jobId, alarmEvent, enabled);
+        Map<String, Object> data = new HashMap<>();
+        data.put("data", list);
+        data.put("total", count);
+        return Response.ofSuccess(data);
     }
 
     @GetMapping("/alarm-records")

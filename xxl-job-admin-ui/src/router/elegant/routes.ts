@@ -45,10 +45,7 @@ export const generatedRoutes: GeneratedRoute[] = [
     component: 'layout.base$view.alerts',
     meta: {
       title: 'alerts',
-      i18nKey: 'route.alerts',
-      icon: 'mdi:bell-alert-outline',
-      order: 7,
-      roles: ['R_SUPER']
+      i18nKey: 'route.alerts'
     }
   },
   {

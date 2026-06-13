@@ -64,6 +64,18 @@ export type AlarmChannelOption = {
   remark?: string | null;
 };
 
+export type AlarmRuleDetail = {
+  id: number;
+  name: string;
+  jobGroup: number;
+  jobId?: number | null;
+  alarmEvent: string;
+  channelIds: string;
+  enabled: number;
+  remark?: string | null;
+  updateTime?: string | null;
+};
+
 export type JobMetadata = {
   scheduleTypes: MetadataOption[];
   routeStrategies: MetadataOption[];
@@ -118,5 +130,10 @@ export async function fetchAlarmRecords(params: {
   sendStatus: number;
 }) {
   const { data } = await http.get<ApiResponse<{ data: unknown[]; total: number }>>('/api/admin-next/alarm-records', { params });
+  return data;
+}
+
+export async function fetchAlarmRuleDetail(id: number) {
+  const { data } = await http.get<ApiResponse<AlarmRuleDetail>>(`/api/admin-next/alarm-rules/${id}`);
   return data;
 }

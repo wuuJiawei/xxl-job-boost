@@ -2,8 +2,10 @@ package com.xxl.job.admin.core.alarm;
 
 import com.xxl.job.admin.mapper.XxlJobAlarmChannelMapper;
 import com.xxl.job.admin.mapper.XxlJobAlarmRecordMapper;
+import com.xxl.job.admin.mapper.XxlJobAlarmRuleMapper;
 import com.xxl.job.admin.model.XxlJobAlarmChannel;
 import com.xxl.job.admin.model.XxlJobAlarmRecord;
+import com.xxl.job.admin.model.XxlJobAlarmRule;
 import com.xxl.job.admin.model.XxlJobInfo;
 import com.xxl.job.admin.model.XxlJobLog;
 import com.xxl.tool.core.StringTool;
@@ -37,6 +39,8 @@ public class AlarmChannelService {
     private XxlJobAlarmChannelMapper xxlJobAlarmChannelMapper;
     @Resource
     private XxlJobAlarmRecordMapper xxlJobAlarmRecordMapper;
+    @Resource
+    private XxlJobAlarmRuleMapper xxlJobAlarmRuleMapper;
 
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))
@@ -147,6 +151,54 @@ public class AlarmChannelService {
             AlarmDeliveryResult result = sendByChannel(channel, info, jobLog, alarmEvent);
             if (!result.isSuccess()) {
                 success = false;
+            }
+        }
+        return success;
+    }
+
+    public boolean sendMatchedRules(XxlJobInfo info, XxlJobLog jobLog) {
+        AlarmEventType alarmEvent = currentEvent(jobLog);
+        if (alarmEvent == null || info == null) {
+            return true;
+        }
+
+        List<XxlJobAlarmRule> rules = xxlJobAlarmRuleMapper.findMatched(info.getJobGroup(), info.getId(), alarmEvent.name());
+        if (rules == null || rules.isEmpty()) {
+            return true;
+        }
+
+        boolean success = true;
+        for (XxlJobAlarmRule rule : rules) {
+            List<Integer> ids;
+            try {
+                ids = normalizeChannelIds(rule.getChannelIds());
+            } catch (IllegalArgumentException e) {
+                persistRuleRecord(info, jobLog, rule, null, alarmEvent,
+                        AlarmDeliveryResult.fail(null, null, e.getMessage()));
+                success = false;
+                continue;
+            }
+            if (ids.isEmpty()) {
+                continue;
+            }
+
+            List<XxlJobAlarmChannel> channels = xxlJobAlarmChannelMapper.findByIds(ids);
+            Map<Integer, XxlJobAlarmChannel> channelMap = channels.stream()
+                    .collect(Collectors.toMap(XxlJobAlarmChannel::getId, item -> item));
+
+            for (Integer channelId : ids) {
+                XxlJobAlarmChannel channel = channelMap.get(channelId);
+                if (channel == null || channel.getEnabled() != 1) {
+                    persistRuleRecord(info, jobLog, rule, channel, alarmEvent,
+                            AlarmDeliveryResult.fail(null, null, channel == null ? "规则渠道不存在" : "规则渠道已停用"));
+                    success = false;
+                    continue;
+                }
+
+                AlarmDeliveryResult result = sendByChannel(channel, info, jobLog, alarmEvent);
+                if (!result.isSuccess()) {
+                    success = false;
+                }
             }
         }
         return success;
@@ -324,6 +376,18 @@ public class AlarmChannelService {
         record.setErrorMsg(truncate(result.getErrorMsg(), 500));
         record.setCreateTime(new Date());
         xxlJobAlarmRecordMapper.save(record);
+    }
+
+    private void persistRuleRecord(XxlJobInfo info,
+                                   XxlJobLog jobLog,
+                                   XxlJobAlarmRule rule,
+                                   XxlJobAlarmChannel channel,
+                                   AlarmEventType alarmEvent,
+                                   AlarmDeliveryResult result) {
+        String title = AlarmContentHelper.buildTitle(info);
+        String content = AlarmContentHelper.buildHtmlContent(info, jobLog);
+        String target = channel != null ? targetOf(channel) : rule.getChannelIds();
+        persistRecord(info, jobLog, channel, target, title, content, alarmEvent, result);
     }
 
     private String truncate(String value, int maxLength) {
