@@ -63,6 +63,17 @@ export const generatedRoutes: GeneratedRoute[] = [
     }
   },
   {
+    name: 'failure-aggregates',
+    path: '/failure-aggregates',
+    component: 'layout.base$view.failure-aggregates',
+    meta: {
+      title: 'failure-aggregates',
+      i18nKey: 'route.failure-aggregates',
+      icon: 'mdi:alert-decagram-outline',
+      order: 5
+    }
+  },
+  {
     name: 'help',
     path: '/help',
     component: 'layout.base$view.help',
@@ -70,7 +81,7 @@ export const generatedRoutes: GeneratedRoute[] = [
       title: 'help',
       i18nKey: 'route.help',
       icon: 'mdi:help-circle-outline',
-      order: 6
+      order: 7
     }
   },
   {
@@ -163,7 +174,7 @@ export const generatedRoutes: GeneratedRoute[] = [
       title: 'users',
       i18nKey: 'route.users',
       icon: 'mdi:account-group-outline',
-      order: 6
+      order: 8
     }
   }
 ];

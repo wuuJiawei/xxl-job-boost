@@ -14,6 +14,7 @@ import com.xxl.job.admin.model.XxlJobAlarmChannel;
 import com.xxl.job.admin.model.XxlJobAlarmRecord;
 import com.xxl.job.admin.model.XxlJobGroup;
 import com.xxl.job.admin.model.XxlJobInfo;
+import com.xxl.job.admin.model.JobFailureAggregate;
 import com.xxl.job.admin.model.XxlJobLogGlue;
 import com.xxl.job.admin.model.XxlJobLog;
 import com.xxl.job.admin.model.XxlJobUser;
@@ -45,6 +46,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -299,6 +301,66 @@ public class AdminNextApiController {
         }
         List<XxlJobAlarmRecord> list = xxlJobAlarmRecordMapper.pageList(offset, pagesize, jobGroup, channelType, sendStatus);
         int count = xxlJobAlarmRecordMapper.pageListCount(offset, pagesize, jobGroup, channelType, sendStatus);
+        Map<String, Object> data = new HashMap<>();
+        data.put("data", list);
+        data.put("total", count);
+        return Response.ofSuccess(data);
+    }
+
+    @GetMapping("/failure-aggregates")
+    @ResponseBody
+    @XxlSso
+    public Response<Map<String, Object>> failureAggregates(HttpServletRequest request,
+                                                           @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
+                                                           @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pagesize,
+                                                           @RequestParam(value = "jobGroup", required = false, defaultValue = "-1") int jobGroup,
+                                                           @RequestParam(value = "jobId", required = false, defaultValue = "0") int jobId,
+                                                           @RequestParam(value = "author", required = false, defaultValue = "") String author,
+                                                           @RequestParam(value = "jobTag", required = false, defaultValue = "") String jobTag,
+                                                           @RequestParam(value = "filterTime", required = false, defaultValue = "") String filterTime) {
+        Date triggerTimeStart = null;
+        Date triggerTimeEnd = null;
+        if (StringTool.isNotBlank(filterTime)) {
+            String[] temp = filterTime.split(" - ");
+            if (temp.length == 2) {
+                triggerTimeStart = com.xxl.tool.core.DateTool.parseDateTime(temp[0]);
+                triggerTimeEnd = com.xxl.tool.core.DateTool.parseDateTime(temp[1]);
+            }
+        }
+
+        List<XxlJobGroup> permittedGroups = JobGroupPermissionUtil.filterJobGroupByPermission(request, xxlJobGroupMapper.findAll());
+        if (jobGroup > 0) {
+            JobGroupPermissionUtil.validJobGroupPermission(request, jobGroup);
+        }
+        List<Integer> permittedGroupIds = permittedGroups.stream().map(XxlJobGroup::getId).toList();
+        if (permittedGroupIds.isEmpty()) {
+            Map<String, Object> empty = new HashMap<>();
+            empty.put("data", new ArrayList<>());
+            empty.put("total", 0);
+            return Response.ofSuccess(empty);
+        }
+
+        List<JobFailureAggregate> list = xxlJobLogMapper.pageFailureAggregates(
+                offset,
+                pagesize,
+                permittedGroupIds,
+                jobGroup,
+                jobId,
+                author,
+                jobTag,
+                triggerTimeStart,
+                triggerTimeEnd
+        );
+        int count = xxlJobLogMapper.pageFailureAggregatesCount(
+                permittedGroupIds,
+                jobGroup,
+                jobId,
+                author,
+                jobTag,
+                triggerTimeStart,
+                triggerTimeEnd
+        );
+
         Map<String, Object> data = new HashMap<>();
         data.put("data", list);
         data.put("total", count);

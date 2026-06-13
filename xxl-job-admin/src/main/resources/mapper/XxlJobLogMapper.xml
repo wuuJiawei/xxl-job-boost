@@ -26,6 +26,21 @@
 		<result column="alarm_status" property="alarmStatus" />
 	</resultMap>
 
+	<resultMap id="JobFailureAggregate" type="com.xxl.job.admin.model.JobFailureAggregate">
+		<result column="job_group" property="jobGroup" />
+		<result column="job_id" property="jobId" />
+		<result column="job_desc" property="jobDesc" />
+		<result column="author" property="author" />
+		<result column="job_tag" property="jobTag" />
+		<result column="failure_count" property="failureCount" />
+		<result column="last_failure_time" property="lastFailureTime" />
+		<result column="last_log_id" property="lastLogId" />
+		<result column="last_trigger_code" property="lastTriggerCode" />
+		<result column="last_handle_code" property="lastHandleCode" />
+		<result column="last_trigger_msg" property="lastTriggerMsg" />
+		<result column="last_handle_msg" property="lastHandleMsg" />
+	</resultMap>
+
 	<sql id="Base_Column_List">
 		t.id,
 		t.job_group,
@@ -269,5 +284,108 @@
 			FROM xxl_job_registry AS t2
 		)
 	-->
+
+	<select id="pageFailureAggregates" resultMap="JobFailureAggregate">
+		SELECT
+			agg.job_group,
+			agg.job_id,
+			info.job_desc,
+			info.author,
+			info.job_tag,
+			agg.failure_count,
+			agg.last_failure_time,
+			last_log.id AS last_log_id,
+			last_log.trigger_code AS last_trigger_code,
+			last_log.handle_code AS last_handle_code,
+			last_log.trigger_msg AS last_trigger_msg,
+			last_log.handle_msg AS last_handle_msg
+		FROM (
+			SELECT
+				t.job_group,
+				t.job_id,
+				COUNT(1) AS failure_count,
+				MAX(t.trigger_time) AS last_failure_time,
+				MAX(t.id) AS last_log_id
+			FROM xxl_job_log t
+			INNER JOIN xxl_job_info info ON info.id = t.job_id
+			<trim prefix="WHERE" prefixOverrides="AND | OR">
+				AND (
+					t.trigger_code NOT IN (0, 200)
+					OR t.handle_code NOT IN (0, 200)
+				)
+				<if test="jobGroups != null and jobGroups.size() > 0">
+					AND t.job_group IN
+					<foreach collection="jobGroups" item="item" open="(" close=")" separator=",">
+						#{item}
+					</foreach>
+				</if>
+				<if test="jobGroup gt 0">
+					AND t.job_group = #{jobGroup}
+				</if>
+				<if test="jobId gt 0">
+					AND t.job_id = #{jobId}
+				</if>
+				<if test="author != null and author != ''">
+					AND info.author like CONCAT(CONCAT('%', #{author}), '%')
+				</if>
+				<if test="jobTag != null and jobTag != ''">
+					AND info.job_tag like CONCAT(CONCAT('%', #{jobTag}), '%')
+				</if>
+				<if test="triggerTimeStart != null">
+					AND t.trigger_time <![CDATA[ >= ]]> #{triggerTimeStart}
+				</if>
+				<if test="triggerTimeEnd != null">
+					AND t.trigger_time <![CDATA[ <= ]]> #{triggerTimeEnd}
+				</if>
+			</trim>
+			GROUP BY t.job_group, t.job_id
+		) agg
+		INNER JOIN xxl_job_info info ON info.id = agg.job_id
+		INNER JOIN xxl_job_log last_log ON last_log.id = agg.last_log_id
+		ORDER BY agg.last_failure_time DESC, agg.failure_count DESC
+		LIMIT #{offset}, #{pagesize}
+	</select>
+
+	<select id="pageFailureAggregatesCount" resultType="int">
+		SELECT COUNT(1)
+		FROM (
+			SELECT
+				t.job_group,
+				t.job_id
+			FROM xxl_job_log t
+			INNER JOIN xxl_job_info info ON info.id = t.job_id
+			<trim prefix="WHERE" prefixOverrides="AND | OR">
+				AND (
+					t.trigger_code NOT IN (0, 200)
+					OR t.handle_code NOT IN (0, 200)
+				)
+				<if test="jobGroups != null and jobGroups.size() > 0">
+					AND t.job_group IN
+					<foreach collection="jobGroups" item="item" open="(" close=")" separator=",">
+						#{item}
+					</foreach>
+				</if>
+				<if test="jobGroup gt 0">
+					AND t.job_group = #{jobGroup}
+				</if>
+				<if test="jobId gt 0">
+					AND t.job_id = #{jobId}
+				</if>
+				<if test="author != null and author != ''">
+					AND info.author like CONCAT(CONCAT('%', #{author}), '%')
+				</if>
+				<if test="jobTag != null and jobTag != ''">
+					AND info.job_tag like CONCAT(CONCAT('%', #{jobTag}), '%')
+				</if>
+				<if test="triggerTimeStart != null">
+					AND t.trigger_time <![CDATA[ >= ]]> #{triggerTimeStart}
+				</if>
+				<if test="triggerTimeEnd != null">
+					AND t.trigger_time <![CDATA[ <= ]]> #{triggerTimeEnd}
+				</if>
+			</trim>
+			GROUP BY t.job_group, t.job_id
+		) agg
+	</select>
 
 </mapper>

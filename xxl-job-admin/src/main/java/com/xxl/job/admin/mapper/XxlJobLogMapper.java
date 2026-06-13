@@ -1,6 +1,7 @@
 package com.xxl.job.admin.mapper;
 
 import com.xxl.job.admin.model.XxlJobLog;
+import com.xxl.job.admin.model.JobFailureAggregate;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -58,5 +59,23 @@ public interface XxlJobLogMapper {
 								 @Param("newAlarmStatus") int newAlarmStatus);
 
 	public List<Long> findLostJobIds(@Param("losedTime") Date losedTime);
+
+	public List<JobFailureAggregate> pageFailureAggregates(@Param("offset") int offset,
+														   @Param("pagesize") int pagesize,
+														   @Param("jobGroups") List<Integer> jobGroups,
+														   @Param("jobGroup") int jobGroup,
+														   @Param("jobId") int jobId,
+														   @Param("author") String author,
+														   @Param("jobTag") String jobTag,
+														   @Param("triggerTimeStart") Date triggerTimeStart,
+														   @Param("triggerTimeEnd") Date triggerTimeEnd);
+
+	public int pageFailureAggregatesCount(@Param("jobGroups") List<Integer> jobGroups,
+										  @Param("jobGroup") int jobGroup,
+										  @Param("jobId") int jobId,
+										  @Param("author") String author,
+										  @Param("jobTag") String jobTag,
+										  @Param("triggerTimeStart") Date triggerTimeStart,
+										  @Param("triggerTimeEnd") Date triggerTimeEnd);
 
 }

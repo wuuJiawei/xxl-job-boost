@@ -232,6 +232,7 @@ const local: App.I18n.Schema = {
     home: 'Home',
     alerts: 'Alerts',
     executors: 'Executors',
+    'failure-aggregates': 'Failure Aggregates',
     jobs: 'Jobs',
     logs: 'Logs',
     users: 'Users',
@@ -334,6 +335,11 @@ const local: App.I18n.Schema = {
         summaryHint: 'Reuse existing dashboardInfo',
         logHint: 'Success {count}',
         executorHint: 'Same metric as legacy console'
+      },
+      failureAggregates: {
+        title: 'Failure Aggregates',
+        subtitle: 'Cluster hot failure tasks first, then move to richer diagnostics.',
+        description: 'Aggregate failure count, last failure time and latest failure detail by job, with filters for owner, tags and time range.'
       }
     }
   },

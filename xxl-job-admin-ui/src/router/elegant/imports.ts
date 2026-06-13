@@ -22,6 +22,7 @@ export const views: Record<LastLevelRouteKey, RouteComponent | (() => Promise<Ro
   login: () => import("@/views/_builtin/login/index.vue"),
   alerts: () => import("@/views/alerts/index.vue"),
   executors: () => import("@/views/executors/index.vue"),
+  "failure-aggregates": () => import("@/views/failure-aggregates/index.vue"),
   help: () => import("@/views/help/index.vue"),
   home: () => import("@/views/home/index.vue"),
   "job-code": () => import("@/views/job-code/index.vue"),

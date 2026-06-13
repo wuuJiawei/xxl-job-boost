@@ -168,6 +168,7 @@ const routeMap: RouteMap = {
   "500": "/500",
   "alerts": "/alerts",
   "executors": "/executors",
+  "failure-aggregates": "/failure-aggregates",
   "help": "/help",
   "home": "/home",
   "iframe-page": "/iframe-page/:url",

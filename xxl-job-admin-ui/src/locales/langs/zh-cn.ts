@@ -228,6 +228,7 @@ const local: App.I18n.Schema = {
     home: '首页',
     alerts: '告警管理',
     executors: '执行器',
+    'failure-aggregates': '失败聚合',
     jobs: '任务管理',
     logs: '执行日志',
     users: '用户管理',
@@ -329,6 +330,11 @@ const local: App.I18n.Schema = {
         summaryHint: '复用现有 dashboardInfo',
         logHint: '成功 {count}',
         executorHint: '与旧控制台同口径'
+      },
+      failureAggregates: {
+        title: '失败聚合',
+        subtitle: '先把失败热点任务聚起来，再谈更复杂的诊断面板。',
+        description: '按任务维度聚合失败次数、最近失败时间和最近失败详情，支持负责人、任务标签和时间窗口筛选。'
       }
     }
   },
