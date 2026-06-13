@@ -234,6 +234,7 @@ const local: App.I18n.Schema = {
     alerts: 'Alerts',
     executors: 'Executors',
     'failure-aggregates': 'Failure Aggregates',
+    'slow-tasks': 'Slow Task Analysis',
     jobs: 'Jobs',
     logs: 'Logs',
     users: 'Users',
@@ -341,6 +342,11 @@ const local: App.I18n.Schema = {
         title: 'Failure Aggregates',
         subtitle: 'Cluster hot failure tasks first, then move to richer diagnostics.',
         description: 'Aggregate failure count, last failure time and latest failure detail by job, with filters for owner, tags and time range.'
+      },
+      slowTasks: {
+        title: 'Slow Task Analysis',
+        subtitle: 'Surface high-latency jobs first, then move to deeper performance diagnostics.',
+        description: 'Aggregate slow execution count, average duration, max duration and the latest slow run by job, with filters for threshold, owner, tags and time range.'
       },
       audits: {
         title: 'Audit Logs',

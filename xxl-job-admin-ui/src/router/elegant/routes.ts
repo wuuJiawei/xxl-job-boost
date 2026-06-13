@@ -179,6 +179,17 @@ export const generatedRoutes: GeneratedRoute[] = [
     }
   },
   {
+    name: 'slow-tasks',
+    path: '/slow-tasks',
+    component: 'layout.base$view.slow-tasks',
+    meta: {
+      title: 'slow-tasks',
+      i18nKey: 'route.slow-tasks',
+      icon: 'mdi:speedometer-slow',
+      order: 8
+    }
+  },
+  {
     name: 'users',
     path: '/users',
     component: 'layout.base$view.users',

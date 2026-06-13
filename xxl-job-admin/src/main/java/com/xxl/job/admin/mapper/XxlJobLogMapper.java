@@ -2,6 +2,7 @@ package com.xxl.job.admin.mapper;
 
 import com.xxl.job.admin.model.XxlJobLog;
 import com.xxl.job.admin.model.JobFailureAggregate;
+import com.xxl.job.admin.model.JobSlowAggregate;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -77,5 +78,25 @@ public interface XxlJobLogMapper {
 										  @Param("jobTag") String jobTag,
 										  @Param("triggerTimeStart") Date triggerTimeStart,
 										  @Param("triggerTimeEnd") Date triggerTimeEnd);
+
+	public List<JobSlowAggregate> pageSlowAggregates(@Param("offset") int offset,
+													 @Param("pagesize") int pagesize,
+													 @Param("jobGroups") List<Integer> jobGroups,
+													 @Param("jobGroup") int jobGroup,
+													 @Param("jobId") int jobId,
+													 @Param("author") String author,
+													 @Param("jobTag") String jobTag,
+													 @Param("minDurationSeconds") int minDurationSeconds,
+													 @Param("triggerTimeStart") Date triggerTimeStart,
+													 @Param("triggerTimeEnd") Date triggerTimeEnd);
+
+	public int pageSlowAggregatesCount(@Param("jobGroups") List<Integer> jobGroups,
+									   @Param("jobGroup") int jobGroup,
+									   @Param("jobId") int jobId,
+									   @Param("author") String author,
+									   @Param("jobTag") String jobTag,
+									   @Param("minDurationSeconds") int minDurationSeconds,
+									   @Param("triggerTimeStart") Date triggerTimeStart,
+									   @Param("triggerTimeEnd") Date triggerTimeEnd);
 
 }

@@ -32,6 +32,7 @@ declare module "@elegant-router/types" {
     "log-detail": "/log-detail";
     "login": "/login/:module(pwd-login|code-login|register|reset-pwd|bind-wechat)?";
     "logs": "/logs";
+    "slow-tasks": "/slow-tasks";
     "users": "/users";
   };
 
@@ -79,6 +80,7 @@ declare module "@elegant-router/types" {
     | "log-detail"
     | "login"
     | "logs"
+    | "slow-tasks"
     | "users"
   >;
 
@@ -111,6 +113,7 @@ declare module "@elegant-router/types" {
     | "jobs"
     | "log-detail"
     | "logs"
+    | "slow-tasks"
     | "users"
   >;
 
