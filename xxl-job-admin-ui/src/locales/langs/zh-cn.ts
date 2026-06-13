@@ -226,6 +226,7 @@ const local: App.I18n.Schema = {
     500: '服务器错误',
     'iframe-page': '外链页面',
     home: '首页',
+    audits: '审计日志',
     alerts: '告警管理',
     executors: '执行器',
     'failure-aggregates': '失败聚合',
@@ -335,6 +336,11 @@ const local: App.I18n.Schema = {
         title: '失败聚合',
         subtitle: '先把失败热点任务聚起来，再谈更复杂的诊断面板。',
         description: '按任务维度聚合失败次数、最近失败时间和最近失败详情，支持负责人、任务标签和时间窗口筛选。'
+      },
+      audits: {
+        title: '审计日志',
+        subtitle: '先把关键治理动作留痕，再继续扩到更细的行为审计。',
+        description: '记录任务、执行器、用户、告警渠道等关键管理动作，支持按操作人、动作类型、资源类型和执行器筛选。'
       }
     }
   },

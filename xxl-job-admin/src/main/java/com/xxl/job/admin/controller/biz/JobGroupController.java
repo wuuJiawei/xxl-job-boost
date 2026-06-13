@@ -5,6 +5,7 @@ import com.xxl.job.admin.core.trigger.ExecutorBizEndpointResolver;
 import com.xxl.job.admin.model.XxlJobGroup;
 import com.xxl.job.admin.model.XxlJobRegistry;
 import com.xxl.job.admin.util.I18nUtil;
+import com.xxl.job.admin.service.AuditLogService;
 import com.xxl.job.admin.mapper.XxlJobGroupMapper;
 import com.xxl.job.admin.mapper.XxlJobInfoMapper;
 import com.xxl.job.admin.mapper.XxlJobRegistryMapper;
@@ -12,6 +13,8 @@ import com.xxl.job.core.constant.Const;
 import com.xxl.job.core.constant.RegistType;
 import com.xxl.job.core.openapi.client.ExecutorBizEndpointListHelper;
 import com.xxl.sso.core.annotation.XxlSso;
+import com.xxl.sso.core.helper.XxlSsoHelper;
+import com.xxl.sso.core.model.LoginInfo;
 import com.xxl.tool.core.CollectionTool;
 import com.xxl.tool.core.StringTool;
 import com.xxl.tool.response.PageModel;
@@ -22,6 +25,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.*;
 
@@ -41,6 +45,8 @@ public class JobGroupController {
 	private XxlJobRegistryMapper xxlJobRegistryMapper;
 	@Resource
 	private ExecutorBizEndpointResolver executorBizEndpointResolver;
+	@Resource
+	private AuditLogService auditLogService;
 
 	@RequestMapping
 	@XxlSso(role = Consts.ADMIN_ROLE)
@@ -71,7 +77,7 @@ public class JobGroupController {
 	@RequestMapping("/insert")
 	@ResponseBody
 	@XxlSso(role = Consts.ADMIN_ROLE)
-	public Response<String> insert(XxlJobGroup xxlJobGroup){
+	public Response<String> insert(HttpServletRequest request, XxlJobGroup xxlJobGroup){
 
 		// valid
 		if (StringTool.isBlank(xxlJobGroup.getAppname())) {
@@ -107,14 +113,18 @@ public class JobGroupController {
 		// process
 		xxlJobGroup.setUpdateTime(new Date());
 
+		Response<LoginInfo> loginInfoResponse = XxlSsoHelper.loginCheckWithAttr(request);
 		int ret = xxlJobGroupMapper.save(xxlJobGroup);
+		if (ret > 0) {
+			auditLogService.record(loginInfoResponse.getData(), request, "jobgroup-insert", "job-group", String.valueOf(xxlJobGroup.getId()), xxlJobGroup.getTitle(), xxlJobGroup.getId(), xxlJobGroup);
+		}
 		return (ret>0)?Response.ofSuccess():Response.ofFail();
 	}
 
 	@RequestMapping("/update")
 	@ResponseBody
 	@XxlSso(role = Consts.ADMIN_ROLE)
-	public Response<String> update(XxlJobGroup xxlJobGroup){
+	public Response<String> update(HttpServletRequest request, XxlJobGroup xxlJobGroup){
 		// valid
 		if (StringTool.isBlank(xxlJobGroup.getAppname())) {
 			return Response.ofFail((I18nUtil.getString("system_please_input")+"AppName") );
@@ -147,7 +157,11 @@ public class JobGroupController {
 		// process
 		xxlJobGroup.setUpdateTime(new Date());
 
+		Response<LoginInfo> loginInfoResponse = XxlSsoHelper.loginCheckWithAttr(request);
 		int ret = xxlJobGroupMapper.update(xxlJobGroup);
+		if (ret > 0) {
+			auditLogService.record(loginInfoResponse.getData(), request, "jobgroup-update", "job-group", String.valueOf(xxlJobGroup.getId()), xxlJobGroup.getTitle(), xxlJobGroup.getId(), xxlJobGroup);
+		}
 		return (ret>0)?Response.ofSuccess():Response.ofFail();
 	}
 
@@ -181,7 +195,7 @@ public class JobGroupController {
 	@RequestMapping("/delete")
 	@ResponseBody
 	@XxlSso(role = Consts.ADMIN_ROLE)
-	public Response<String> delete(@RequestParam("ids[]") List<Integer> ids){
+	public Response<String> delete(HttpServletRequest request, @RequestParam("ids[]") List<Integer> ids){
 
 		// parse id
 		if (CollectionTool.isEmpty(ids) || ids.size()!=1) {
@@ -207,10 +221,14 @@ public class JobGroupController {
 			return Response.ofFail( I18nUtil.getString("jobgroup_del_limit_1") );
 		}
 
+		Response<LoginInfo> loginInfoResponse = XxlSsoHelper.loginCheckWithAttr(request);
         // remove group
 		int ret = xxlJobGroupMapper.remove(id);
         // remove registry-data
         xxlJobRegistryMapper.removeByRegistryGroupAndKey(RegistType.EXECUTOR.name(), xxlJobGroup.getAppname());
+		if (ret > 0) {
+			auditLogService.record(loginInfoResponse.getData(), request, "jobgroup-delete", "job-group", String.valueOf(id), xxlJobGroup.getTitle(), xxlJobGroup.getId(), xxlJobGroup);
+		}
 		return (ret>0)?Response.ofSuccess():Response.ofFail();
 	}
 

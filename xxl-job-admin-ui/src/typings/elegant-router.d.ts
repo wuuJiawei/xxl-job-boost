@@ -21,6 +21,7 @@ declare module "@elegant-router/types" {
     "404": "/404";
     "500": "/500";
     "alerts": "/alerts";
+    "audits": "/audits";
     "executors": "/executors";
     "failure-aggregates": "/failure-aggregates";
     "help": "/help";
@@ -67,6 +68,7 @@ declare module "@elegant-router/types" {
     | "404"
     | "500"
     | "alerts"
+    | "audits"
     | "executors"
     | "failure-aggregates"
     | "help"
@@ -100,6 +102,7 @@ declare module "@elegant-router/types" {
     | "iframe-page"
     | "login"
     | "alerts"
+    | "audits"
     | "executors"
     | "failure-aggregates"
     | "help"

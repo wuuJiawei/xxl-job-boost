@@ -230,6 +230,7 @@ const local: App.I18n.Schema = {
     500: 'Server Error',
     'iframe-page': 'Iframe',
     home: 'Home',
+    audits: 'Audit Logs',
     alerts: 'Alerts',
     executors: 'Executors',
     'failure-aggregates': 'Failure Aggregates',
@@ -340,6 +341,11 @@ const local: App.I18n.Schema = {
         title: 'Failure Aggregates',
         subtitle: 'Cluster hot failure tasks first, then move to richer diagnostics.',
         description: 'Aggregate failure count, last failure time and latest failure detail by job, with filters for owner, tags and time range.'
+      },
+      audits: {
+        title: 'Audit Logs',
+        subtitle: 'Persist critical governance actions first, then expand to finer-grained behavior auditing.',
+        description: 'Track key management actions on jobs, executors, users and alarm channels, with filters for operator, action type, resource type and job group.'
       }
     }
   },

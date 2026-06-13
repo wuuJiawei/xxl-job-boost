@@ -4,6 +4,7 @@ import com.xxl.job.admin.model.XxlJobInfo;
 import com.xxl.sso.core.model.LoginInfo;
 import com.xxl.tool.response.PageModel;
 import com.xxl.tool.response.Response;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Date;
 import java.util.Map;
@@ -23,32 +24,32 @@ public interface XxlJobService {
 	/**
 	 * add job
 	 */
-	public Response<String> add(XxlJobInfo jobInfo, LoginInfo loginInfo);
+	public Response<String> add(XxlJobInfo jobInfo, LoginInfo loginInfo, HttpServletRequest request);
 
 	/**
 	 * update job
 	 */
-	public Response<String> update(XxlJobInfo jobInfo, LoginInfo loginInfo);
+	public Response<String> update(XxlJobInfo jobInfo, LoginInfo loginInfo, HttpServletRequest request);
 
 	/**
 	 * remove job
 	 */
-	public Response<String> remove(int id, LoginInfo loginInfo);
+	public Response<String> remove(int id, LoginInfo loginInfo, HttpServletRequest request);
 
 	/**
 	 * start job
 	 */
-	public Response<String> start(int id, LoginInfo loginInfo);
+	public Response<String> start(int id, LoginInfo loginInfo, HttpServletRequest request);
 
 	/**
 	 * stop job
 	 */
-	public Response<String> stop(int id, LoginInfo loginInfo);
+	public Response<String> stop(int id, LoginInfo loginInfo, HttpServletRequest request);
 
 	/**
 	 * trigger
 	 */
-	public Response<String> trigger(LoginInfo loginInfo, int jobId, String executorParam, String addressList);
+	public Response<String> trigger(LoginInfo loginInfo, int jobId, String executorParam, String addressList, HttpServletRequest request);
 
 	/**
 	 * dashboard info

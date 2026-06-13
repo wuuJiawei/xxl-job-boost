@@ -5,6 +5,7 @@ import com.xxl.job.admin.core.alarm.AlarmChannelType;
 import com.xxl.job.admin.core.alarm.AlarmEventType;
 import com.xxl.job.admin.mapper.XxlJobAlarmChannelMapper;
 import com.xxl.job.admin.mapper.XxlJobAlarmRecordMapper;
+import com.xxl.job.admin.mapper.XxlJobAuditLogMapper;
 import com.xxl.job.admin.mapper.XxlJobGroupMapper;
 import com.xxl.job.admin.mapper.XxlJobInfoMapper;
 import com.xxl.job.admin.mapper.XxlJobLogGlueMapper;
@@ -12,6 +13,7 @@ import com.xxl.job.admin.mapper.XxlJobLogMapper;
 import com.xxl.job.admin.mapper.XxlJobUserMapper;
 import com.xxl.job.admin.model.XxlJobAlarmChannel;
 import com.xxl.job.admin.model.XxlJobAlarmRecord;
+import com.xxl.job.admin.model.XxlJobAuditLog;
 import com.xxl.job.admin.model.XxlJobGroup;
 import com.xxl.job.admin.model.XxlJobInfo;
 import com.xxl.job.admin.model.JobFailureAggregate;
@@ -21,6 +23,7 @@ import com.xxl.job.admin.model.XxlJobUser;
 import com.xxl.job.admin.scheduler.misfire.MisfireStrategyEnum;
 import com.xxl.job.admin.scheduler.route.ExecutorRouteStrategyEnum;
 import com.xxl.job.admin.scheduler.type.ScheduleTypeEnum;
+import com.xxl.job.admin.service.AuditLogService;
 import com.xxl.job.admin.service.XxlJobService;
 import com.xxl.job.admin.util.I18nUtil;
 import com.xxl.job.admin.util.JobGroupPermissionUtil;
@@ -71,6 +74,10 @@ public class AdminNextApiController {
     private XxlJobAlarmChannelMapper xxlJobAlarmChannelMapper;
     @Resource
     private XxlJobAlarmRecordMapper xxlJobAlarmRecordMapper;
+    @Resource
+    private XxlJobAuditLogMapper xxlJobAuditLogMapper;
+    @Resource
+    private AuditLogService auditLogService;
 
     @GetMapping("/session")
     @ResponseBody
@@ -222,6 +229,7 @@ public class AdminNextApiController {
 
         logger.info(">>>>>>>>>>> xxl-job operation log: operator = {}, type = {}, content = {}",
                 loginInfo.getUserName(), "jobcode-update", GsonTool.toJson(xxlJobLogGlue));
+        auditLogService.record(loginInfo, request, "jobcode-update", "job-code", String.valueOf(existsJobInfo.getId()), existsJobInfo.getJobDesc(), existsJobInfo.getJobGroup(), xxlJobLogGlue);
         return Response.ofSuccess();
     }
 
@@ -361,6 +369,23 @@ public class AdminNextApiController {
                 triggerTimeEnd
         );
 
+        Map<String, Object> data = new HashMap<>();
+        data.put("data", list);
+        data.put("total", count);
+        return Response.ofSuccess(data);
+    }
+
+    @GetMapping("/audit-logs")
+    @ResponseBody
+    @XxlSso(role = Consts.ADMIN_ROLE)
+    public Response<Map<String, Object>> auditLogs(@RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
+                                                   @RequestParam(value = "pagesize", required = false, defaultValue = "10") int pagesize,
+                                                   @RequestParam(value = "operator", required = false, defaultValue = "") String operator,
+                                                   @RequestParam(value = "actionType", required = false, defaultValue = "") String actionType,
+                                                   @RequestParam(value = "resourceType", required = false, defaultValue = "") String resourceType,
+                                                   @RequestParam(value = "jobGroup", required = false, defaultValue = "-1") int jobGroup) {
+        List<XxlJobAuditLog> list = xxlJobAuditLogMapper.pageList(offset, pagesize, operator, actionType, resourceType, jobGroup);
+        int count = xxlJobAuditLogMapper.pageListCount(offset, pagesize, operator, actionType, resourceType, jobGroup);
         Map<String, Object> data = new HashMap<>();
         data.put("data", list);
         data.put("total", count);

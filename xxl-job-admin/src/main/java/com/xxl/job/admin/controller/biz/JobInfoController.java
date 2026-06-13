@@ -104,7 +104,7 @@ public class JobInfoController {
 		LoginInfo loginInfo = JobGroupPermissionUtil.validJobGroupPermission(request, jobInfo.getJobGroup());
 
 		// opt
-		return xxlJobService.add(jobInfo, loginInfo);
+		return xxlJobService.add(jobInfo, loginInfo, request);
 	}
 
 	@RequestMapping("/update")
@@ -114,7 +114,7 @@ public class JobInfoController {
 		LoginInfo loginInfo = JobGroupPermissionUtil.validJobGroupPermission(request, jobInfo.getJobGroup());
 
 		// opt
-		return xxlJobService.update(jobInfo, loginInfo);
+		return xxlJobService.update(jobInfo, loginInfo, request);
 	}
 	
 	@RequestMapping("/delete")
@@ -128,7 +128,7 @@ public class JobInfoController {
 
 		// invoke
 		Response<LoginInfo> loginInfoResponse = XxlSsoHelper.loginCheckWithAttr(request);
-		return xxlJobService.remove(ids.get(0), loginInfoResponse.getData());
+		return xxlJobService.remove(ids.get(0), loginInfoResponse.getData(), request);
 	}
 	
 	@RequestMapping("/stop")
@@ -142,7 +142,7 @@ public class JobInfoController {
 
 		// invoke
 		Response<LoginInfo> loginInfoResponse = XxlSsoHelper.loginCheckWithAttr(request);
-		return xxlJobService.stop(ids.get(0), loginInfoResponse.getData());
+		return xxlJobService.stop(ids.get(0), loginInfoResponse.getData(), request);
 	}
 	
 	@RequestMapping("/start")
@@ -156,7 +156,7 @@ public class JobInfoController {
 
 		// invoke
 		Response<LoginInfo> loginInfoResponse = XxlSsoHelper.loginCheckWithAttr(request);
-		return xxlJobService.start(ids.get(0), loginInfoResponse.getData());
+		return xxlJobService.start(ids.get(0), loginInfoResponse.getData(), request);
 	}
 	
 	@RequestMapping("/trigger")
@@ -166,7 +166,7 @@ public class JobInfoController {
 									  @RequestParam("executorParam") String executorParam,
 									  @RequestParam("addressList") String addressList) {
 		Response<LoginInfo> loginInfoResponse = XxlSsoHelper.loginCheckWithAttr(request);
-		return xxlJobService.trigger(loginInfoResponse.getData(), id, executorParam, addressList);
+		return xxlJobService.trigger(loginInfoResponse.getData(), id, executorParam, addressList, request);
 	}
 
 	@RequestMapping("/nextTriggerTime")

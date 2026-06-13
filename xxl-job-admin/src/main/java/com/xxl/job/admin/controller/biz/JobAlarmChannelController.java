@@ -4,13 +4,17 @@ import com.xxl.job.admin.constant.Consts;
 import com.xxl.job.admin.core.alarm.AlarmChannelType;
 import com.xxl.job.admin.mapper.XxlJobAlarmChannelMapper;
 import com.xxl.job.admin.model.XxlJobAlarmChannel;
+import com.xxl.job.admin.service.AuditLogService;
 import com.xxl.sso.core.annotation.XxlSso;
+import com.xxl.sso.core.helper.XxlSsoHelper;
+import com.xxl.sso.core.model.LoginInfo;
 import com.xxl.tool.core.CollectionTool;
 import com.xxl.tool.core.StringTool;
 import com.xxl.tool.json.GsonTool;
 import com.xxl.tool.response.PageModel;
 import com.xxl.tool.response.Response;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,6 +29,8 @@ public class JobAlarmChannelController {
 
     @Resource
     private XxlJobAlarmChannelMapper xxlJobAlarmChannelMapper;
+    @Resource
+    private AuditLogService auditLogService;
 
     @RequestMapping("/pageList")
     @ResponseBody
@@ -48,22 +54,27 @@ public class JobAlarmChannelController {
     @RequestMapping("/insert")
     @ResponseBody
     @XxlSso(role = Consts.ADMIN_ROLE)
-    public Response<String> insert(XxlJobAlarmChannel channel) {
+    public Response<String> insert(HttpServletRequest request, XxlJobAlarmChannel channel) {
         Response<String> valid = validate(channel);
         if (!valid.isSuccess()) {
             return valid;
         }
 
+        Response<LoginInfo> loginInfoResponse = XxlSsoHelper.loginCheckWithAttr(request);
         channel.setUpdateTime(new Date());
         int ret = xxlJobAlarmChannelMapper.save(channel);
+        if (ret > 0) {
+            auditLogService.record(loginInfoResponse.getData(), request, "alarmchannel-insert", "alarm-channel", String.valueOf(channel.getId()), channel.getName(), null, channel);
+        }
         return ret > 0 ? Response.ofSuccess() : Response.ofFail();
     }
 
     @RequestMapping("/update")
     @ResponseBody
     @XxlSso(role = Consts.ADMIN_ROLE)
-    public Response<String> update(XxlJobAlarmChannel channel) {
-        if (channel.getId() < 1 || xxlJobAlarmChannelMapper.load(channel.getId()) == null) {
+    public Response<String> update(HttpServletRequest request, XxlJobAlarmChannel channel) {
+        XxlJobAlarmChannel existing = xxlJobAlarmChannelMapper.load(channel.getId());
+        if (channel.getId() < 1 || existing == null) {
             return Response.ofFail("告警渠道不存在");
         }
 
@@ -72,20 +83,29 @@ public class JobAlarmChannelController {
             return valid;
         }
 
+        Response<LoginInfo> loginInfoResponse = XxlSsoHelper.loginCheckWithAttr(request);
         channel.setUpdateTime(new Date());
         int ret = xxlJobAlarmChannelMapper.update(channel);
+        if (ret > 0) {
+            auditLogService.record(loginInfoResponse.getData(), request, "alarmchannel-update", "alarm-channel", String.valueOf(channel.getId()), channel.getName(), null, channel);
+        }
         return ret > 0 ? Response.ofSuccess() : Response.ofFail();
     }
 
     @RequestMapping("/delete")
     @ResponseBody
     @XxlSso(role = Consts.ADMIN_ROLE)
-    public Response<String> delete(@RequestParam("ids[]") List<Integer> ids) {
+    public Response<String> delete(HttpServletRequest request, @RequestParam("ids[]") List<Integer> ids) {
         if (CollectionTool.isEmpty(ids) || ids.size() != 1) {
             return Response.ofFail("请选择一条告警渠道数据");
         }
 
+        Response<LoginInfo> loginInfoResponse = XxlSsoHelper.loginCheckWithAttr(request);
+        XxlJobAlarmChannel existing = xxlJobAlarmChannelMapper.load(ids.get(0));
         int ret = xxlJobAlarmChannelMapper.remove(ids.get(0));
+        if (ret > 0) {
+            auditLogService.record(loginInfoResponse.getData(), request, "alarmchannel-delete", "alarm-channel", String.valueOf(ids.get(0)), existing != null ? existing.getName() : null, null, existing);
+        }
         return ret > 0 ? Response.ofSuccess() : Response.ofFail();
     }
 

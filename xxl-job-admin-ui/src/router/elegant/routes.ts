@@ -47,7 +47,19 @@ export const generatedRoutes: GeneratedRoute[] = [
       title: 'alerts',
       i18nKey: 'route.alerts',
       icon: 'mdi:bell-alert-outline',
-      order: 5,
+      order: 7,
+      roles: ['R_SUPER']
+    }
+  },
+  {
+    name: 'audits',
+    path: '/audits',
+    component: 'layout.base$view.audits',
+    meta: {
+      title: 'audits',
+      i18nKey: 'route.audits',
+      icon: 'mdi:clipboard-text-search-outline',
+      order: 6,
       roles: ['R_SUPER']
     }
   },
@@ -81,7 +93,7 @@ export const generatedRoutes: GeneratedRoute[] = [
       title: 'help',
       i18nKey: 'route.help',
       icon: 'mdi:help-circle-outline',
-      order: 7
+      order: 8
     }
   },
   {
@@ -174,7 +186,7 @@ export const generatedRoutes: GeneratedRoute[] = [
       title: 'users',
       i18nKey: 'route.users',
       icon: 'mdi:account-group-outline',
-      order: 8
+      order: 9
     }
   }
 ];

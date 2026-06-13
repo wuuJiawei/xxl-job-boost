@@ -14,6 +14,7 @@ import com.xxl.job.admin.scheduler.thread.JobScheduleHelper;
 import com.xxl.job.admin.scheduler.trigger.TriggerTypeEnum;
 import com.xxl.job.admin.scheduler.type.ScheduleTypeEnum;
 import com.xxl.job.admin.service.XxlJobService;
+import com.xxl.job.admin.service.AuditLogService;
 import com.xxl.job.admin.util.I18nUtil;
 import com.xxl.job.admin.util.JobGroupPermissionUtil;
 import com.xxl.job.core.constant.ExecutorBlockStrategyEnum;
@@ -25,6 +26,7 @@ import com.xxl.tool.json.GsonTool;
 import com.xxl.tool.response.PageModel;
 import com.xxl.tool.response.Response;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -52,6 +54,8 @@ public class XxlJobServiceImpl implements XxlJobService {
 	private XxlJobLogReportMapper xxlJobLogReportMapper;
 	@Resource
 	private AlarmChannelService alarmChannelService;
+	@Resource
+	private AuditLogService auditLogService;
 	
 	@Override
 	public Response<PageModel<XxlJobInfo>> pageList(int offset, int pagesize, int jobGroup, int triggerStatus, String jobDesc, String executorHandler, String author, String jobTag) {
@@ -69,7 +73,7 @@ public class XxlJobServiceImpl implements XxlJobService {
 	}
 
 	@Override
-	public Response<String> add(XxlJobInfo jobInfo, LoginInfo loginInfo) {
+	public Response<String> add(XxlJobInfo jobInfo, LoginInfo loginInfo, HttpServletRequest request) {
 
 		// valid base
 		XxlJobGroup group = xxlJobGroupMapper.load(jobInfo.getJobGroup());
@@ -184,12 +188,13 @@ public class XxlJobServiceImpl implements XxlJobService {
 		// write operation log
 		logger.info(">>>>>>>>>>> xxl-job operation log: operator = {}, type = {}, content = {}",
 				loginInfo.getUserName(), "jobinfo-save", GsonTool.toJson(jobInfo));
+		auditLogService.record(loginInfo, request, "jobinfo-save", "job", String.valueOf(jobInfo.getId()), jobInfo.getJobDesc(), jobInfo.getJobGroup(), jobInfo);
 
 		return Response.ofSuccess(String.valueOf(jobInfo.getId()));
 	}
 
 	@Override
-	public Response<String> update(XxlJobInfo jobInfo, LoginInfo loginInfo) {
+	public Response<String> update(XxlJobInfo jobInfo, LoginInfo loginInfo, HttpServletRequest request) {
 
 		// valid base
 		if (StringTool.isBlank(jobInfo.getJobDesc())) {
@@ -336,6 +341,7 @@ public class XxlJobServiceImpl implements XxlJobService {
 		// write operation log
 		logger.info(">>>>>>>>>>> xxl-job operation log: operator = {}, type = {}, content = {}",
 				loginInfo.getUserName(), "jobinfo-update", GsonTool.toJson(exists_jobInfo));
+		auditLogService.record(loginInfo, request, "jobinfo-update", "job", String.valueOf(exists_jobInfo.getId()), exists_jobInfo.getJobDesc(), exists_jobInfo.getJobGroup(), exists_jobInfo);
 
 		return Response.ofSuccess();
 	}
@@ -360,7 +366,7 @@ public class XxlJobServiceImpl implements XxlJobService {
 	}
 
 	@Override
-	public Response<String> remove(int id, LoginInfo loginInfo) {
+	public Response<String> remove(int id, LoginInfo loginInfo, HttpServletRequest request) {
 		// valid job
 		XxlJobInfo xxlJobInfo = xxlJobInfoMapper.loadById(id);
 		if (xxlJobInfo == null) {
@@ -379,12 +385,13 @@ public class XxlJobServiceImpl implements XxlJobService {
 		// write operation log
 		logger.info(">>>>>>>>>>> xxl-job operation log: operator = {}, type = {}, content = {}",
 				loginInfo.getUserName(), "jobinfo-remove", id);
+		auditLogService.record(loginInfo, request, "jobinfo-remove", "job", String.valueOf(id), xxlJobInfo.getJobDesc(), xxlJobInfo.getJobGroup(), xxlJobInfo);
 
 		return Response.ofSuccess();
 	}
 
 	@Override
-	public Response<String> start(int id, LoginInfo loginInfo) {
+	public Response<String> start(int id, LoginInfo loginInfo, HttpServletRequest request) {
 		// load and valid
 		XxlJobInfo xxlJobInfo = xxlJobInfoMapper.loadById(id);
 		if (xxlJobInfo == null) {
@@ -427,12 +434,13 @@ public class XxlJobServiceImpl implements XxlJobService {
 		// write operation log
 		logger.info(">>>>>>>>>>> xxl-job operation log: operator = {}, type = {}, content = {}",
 				loginInfo.getUserName(), "jobinfo-start", id);
+		auditLogService.record(loginInfo, request, "jobinfo-start", "job", String.valueOf(id), xxlJobInfo.getJobDesc(), xxlJobInfo.getJobGroup(), xxlJobInfo);
 
 		return Response.ofSuccess();
 	}
 
 	@Override
-	public Response<String> stop(int id, LoginInfo loginInfo) {
+	public Response<String> stop(int id, LoginInfo loginInfo, HttpServletRequest request) {
 		// load and valid
         XxlJobInfo xxlJobInfo = xxlJobInfoMapper.loadById(id);
 		if (xxlJobInfo == null) {
@@ -455,12 +463,13 @@ public class XxlJobServiceImpl implements XxlJobService {
 		// write operation log
 		logger.info(">>>>>>>>>>> xxl-job operation log: operator = {}, type = {}, content = {}",
 				loginInfo.getUserName(), "jobinfo-stop", id);
+		auditLogService.record(loginInfo, request, "jobinfo-stop", "job", String.valueOf(id), xxlJobInfo.getJobDesc(), xxlJobInfo.getJobGroup(), xxlJobInfo);
 
 		return Response.ofSuccess();
 	}
 
 	@Override
-	public Response<String> trigger(LoginInfo loginInfo, int jobId, String executorParam, String addressList) {
+	public Response<String> trigger(LoginInfo loginInfo, int jobId, String executorParam, String addressList, HttpServletRequest request) {
 		// valid job
 		XxlJobInfo xxlJobInfo = xxlJobInfoMapper.loadById(jobId);
 		if (xxlJobInfo == null) {
@@ -482,6 +491,11 @@ public class XxlJobServiceImpl implements XxlJobService {
 		// write operation log
 		logger.info(">>>>>>>>>>> xxl-job operation log: operator = {}, type = {}, content = {}",
 				loginInfo.getUserName(), "jobinfo-trigger", jobId);
+		Map<String, Object> detail = new HashMap<>();
+		detail.put("jobId", jobId);
+		detail.put("executorParam", executorParam);
+		detail.put("addressList", addressList);
+		auditLogService.record(loginInfo, request, "jobinfo-trigger", "job", String.valueOf(jobId), xxlJobInfo.getJobDesc(), xxlJobInfo.getJobGroup(), detail);
 
 		return Response.ofSuccess();
 	}

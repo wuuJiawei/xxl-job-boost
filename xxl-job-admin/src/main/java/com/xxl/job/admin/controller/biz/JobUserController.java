@@ -5,6 +5,7 @@ import com.xxl.job.admin.mapper.XxlJobGroupMapper;
 import com.xxl.job.admin.mapper.XxlJobUserMapper;
 import com.xxl.job.admin.model.XxlJobGroup;
 import com.xxl.job.admin.model.XxlJobUser;
+import com.xxl.job.admin.service.AuditLogService;
 import com.xxl.job.admin.util.I18nUtil;
 import com.xxl.sso.core.annotation.XxlSso;
 import com.xxl.sso.core.helper.XxlSsoHelper;
@@ -37,6 +38,8 @@ public class JobUserController {
     private XxlJobUserMapper xxlJobUserMapper;
     @Resource
     private XxlJobGroupMapper xxlJobGroupMapper;
+    @Resource
+    private AuditLogService auditLogService;
 
     @RequestMapping
     @XxlSso(role = Consts.ADMIN_ROLE)
@@ -79,7 +82,7 @@ public class JobUserController {
     @RequestMapping("/insert")
     @ResponseBody
     @XxlSso(role = Consts.ADMIN_ROLE)
-    public Response<String> insert(XxlJobUser xxlJobUser) {
+    public Response<String> insert(HttpServletRequest request, XxlJobUser xxlJobUser) {
 
         // valid username
         if (StringTool.isBlank(xxlJobUser.getUsername())) {
@@ -107,8 +110,10 @@ public class JobUserController {
             return Response.ofFail( I18nUtil.getString("user_username_repeat") );
         }
 
+        Response<LoginInfo> loginInfoResponse = XxlSsoHelper.loginCheckWithAttr(request);
         // write
         xxlJobUserMapper.save(xxlJobUser);
+        auditLogService.record(loginInfoResponse.getData(), request, "user-insert", "user", String.valueOf(xxlJobUser.getId()), xxlJobUser.getUsername(), null, xxlJobUser);
         return Response.ofSuccess();
     }
 
@@ -138,6 +143,7 @@ public class JobUserController {
 
         // write
         xxlJobUserMapper.update(xxlJobUser);
+        auditLogService.record(loginInfoResponse.getData(), request, "user-update", "user", String.valueOf(xxlJobUser.getId()), xxlJobUser.getUsername(), null, xxlJobUser);
         return Response.ofSuccess();
     }
 
@@ -157,7 +163,9 @@ public class JobUserController {
             return Response.ofFail(I18nUtil.getString("user_update_loginuser_limit"));
         }
 
+        XxlJobUser user = xxlJobUserMapper.loadById(ids.get(0));
         xxlJobUserMapper.delete(ids.get(0));
+        auditLogService.record(loginInfoResponse.getData(), request, "user-delete", "user", String.valueOf(ids.get(0)), user != null ? user.getUsername() : null, null, user);
         return Response.ofSuccess();
     }
 

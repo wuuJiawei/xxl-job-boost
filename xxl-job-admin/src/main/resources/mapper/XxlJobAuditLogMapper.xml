@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xxl.job.admin.mapper.XxlJobAuditLogMapper">
+
+    <resultMap id="XxlJobAuditLog" type="com.xxl.job.admin.model.XxlJobAuditLog">
+        <result column="id" property="id" />
+        <result column="operator" property="operator" />
+        <result column="action_type" property="actionType" />
+        <result column="resource_type" property="resourceType" />
+        <result column="resource_id" property="resourceId" />
+        <result column="resource_name" property="resourceName" />
+        <result column="job_group" property="jobGroup" />
+        <result column="detail_json" property="detailJson" />
+        <result column="request_path" property="requestPath" />
+        <result column="request_method" property="requestMethod" />
+        <result column="source" property="source" />
+        <result column="client_ip" property="clientIp" />
+        <result column="create_time" property="createTime" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        t.id,
+        t.operator,
+        t.action_type,
+        t.resource_type,
+        t.resource_id,
+        t.resource_name,
+        t.job_group,
+        t.detail_json,
+        t.request_path,
+        t.request_method,
+        t.source,
+        t.client_ip,
+        t.create_time
+    </sql>
+
+    <insert id="save" parameterType="com.xxl.job.admin.model.XxlJobAuditLog" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO xxl_job_audit_log (
+            operator,
+            action_type,
+            resource_type,
+            resource_id,
+            resource_name,
+            job_group,
+            detail_json,
+            request_path,
+            request_method,
+            source,
+            client_ip,
+            create_time
+        ) VALUES (
+            #{operator},
+            #{actionType},
+            #{resourceType},
+            #{resourceId},
+            #{resourceName},
+            #{jobGroup},
+            #{detailJson},
+            #{requestPath},
+            #{requestMethod},
+            #{source},
+            #{clientIp},
+            #{createTime}
+        )
+    </insert>
+
+    <select id="pageList" resultMap="XxlJobAuditLog">
+        SELECT <include refid="Base_Column_List" />
+        FROM xxl_job_audit_log t
+        <trim prefix="WHERE" prefixOverrides="AND | OR">
+            <if test="operator != null and operator != ''">
+                AND t.operator like CONCAT(CONCAT('%', #{operator}), '%')
+            </if>
+            <if test="actionType != null and actionType != ''">
+                AND t.action_type = #{actionType}
+            </if>
+            <if test="resourceType != null and resourceType != ''">
+                AND t.resource_type = #{resourceType}
+            </if>
+            <if test="jobGroup gt 0">
+                AND t.job_group = #{jobGroup}
+            </if>
+        </trim>
+        ORDER BY t.id DESC
+        LIMIT #{offset}, #{pagesize}
+    </select>
+
+    <select id="pageListCount" resultType="int">
+        SELECT count(1)
+        FROM xxl_job_audit_log t
+        <trim prefix="WHERE" prefixOverrides="AND | OR">
+            <if test="operator != null and operator != ''">
+                AND t.operator like CONCAT(CONCAT('%', #{operator}), '%')
+            </if>
+            <if test="actionType != null and actionType != ''">
+                AND t.action_type = #{actionType}
+            </if>
+            <if test="resourceType != null and resourceType != ''">
+                AND t.resource_type = #{resourceType}
+            </if>
+            <if test="jobGroup gt 0">
+                AND t.job_group = #{jobGroup}
+            </if>
+        </trim>
+    </select>
+</mapper>

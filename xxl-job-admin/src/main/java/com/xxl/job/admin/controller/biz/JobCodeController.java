@@ -6,6 +6,7 @@ import com.xxl.job.admin.model.XxlJobInfo;
 import com.xxl.job.admin.model.XxlJobLogGlue;
 import com.xxl.job.admin.util.I18nUtil;
 import com.xxl.job.admin.util.JobGroupPermissionUtil;
+import com.xxl.job.admin.service.AuditLogService;
 import com.xxl.job.core.glue.GlueTypeEnum;
 import com.xxl.sso.core.model.LoginInfo;
 import com.xxl.tool.core.StringTool;
@@ -37,6 +38,8 @@ public class JobCodeController {
 	private XxlJobInfoMapper xxlJobInfoMapper;
 	@Resource
 	private XxlJobLogGlueMapper xxlJobLogGlueMapper;
+	@Resource
+	private AuditLogService auditLogService;
 
 	@RequestMapping
 	public String index(HttpServletRequest request, Model model, @RequestParam("jobId") int jobId) {
@@ -111,6 +114,7 @@ public class JobCodeController {
 		// write operation log
 		logger.info(">>>>>>>>>>> xxl-job operation log: operator = {}, type = {}, content = {}",
 				loginInfo.getUserName(), "jobcode-update", GsonTool.toJson(xxlJobLogGlue));
+		auditLogService.record(loginInfo, request, "jobcode-update", "job-code", String.valueOf(existsJobInfo.getId()), existsJobInfo.getJobDesc(), existsJobInfo.getJobGroup(), xxlJobLogGlue);
 		return Response.ofSuccess();
 	}
 
