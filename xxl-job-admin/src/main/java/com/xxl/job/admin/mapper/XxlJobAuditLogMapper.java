@@ -28,4 +28,9 @@ public interface XxlJobAuditLogMapper {
     List<XxlJobAuditLog> findRecent(@Param("pagesize") int pagesize);
 
     int countAll();
+
+    XxlJobAuditLog findLatestByActionAndResource(@Param("actionType") String actionType,
+                                                 @Param("resourceType") String resourceType,
+                                                 @Param("resourceId") String resourceId,
+                                                 @Param("operatorUserId") String operatorUserId);
 }

@@ -26,18 +26,69 @@ public class AuditLogServiceImpl implements AuditLogService {
                        String resourceName,
                        Integer jobGroup,
                        Object detail) {
+        save(loginInfo != null ? loginInfo.getUserId() : null,
+                loginInfo != null ? loginInfo.getUserName() : "unknown",
+                actionType,
+                resourceType,
+                resourceId,
+                resourceName,
+                jobGroup,
+                detail,
+                request != null ? request.getRequestURI() : null,
+                request != null ? request.getMethod() : null,
+                resolveSource(request),
+                resolveClientIp(request));
+    }
+
+    @Override
+    public void recordSystem(String operatorUserId,
+                             String operatorName,
+                             String source,
+                             String actionType,
+                             String resourceType,
+                             String resourceId,
+                             String resourceName,
+                             Integer jobGroup,
+                             Object detail) {
+        save(operatorUserId,
+                operatorName,
+                actionType,
+                resourceType,
+                resourceId,
+                resourceName,
+                jobGroup,
+                detail,
+                null,
+                null,
+                source,
+                null);
+    }
+
+    private void save(String operatorUserId,
+                      String operatorName,
+                      String actionType,
+                      String resourceType,
+                      String resourceId,
+                      String resourceName,
+                      Integer jobGroup,
+                      Object detail,
+                      String requestPath,
+                      String requestMethod,
+                      String source,
+                      String clientIp) {
         XxlJobAuditLog auditLog = new XxlJobAuditLog();
-        auditLog.setOperator(loginInfo != null ? loginInfo.getUserName() : "unknown");
+        auditLog.setOperatorUserId(operatorUserId);
+        auditLog.setOperator(operatorName);
         auditLog.setActionType(actionType);
         auditLog.setResourceType(resourceType);
         auditLog.setResourceId(resourceId);
         auditLog.setResourceName(resourceName);
         auditLog.setJobGroup(jobGroup);
         auditLog.setDetailJson(detail != null ? GsonTool.toJson(detail) : null);
-        auditLog.setRequestPath(request != null ? request.getRequestURI() : null);
-        auditLog.setRequestMethod(request != null ? request.getMethod() : null);
-        auditLog.setSource(resolveSource(request));
-        auditLog.setClientIp(resolveClientIp(request));
+        auditLog.setRequestPath(requestPath);
+        auditLog.setRequestMethod(requestMethod);
+        auditLog.setSource(source);
+        auditLog.setClientIp(clientIp);
         auditLog.setCreateTime(new Date());
         xxlJobAuditLogMapper.save(auditLog);
     }

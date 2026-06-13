@@ -49,7 +49,8 @@ public class JobSyncHelper {
                         .proxy(com.xxl.job.core.openapi.AdminBiz.class)
                         .syncJobs(request);
                 if (response != null && response.isSuccess()) {
-                    logger.info(">>>>>>>>>>> xxl-job boost sync success, appname:{}, jobs:{}", executor.getAppname(), jobSyncItems.size());
+                    logger.info(">>>>>>>>>>> xxl-job boost sync success, appname:{}, jobs:{}, summary:{}",
+                            executor.getAppname(), jobSyncItems.size(), response.getData());
                     return;
                 }
                 logger.warn(">>>>>>>>>>> xxl-job boost sync fail, appname:{}, response:{}", executor.getAppname(), response);

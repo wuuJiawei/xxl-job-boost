@@ -16,6 +16,7 @@
         <result column="request_method" property="requestMethod" />
         <result column="source" property="source" />
         <result column="client_ip" property="clientIp" />
+        <result column="operator_user_id" property="operatorUserId" />
         <result column="create_time" property="createTime" />
     </resultMap>
 
@@ -32,6 +33,7 @@
         t.request_method,
         t.source,
         t.client_ip,
+        t.operator_user_id,
         t.create_time
     </sql>
 
@@ -48,6 +50,7 @@
             request_method,
             source,
             client_ip,
+            operator_user_id,
             create_time
         ) VALUES (
             #{operator},
@@ -61,6 +64,7 @@
             #{requestMethod},
             #{source},
             #{clientIp},
+            #{operatorUserId},
             #{createTime}
         )
     </insert>
@@ -115,5 +119,16 @@
     <select id="countAll" resultType="int">
         SELECT count(1)
         FROM xxl_job_audit_log
+    </select>
+
+    <select id="findLatestByActionAndResource" resultMap="XxlJobAuditLog">
+        SELECT <include refid="Base_Column_List" />
+        FROM xxl_job_audit_log t
+        WHERE t.action_type = #{actionType}
+          AND t.resource_type = #{resourceType}
+          AND t.resource_id = #{resourceId}
+          AND t.operator_user_id = #{operatorUserId}
+        ORDER BY t.id DESC
+        LIMIT 1
     </select>
 </mapper>

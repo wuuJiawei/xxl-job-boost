@@ -13,4 +13,14 @@ public interface AuditLogService {
                 String resourceName,
                 Integer jobGroup,
                 Object detail);
+
+    void recordSystem(String operatorUserId,
+                      String operatorName,
+                      String source,
+                      String actionType,
+                      String resourceType,
+                      String resourceId,
+                      String resourceName,
+                      Integer jobGroup,
+                      Object detail);
 }

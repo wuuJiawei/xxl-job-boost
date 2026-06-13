@@ -19,6 +19,7 @@ public class XxlJobAuditLog {
     private String requestMethod;
     private String source;
     private String clientIp;
+    private String operatorUserId;
     private Date createTime;
 
     public long getId() {
@@ -115,6 +116,14 @@ public class XxlJobAuditLog {
 
     public void setClientIp(String clientIp) {
         this.clientIp = clientIp;
+    }
+
+    public String getOperatorUserId() {
+        return operatorUserId;
+    }
+
+    public void setOperatorUserId(String operatorUserId) {
+        this.operatorUserId = operatorUserId;
     }
 
     public Date getCreateTime() {

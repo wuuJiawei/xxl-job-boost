@@ -180,11 +180,13 @@ CREATE TABLE `xxl_job_audit_log`
     `request_method` varchar(16)          DEFAULT NULL COMMENT '请求方法',
     `source`        varchar(32)           DEFAULT NULL COMMENT '来源：admin-next/legacy-admin/system',
     `client_ip`     varchar(64)           DEFAULT NULL COMMENT '客户端IP',
+    `operator_user_id` varchar(64)        DEFAULT NULL COMMENT '操作人用户ID，系统动作可用逻辑ID',
     `create_time`   datetime              DEFAULT NULL,
     PRIMARY KEY (`id`),
     KEY `i_operator` (`operator`),
     KEY `i_action_type` (`action_type`),
     KEY `i_resource_type` (`resource_type`),
+    KEY `i_operator_user_id` (`operator_user_id`),
     KEY `i_job_group` (`job_group`),
     KEY `i_create_time` (`create_time`)
 ) ENGINE = InnoDB
