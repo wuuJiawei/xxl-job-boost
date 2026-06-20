@@ -1,58 +1,98 @@
 <template>
   <div class="page-stack">
-    <n-card :bordered="false" class="filter-card">
-      <div class="filter-grid jobs-filter-grid">
-        <n-select v-model:value="filters.jobGroup" :options="jobGroupOptions" placeholder="选择执行器" />
-        <n-select v-model:value="filters.triggerStatus" :options="statusOptions" placeholder="状态" />
-        <n-input v-model:value="filters.jobDesc" placeholder="按任务描述查询" clearable />
-        <n-input v-model:value="filters.executorHandler" placeholder="按 JobHandler 查询" clearable />
-        <n-input v-model:value="filters.author" placeholder="按负责人查询" clearable />
-        <n-input v-model:value="filters.jobTag" placeholder="按任务标签查询" clearable />
-        <div class="filter-actions">
-          <n-button type="primary" @click="search">查询</n-button>
-          <n-button @click="reset">重置</n-button>
-        </div>
+    <div class="page-split">
+      <n-card :bordered="false" class="tree-panel-card">
+        <template #header>
+          <div class="table-header">
+            <div class="table-title">任务树</div>
+            <div class="table-subtitle">
+              <span>按执行器定位任务。</span>
+              <span>点击任务节点可直接聚焦单个任务。</span>
+            </div>
+          </div>
+        </template>
+        <template #header-extra>
+          <div class="table-actions">
+            <n-button text @click="refreshTree">刷新</n-button>
+            <n-button text @click="resetTreeSelection">重置</n-button>
+          </div>
+        </template>
+
+        <n-empty v-if="!jobGroups.length" description="暂无执行器" />
+        <n-tree
+          v-else
+          block-line
+          expand-on-click
+          :data="jobTreeData"
+          :expanded-keys="expandedTreeKeys"
+          :selected-keys="selectedTreeKeys"
+          @update:expanded-keys="handleTreeExpanded"
+          @update:selected-keys="handleTreeSelected"
+        />
+      </n-card>
+
+      <div class="page-split-main">
+        <n-card :bordered="false" class="filter-card">
+          <div class="filter-grid jobs-filter-grid">
+            <n-select v-model:value="filters.triggerStatus" :options="statusOptions" placeholder="状态" />
+            <n-input v-model:value="filters.jobDesc" placeholder="按任务描述查询" clearable />
+            <n-input v-model:value="filters.executorHandler" placeholder="按 JobHandler 查询" clearable />
+            <n-input v-model:value="filters.author" placeholder="按负责人查询" clearable />
+            <n-input v-model:value="filters.jobTag" placeholder="按任务标签查询" clearable />
+            <div class="filter-actions">
+              <n-button type="primary" @click="search">查询</n-button>
+              <n-button @click="reset">重置</n-button>
+            </div>
+          </div>
+          <div class="split-selection-bar">
+            <span class="split-selection-label">当前范围</span>
+            <span class="split-selection-value">{{ treeSelectionLabel }}</span>
+          </div>
+        </n-card>
+
+        <n-card :bordered="false">
+          <template #header>
+            <div class="table-header">
+              <div class="table-title">任务管理</div>
+              <div class="table-subtitle">
+                <span>左侧按执行器或任务定位，右侧保留筛选和批量操作。</span>
+                <span>单任务视图下可直接聚焦编辑、执行和日志跳转。</span>
+              </div>
+            </div>
+          </template>
+          <template #header-extra>
+            <div class="table-actions">
+              <n-button type="primary" @click="openCreate">新增任务</n-button>
+              <n-button :disabled="!selectedRow" @click="() => void openEdit()">编辑</n-button>
+              <n-button :disabled="!selectedRow" @click="() => void copySelected()">复制</n-button>
+              <n-button :disabled="!selectedRow" type="error" ghost @click="() => void deleteSelected()">删除</n-button>
+              <n-button :disabled="!selectedRow" @click="runSelected">执行一次</n-button>
+              <n-button :disabled="!selectedRow" @click="openLogs">日志</n-button>
+              <n-button :disabled="!selectedRow" @click="openCode">代码</n-button>
+              <n-button :disabled="!selectedRow" @click="showRegistry">注册节点</n-button>
+              <n-button :disabled="!selectedRow" @click="showNextTime">下次执行</n-button>
+              <n-button :disabled="!selectedRow || selectedRow?.triggerStatus === 1" type="primary" @click="startSelected">
+                启动
+              </n-button>
+              <n-button :disabled="!selectedRow || selectedRow?.triggerStatus === 0" type="warning" @click="stopSelected">
+                停止
+              </n-button>
+            </div>
+          </template>
+
+          <n-data-table
+            remote
+            :columns="columns"
+            :data="rows"
+            :loading="loading"
+            :pagination="pagination"
+            :row-key="rowKey"
+            :single-line="false"
+            @update:checked-row-keys="handleCheckedRowKeys"
+          />
+        </n-card>
       </div>
-    </n-card>
-
-    <n-card :bordered="false">
-      <template #header>
-        <div class="table-header">
-          <div class="table-title">任务管理</div>
-          <div class="table-subtitle">覆盖日常任务维护主流程，并保留 GLUE 任务专用入口。</div>
-        </div>
-      </template>
-      <template #header-extra>
-        <div class="table-actions">
-          <n-button type="primary" @click="openCreate">新增任务</n-button>
-          <n-button :disabled="!selectedRow" @click="() => void openEdit()">编辑</n-button>
-          <n-button :disabled="!selectedRow" @click="() => void copySelected()">复制</n-button>
-          <n-button :disabled="!selectedRow" type="error" ghost @click="() => void deleteSelected()">删除</n-button>
-          <n-button :disabled="!selectedRow" @click="runSelected">执行一次</n-button>
-          <n-button :disabled="!selectedRow" @click="openLogs">日志</n-button>
-          <n-button :disabled="!selectedRow" @click="openCode">代码</n-button>
-          <n-button :disabled="!selectedRow" @click="showRegistry">注册节点</n-button>
-          <n-button :disabled="!selectedRow" @click="showNextTime">下次执行</n-button>
-          <n-button :disabled="!selectedRow || selectedRow?.triggerStatus === 1" type="primary" @click="startSelected">
-            启动
-          </n-button>
-          <n-button :disabled="!selectedRow || selectedRow?.triggerStatus === 0" type="warning" @click="stopSelected">
-            停止
-          </n-button>
-        </div>
-      </template>
-
-      <n-data-table
-        remote
-        :columns="columns"
-        :data="rows"
-        :loading="loading"
-        :pagination="pagination"
-        :row-key="rowKey"
-        :single-line="false"
-        @update:checked-row-keys="handleCheckedRowKeys"
-      />
-    </n-card>
+    </div>
 
     <n-modal
       v-model:show="formModalVisible"
@@ -252,19 +292,23 @@ import {
   NModal,
   NSelect,
   NTag,
+  NTree,
   useDialog,
   useMessage,
   type DataTableColumns,
   type FormInst,
   type FormRules,
   type PaginationProps,
-  type SelectOption
+  type SelectOption,
+  type TreeOption
 } from 'naive-ui';
 import {
   fetchJobGroups,
+  fetchJobsByGroup,
   fetchJobMetadata,
   type AlarmChannelOption,
   type JobGroupOption,
+  type JobOption,
   type JobMetadata,
   type MetadataOption
 } from '@/api/admin-next';
@@ -288,6 +332,7 @@ const loading = ref(false);
 const rows = ref<JobInfo[]>([]);
 const checkedRowKeys = ref<number[]>([]);
 const jobGroups = ref<JobGroupOption[]>([]);
+const jobTreeChildren = ref<Record<number, JobOption[]>>({});
 const metadata = ref<JobMetadata | null>(null);
 const registryDrawerVisible = ref(false);
 const nextTimeVisible = ref(false);
@@ -299,9 +344,12 @@ const formRef = ref<FormInst | null>(null);
 const activeRegistryList = ref<string[]>([]);
 const nextTriggerTime = ref<string[]>([]);
 const formMode = ref<'create' | 'edit' | 'copy'>('create');
+const expandedTreeKeys = ref<Array<string | number>>([]);
+const selectedTreeKeys = ref<Array<string | number>>([]);
 
 const filters = reactive({
   jobGroup: -1,
+  jobId: 0,
   triggerStatus: -1,
   jobDesc: '',
   executorHandler: '',
@@ -418,6 +466,37 @@ const jobGroupOptions = computed<SelectOption[]>(() =>
     value: item.id
   }))
 );
+
+const jobTreeData = computed<TreeOption[]>(() =>
+  jobGroups.value.map((group) => {
+    const children = (jobTreeChildren.value[group.id] || []).map((job) => ({
+      key: `job-${job.id}`,
+      label: `${job.jobDesc || `任务 #${job.id}`} · ${job.executorHandler || '未配置 Handler'}`,
+      isLeaf: true
+    }));
+    return {
+      key: `group-${group.id}`,
+      label: `${group.title} (${children.length})`,
+      children
+    };
+  })
+);
+
+const treeSelectionLabel = computed(() => {
+  if (filters.jobId > 0) {
+    const job = Object.values(jobTreeChildren.value)
+      .flat()
+      .find((item) => item.id === filters.jobId);
+    if (job) {
+      const group = jobGroups.value.find((item) => item.id === job.jobGroup);
+      return `${group?.title || '执行器'} / ${job.jobDesc || `任务 #${job.id}`}`;
+    }
+  }
+  if (filters.jobGroup > 0) {
+    return jobGroups.value.find((item) => item.id === filters.jobGroup)?.title || '当前执行器';
+  }
+  return '未选择';
+});
 
 const scheduleTypeOptions = computed<SelectOption[]>(() => toSelectOptions(metadata.value?.scheduleTypes || []));
 const routeStrategyOptions = computed<SelectOption[]>(() => toSelectOptions(metadata.value?.routeStrategies || []));
@@ -544,6 +623,31 @@ const columns: DataTableColumns<JobInfo> = [
       ])
   }
 ];
+
+function matchJobFilters(job: JobInfo) {
+  if (filters.jobGroup > 0 && job.jobGroup !== filters.jobGroup) {
+    return false;
+  }
+  if (filters.triggerStatus > -1 && job.triggerStatus !== filters.triggerStatus) {
+    return false;
+  }
+  if (filters.jobDesc.trim() && !job.jobDesc?.toLowerCase().includes(filters.jobDesc.trim().toLowerCase())) {
+    return false;
+  }
+  if (
+    filters.executorHandler.trim() &&
+    !job.executorHandler?.toLowerCase().includes(filters.executorHandler.trim().toLowerCase())
+  ) {
+    return false;
+  }
+  if (filters.author.trim() && !job.author?.toLowerCase().includes(filters.author.trim().toLowerCase())) {
+    return false;
+  }
+  if (filters.jobTag.trim() && !(job.jobTag || '').toLowerCase().includes(filters.jobTag.trim().toLowerCase())) {
+    return false;
+  }
+  return true;
+}
 
 function toSelectOptions(items: MetadataOption[]) {
   return items.map((item) => ({
@@ -692,6 +796,52 @@ async function loadJobGroups() {
   }
 }
 
+async function loadTreeJobs(force = false) {
+  if (!jobGroups.value.length) {
+    jobTreeChildren.value = {};
+    return;
+  }
+
+  const groups = force ? jobGroups.value : jobGroups.value.filter((item) => !jobTreeChildren.value[item.id]);
+  if (!groups.length) {
+    return;
+  }
+
+  const entries = await Promise.all(
+    groups.map(async (group) => {
+      const response = await fetchJobsByGroup(group.id);
+      if (response.code !== 200) {
+        throw new Error(response.msg || `${group.title} 任务树加载失败`);
+      }
+      return [group.id, response.data] as const;
+    })
+  );
+
+  jobTreeChildren.value = {
+    ...(force ? {} : jobTreeChildren.value),
+    ...Object.fromEntries(entries)
+  };
+}
+
+function syncTreeSelection() {
+  if (filters.jobId > 0) {
+    selectedTreeKeys.value = [`job-${filters.jobId}`];
+    const job = Object.values(jobTreeChildren.value)
+      .flat()
+      .find((item) => item.id === filters.jobId);
+    if (job) {
+      expandedTreeKeys.value = Array.from(new Set([...expandedTreeKeys.value, `group-${job.jobGroup}`]));
+    }
+    return;
+  }
+  if (filters.jobGroup > 0) {
+    selectedTreeKeys.value = [`group-${filters.jobGroup}`];
+    expandedTreeKeys.value = Array.from(new Set([...expandedTreeKeys.value, `group-${filters.jobGroup}`]));
+    return;
+  }
+  selectedTreeKeys.value = [];
+}
+
 async function loadMetadata() {
   const response = await fetchJobMetadata();
   if (response.code !== 200) {
@@ -706,6 +856,17 @@ async function loadData() {
   }
   loading.value = true;
   try {
+    if (filters.jobId > 0) {
+      const detail = await fetchJobDetail(filters.jobId);
+      if (detail.code !== 200) {
+        throw new Error(detail.msg || '任务详情加载失败');
+      }
+      rows.value = matchJobFilters(detail.data) ? [detail.data] : [];
+      pagination.itemCount = rows.value.length;
+      checkedRowKeys.value = rows.value.length ? [rows.value[0].id] : [];
+      return;
+    }
+
     const response = await fetchJobs({
       offset: ((pagination.page as number) - 1) * (pagination.pageSize as number),
       pagesize: pagination.pageSize as number,
@@ -741,6 +902,60 @@ function reset() {
   filters.executorHandler = '';
   filters.author = '';
   filters.jobTag = '';
+  pagination.page = 1;
+  void loadData();
+}
+
+function handleTreeExpanded(keys: Array<string | number>) {
+  expandedTreeKeys.value = keys;
+}
+
+function handleTreeSelected(keys: Array<string | number>) {
+  selectedTreeKeys.value = keys;
+  const key = String(keys[0] || '');
+  if (!key) {
+    return;
+  }
+
+  if (key.startsWith('group-')) {
+    filters.jobGroup = Number(key.slice(6));
+    filters.jobId = 0;
+  } else if (key.startsWith('job-')) {
+    const jobId = Number(key.slice(4));
+    const job = Object.values(jobTreeChildren.value)
+      .flat()
+      .find((item) => item.id === jobId);
+    if (!job) {
+      return;
+    }
+    filters.jobGroup = job.jobGroup;
+    filters.jobId = job.id;
+  }
+
+  pagination.page = 1;
+  checkedRowKeys.value = filters.jobId > 0 ? [filters.jobId] : [];
+  void loadData();
+}
+
+async function refreshTree() {
+  try {
+    await loadJobGroups();
+    await loadTreeJobs(true);
+    syncTreeSelection();
+    await loadData();
+  } catch (error) {
+    const err = error as Error;
+    message.error(err.message || '任务树刷新失败');
+  }
+}
+
+function resetTreeSelection() {
+  if (!jobGroups.value.length) {
+    return;
+  }
+  filters.jobGroup = jobGroups.value[0].id;
+  filters.jobId = 0;
+  syncTreeSelection();
   pagination.page = 1;
   void loadData();
 }
@@ -954,7 +1169,9 @@ async function showNextTime() {
 onMounted(async () => {
   try {
     await loadJobGroups();
+    await loadTreeJobs(true);
     await loadMetadata();
+    syncTreeSelection();
     resetFormValue();
     await loadData();
   } catch (error) {

@@ -1,0 +1,1 @@
+import{r as e}from"./axios-UsKXrprH.js";var t=e.create({baseURL:`/xxl-job-admin`,headers:{"X-Requested-With":`XMLHttpRequest`},withCredentials:!0});t.interceptors.response.use(e=>e,e=>(e.response?.status===401&&(window.location.href=`/xxl-job-admin/admin-next/login`),Promise.reject(e)));export{t};

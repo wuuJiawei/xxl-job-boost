@@ -1,4 +1,4 @@
-import{$ as e,E as t,F as n,H as r,P as i,St as a,W as o,Z as s,_ as c,b as l,d as u,g as d,k as f,q as p,ut as m,v as h,vt as g,w as _,xt as v}from"./vue.runtime.esm-bundler-CoGLJnd5.js";import{$ as y,Q as b,S as x,Yt as S,i as C,ot as w,qt as T,y as E}from"./axios-UsKXrprH.js";import{n as D,t as O}from"./Grid-BMpYz6Gp.js";import{t as k}from"./Space-CwJmUfYW.js";import{D as A,S as j,b as M,d as N,g as P,h as F,p as I,y as L}from"./index-Chg__FaE.js";var R=T(`statistic`,[S(`label`,`
+import{$ as e,E as t,F as n,H as r,P as i,St as a,W as o,Z as s,_ as c,b as l,d as u,g as d,k as f,q as p,ut as m,v as h,vt as g,w as _,xt as v}from"./vue.runtime.esm-bundler-CoGLJnd5.js";import{$ as y,Q as b,S as x,Yt as S,i as C,ot as w,qt as T,y as E}from"./axios-UsKXrprH.js";import{n as D,t as O}from"./Grid-BMpYz6Gp.js";import{t as k}from"./Space-zowcHJqD.js";import{D as A,S as j,b as M,d as N,g as P,h as F,p as I,y as L}from"./index-D3YyFv7_.js";var R=T(`statistic`,[S(`label`,`
  font-weight: var(--n-label-font-weight);
  transition: .3s color var(--n-bezier);
  font-size: var(--n-label-font-size);
