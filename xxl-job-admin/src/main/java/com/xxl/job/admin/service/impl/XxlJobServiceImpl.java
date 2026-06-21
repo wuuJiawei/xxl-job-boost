@@ -58,11 +58,11 @@ public class XxlJobServiceImpl implements XxlJobService {
 	private AuditLogService auditLogService;
 	
 	@Override
-	public Response<PageModel<XxlJobInfo>> pageList(int offset, int pagesize, int jobGroup, int triggerStatus, String jobDesc, String executorHandler, String author, String jobTag) {
+	public Response<PageModel<XxlJobInfo>> pageList(int offset, int pagesize, int jobGroup, int jobId, int triggerStatus, String jobDesc, String executorHandler, String author, String jobTag) {
 
 		// page list
-		List<XxlJobInfo> list = xxlJobInfoMapper.pageList(offset, pagesize, jobGroup, triggerStatus, jobDesc, executorHandler, author, jobTag);
-		int list_count = xxlJobInfoMapper.pageListCount(offset, pagesize, jobGroup, triggerStatus, jobDesc, executorHandler, author, jobTag);
+		List<XxlJobInfo> list = xxlJobInfoMapper.pageList(offset, pagesize, jobGroup, jobId, triggerStatus, jobDesc, executorHandler, author, jobTag);
+		int list_count = xxlJobInfoMapper.pageListCount(offset, pagesize, jobGroup, jobId, triggerStatus, jobDesc, executorHandler, author, jobTag);
 
 		// package result
 		PageModel<XxlJobInfo> pageModel = new PageModel<>();

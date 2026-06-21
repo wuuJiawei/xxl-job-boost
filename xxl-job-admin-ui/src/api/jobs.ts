@@ -40,6 +40,7 @@ export type JobQuery = {
   offset: number;
   pagesize: number;
   jobGroup: number;
+  jobId: number;
   triggerStatus: number;
   jobDesc: string;
   executorHandler: string;

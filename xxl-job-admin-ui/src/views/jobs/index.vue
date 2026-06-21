@@ -624,31 +624,6 @@ const columns: DataTableColumns<JobInfo> = [
   }
 ];
 
-function matchJobFilters(job: JobInfo) {
-  if (filters.jobGroup > 0 && job.jobGroup !== filters.jobGroup) {
-    return false;
-  }
-  if (filters.triggerStatus > -1 && job.triggerStatus !== filters.triggerStatus) {
-    return false;
-  }
-  if (filters.jobDesc.trim() && !job.jobDesc?.toLowerCase().includes(filters.jobDesc.trim().toLowerCase())) {
-    return false;
-  }
-  if (
-    filters.executorHandler.trim() &&
-    !job.executorHandler?.toLowerCase().includes(filters.executorHandler.trim().toLowerCase())
-  ) {
-    return false;
-  }
-  if (filters.author.trim() && !job.author?.toLowerCase().includes(filters.author.trim().toLowerCase())) {
-    return false;
-  }
-  if (filters.jobTag.trim() && !(job.jobTag || '').toLowerCase().includes(filters.jobTag.trim().toLowerCase())) {
-    return false;
-  }
-  return true;
-}
-
 function toSelectOptions(items: MetadataOption[]) {
   return items.map((item) => ({
     label: item.label,
@@ -856,21 +831,11 @@ async function loadData() {
   }
   loading.value = true;
   try {
-    if (filters.jobId > 0) {
-      const detail = await fetchJobDetail(filters.jobId);
-      if (detail.code !== 200) {
-        throw new Error(detail.msg || '任务详情加载失败');
-      }
-      rows.value = matchJobFilters(detail.data) ? [detail.data] : [];
-      pagination.itemCount = rows.value.length;
-      checkedRowKeys.value = rows.value.length ? [rows.value[0].id] : [];
-      return;
-    }
-
     const response = await fetchJobs({
       offset: ((pagination.page as number) - 1) * (pagination.pageSize as number),
       pagesize: pagination.pageSize as number,
       jobGroup: filters.jobGroup,
+      jobId: filters.jobId,
       triggerStatus: filters.triggerStatus,
       jobDesc: filters.jobDesc,
       executorHandler: filters.executorHandler,
@@ -882,7 +847,8 @@ async function loadData() {
     }
     rows.value = response.data.data;
     pagination.itemCount = response.data.total;
-    checkedRowKeys.value = [];
+    checkedRowKeys.value =
+      filters.jobId > 0 && rows.value.length === 1 ? [rows.value[0].id] : [];
   } catch (error) {
     const err = error as Error;
     message.error(err.message || '任务列表加载失败');

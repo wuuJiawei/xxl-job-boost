@@ -1,6 +1,7 @@
 package com.xxl.job.admin.controller.biz;
 
 import com.xxl.job.admin.mapper.XxlJobGroupMapper;
+import com.xxl.job.admin.mapper.XxlJobInfoMapper;
 import com.xxl.job.admin.model.XxlJobGroup;
 import com.xxl.job.admin.model.XxlJobInfo;
 import com.xxl.job.admin.scheduler.exception.XxlJobException;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -44,6 +46,8 @@ public class JobInfoController {
 
 	@Resource
 	private XxlJobGroupMapper xxlJobGroupMapper;
+	@Resource
+	private XxlJobInfoMapper xxlJobInfoMapper;
 	@Resource
 	private XxlJobService xxlJobService;
 	
@@ -84,6 +88,7 @@ public class JobInfoController {
 													@RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
 													@RequestParam(value = "pagesize", required = false, defaultValue = "10") int pagesize,
 													@RequestParam(value = "jobGroup", required = false, defaultValue = "-1") int jobGroup,
+													@RequestParam(value = "jobId", required = false, defaultValue = "0") int jobId,
 													@RequestParam(value = "triggerStatus", required = false, defaultValue = "-1") int triggerStatus,
 													@RequestParam(value = "jobDesc", required = false, defaultValue = "") String jobDesc,
 													@RequestParam(value = "executorHandler", required = false, defaultValue = "") String executorHandler,
@@ -91,10 +96,25 @@ public class JobInfoController {
 													@RequestParam(value = "jobTag", required = false, defaultValue = "") String jobTag) {
 
 		// valid jobGroup permission
-		JobGroupPermissionUtil.validJobGroupPermission(request, jobGroup);
+		if (jobId > 0) {
+			XxlJobInfo jobInfo = xxlJobInfoMapper.loadById(jobId);
+			if (jobInfo != null) {
+				JobGroupPermissionUtil.validJobGroupPermission(request, jobInfo.getJobGroup());
+				jobGroup = jobInfo.getJobGroup();
+			} else if (jobGroup > 0) {
+				JobGroupPermissionUtil.validJobGroupPermission(request, jobGroup);
+			} else {
+				PageModel<XxlJobInfo> emptyPage = new PageModel<>();
+				emptyPage.setData(Collections.emptyList());
+				emptyPage.setTotal(0);
+				return Response.ofSuccess(emptyPage);
+			}
+		} else {
+			JobGroupPermissionUtil.validJobGroupPermission(request, jobGroup);
+		}
 
 		// page
-		return xxlJobService.pageList(offset, pagesize, jobGroup, triggerStatus, jobDesc, executorHandler, author, jobTag);
+		return xxlJobService.pageList(offset, pagesize, jobGroup, jobId, triggerStatus, jobDesc, executorHandler, author, jobTag);
 	}
 	
 	@RequestMapping("/insert")
