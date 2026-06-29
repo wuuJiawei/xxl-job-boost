@@ -12,6 +12,10 @@
 
 	<modules>
 		<module>xxl-job-core</module>
+		<module>xxl-job-transport-api</module>
+		<module>xxl-job-transport-netty</module>
+		<module>xxl-job-adapter-spring-mvc</module>
+		<module>xxl-job-adapter-spring-boot-starter</module>
 		<module>xxl-job-admin</module>
 		<module>xxl-job-executor-samples</module>
     </modules>
@@ -153,6 +157,26 @@
 				<artifactId>xxl-job-core</artifactId>
 				<version>${project.parent.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>com.xuxueli</groupId>
+				<artifactId>xxl-job-transport-api</artifactId>
+				<version>${project.parent.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.xuxueli</groupId>
+				<artifactId>xxl-job-transport-netty</artifactId>
+				<version>${project.parent.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.xuxueli</groupId>
+				<artifactId>xxl-job-adapter-spring-mvc</artifactId>
+				<version>${project.parent.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.xuxueli</groupId>
+				<artifactId>xxl-job-adapter-spring-boot-starter</artifactId>
+				<version>${project.parent.version}</version>
+			</dependency>
 
 			<!-- xxl-sso (xxl-tool、gson) -->
 			<dependency>
@@ -217,6 +241,10 @@
 			</activation>
 			<modules>
 				<module>xxl-job-core</module>
+				<module>xxl-job-transport-api</module>
+				<module>xxl-job-transport-netty</module>
+				<module>xxl-job-adapter-spring-mvc</module>
+				<module>xxl-job-adapter-spring-boot-starter</module>
 			</modules>
 			<build>
 				<plugins>

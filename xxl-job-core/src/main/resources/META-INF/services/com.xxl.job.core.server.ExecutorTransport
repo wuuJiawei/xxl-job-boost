@@ -1,2 +1,0 @@
-com.xxl.job.core.server.NettyEmbedExecutorTransport
-com.xxl.job.core.server.SpringHttpExecutorTransport
