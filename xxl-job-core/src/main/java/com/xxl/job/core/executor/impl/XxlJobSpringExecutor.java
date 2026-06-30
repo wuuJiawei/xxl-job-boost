@@ -131,7 +131,7 @@ public class XxlJobSpringExecutor extends XxlJobExecutor implements ApplicationC
             /**
              * 2.2、skip by BeanDefinition Class
              *      - skip beanClass is null
-             *      - skip method annotation(@XxlJob) is null
+             *      - skip method annotation(@XxlJob/@XxlJobBoost) is null
              */
             Class<?> beanClass = applicationContext.getType(beanName, false);
             if (beanClass == null) {
@@ -139,13 +139,18 @@ public class XxlJobSpringExecutor extends XxlJobExecutor implements ApplicationC
                 continue;
             }
             // filter method
-            Map<Method, XxlJob> annotatedMethods = null;
+            Map<Method, XxlJobMethodMetadata> annotatedMethods = null;
             try {
                 annotatedMethods = MethodIntrospector.selectMethods(beanClass,
-                        new MethodIntrospector.MetadataLookup<XxlJob>() {
+                        new MethodIntrospector.MetadataLookup<XxlJobMethodMetadata>() {
                             @Override
-                            public XxlJob inspect(Method method) {
-                                return AnnotatedElementUtils.findMergedAnnotation(method, XxlJob.class);
+                            public XxlJobMethodMetadata inspect(Method method) {
+                                XxlJob xxlJob = AnnotatedElementUtils.findMergedAnnotation(method, XxlJob.class);
+                                XxlJobBoost xxlJobBoost = AnnotatedElementUtils.findMergedAnnotation(method, XxlJobBoost.class);
+                                if (xxlJob == null && xxlJobBoost == null) {
+                                    return null;
+                                }
+                                return new XxlJobMethodMetadata(xxlJob, xxlJobBoost);
                             }
                         });
             } catch (Throwable ex) {
@@ -157,14 +162,14 @@ public class XxlJobSpringExecutor extends XxlJobExecutor implements ApplicationC
 
             // 2.3、scan + registry Jobhandler
             Object jobBean = applicationContext.getBean(beanName);
-            for (Map.Entry<Method, XxlJob> jobMethodEntry : annotatedMethods.entrySet()) {
+            for (Map.Entry<Method, XxlJobMethodMetadata> jobMethodEntry : annotatedMethods.entrySet()) {
                 Method jobMethod = jobMethodEntry.getKey();
-                XxlJob xxlJob = jobMethodEntry.getValue();
+                XxlJobMethodMetadata metadata = jobMethodEntry.getValue();
+                String handlerName = metadata.handlerName();
                 // regist
-                registryJobHandler(xxlJob, jobBean, jobMethod);
+                registryJobHandler(handlerName, metadata.init(), metadata.destroy(), jobBean, jobMethod);
 
-                XxlJobBoost xxlJobBoost = AnnotatedElementUtils.findMergedAnnotation(jobMethod, XxlJobBoost.class);
-                JobSyncItem item = JobSyncHelper.toItem(xxlJob.value(), xxlJobBoost, jobMethod);
+                JobSyncItem item = JobSyncHelper.toItem(handlerName, metadata.xxlJobBoost, jobMethod);
                 if (item != null) {
                     jobSyncItems.add(item);
                 }
@@ -200,6 +205,37 @@ public class XxlJobSpringExecutor extends XxlJobExecutor implements ApplicationC
             }
         }
         return false;
+    }
+
+    private static class XxlJobMethodMetadata {
+        private final XxlJob xxlJob;
+        private final XxlJobBoost xxlJobBoost;
+
+        private XxlJobMethodMetadata(XxlJob xxlJob, XxlJobBoost xxlJobBoost) {
+            this.xxlJob = xxlJob;
+            this.xxlJobBoost = xxlJobBoost;
+        }
+
+        private String handlerName() {
+            if (xxlJob != null) {
+                return xxlJob.value();
+            }
+            return xxlJobBoost != null ? xxlJobBoost.value() : "";
+        }
+
+        private String init() {
+            if (xxlJob != null) {
+                return xxlJob.init();
+            }
+            return xxlJobBoost != null ? xxlJobBoost.init() : "";
+        }
+
+        private String destroy() {
+            if (xxlJob != null) {
+                return xxlJob.destroy();
+            }
+            return xxlJobBoost != null ? xxlJobBoost.destroy() : "";
+        }
     }
 
 

@@ -11,6 +11,12 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface XxlJobBoost {
 
+    String value() default "";
+
+    String init() default "";
+
+    String destroy() default "";
+
     String desc();
 
     String author();

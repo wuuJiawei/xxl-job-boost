@@ -277,11 +277,13 @@ public class XxlJobExecutor  {
             return;
         }
 
-        String name = xxlJob.value();
+        registryJobHandler(xxlJob.value(), xxlJob.init(), xxlJob.destroy(), bean, executeMethod);
+    }
+    protected void registryJobHandler(String name, String initMethodName, String destroyMethodName, Object bean, Method executeMethod){
         //make and simplify the variables since they'll be called several times later
         Class<?> clazz = bean.getClass();
         String methodName = executeMethod.getName();
-        if (name.trim().length() == 0) {
+        if (name == null || name.trim().length() == 0) {
             throw new RuntimeException("xxl-job method-jobhandler name invalid, for[" + clazz + "#" + methodName + "] .");
         }
         if (loadJobHandler(name) != null) {
@@ -304,17 +306,17 @@ public class XxlJobExecutor  {
         Method initMethod = null;
         Method destroyMethod = null;
 
-        if (xxlJob.init().trim().length() > 0) {
+        if (initMethodName != null && initMethodName.trim().length() > 0) {
             try {
-                initMethod = clazz.getDeclaredMethod(xxlJob.init());
+                initMethod = clazz.getDeclaredMethod(initMethodName);
                 initMethod.setAccessible(true);
             } catch (NoSuchMethodException e) {
                 throw new RuntimeException("xxl-job method-jobhandler initMethod invalid, for[" + clazz + "#" + methodName + "] .");
             }
         }
-        if (xxlJob.destroy().trim().length() > 0) {
+        if (destroyMethodName != null && destroyMethodName.trim().length() > 0) {
             try {
-                destroyMethod = clazz.getDeclaredMethod(xxlJob.destroy());
+                destroyMethod = clazz.getDeclaredMethod(destroyMethodName);
                 destroyMethod.setAccessible(true);
             } catch (NoSuchMethodException e) {
                 throw new RuntimeException("xxl-job method-jobhandler destroyMethod invalid, for[" + clazz + "#" + methodName + "] .");
