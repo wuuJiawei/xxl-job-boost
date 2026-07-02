@@ -79,6 +79,7 @@ XXL-JOB Boost 是 XXL-JOB 的增强发行版，不是重写版。
 - [`xxl-job-transport-netty`](../xxl-job-transport-netty)
 - [`xxl-job-adapter-spring-mvc`](../xxl-job-adapter-spring-mvc)
 - [`xxl-job-adapter-spring-boot-starter`](../xxl-job-adapter-spring-boot-starter)
+- [`xxl-job-boost-spring-boot-starter`](../xxl-job-boost-spring-boot-starter)
 
 当前服务端传输：
 
@@ -115,7 +116,7 @@ NETTY_EMBED::http://127.0.0.1:9999/
 
 - 根据 `xxl.job.executor.appname` 创建 `XxlJobSpringExecutor`。
 - 注入 admin 地址、accessToken、timeout、appname、groupTitle、syncMode、transport、日志配置。
-- 当 `xxl.job.executor.transport=SPRING_HTTP` 时自动注册：
+- 使用 `xxl-job-boost-spring-boot-starter` 时默认启用 `SPRING_HTTP`；旧 starter 或显式配置 `xxl.job.executor.transport=SPRING_HTTP` 时自动注册：
   - `ExecutorBiz`
   - `ExecutorTransportDispatcher`
   - `SpringHttpExecutorTransportController`

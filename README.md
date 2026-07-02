@@ -215,7 +215,7 @@ Spring Boot 执行器只需要引入 starter：
 ```xml
 <dependency>
     <groupId>com.xuxueli</groupId>
-    <artifactId>xxl-job-adapter-spring-boot-starter</artifactId>
+    <artifactId>xxl-job-boost-spring-boot-starter</artifactId>
     <version>3.4.1-SNAPSHOT</version>
 </dependency>
 ```
@@ -233,7 +233,8 @@ xxl.job.executor.enabled=true
 xxl.job.executor.appname=xxl-job-executor-sample
 xxl.job.executor.group-title=通用执行器Sample
 xxl.job.executor.sync-mode=CREATE_UPDATE
-xxl.job.executor.transport=SPRING_HTTP
+# 新 starter 默认使用 SPRING_HTTP；如需回退 Netty，可显式设置为 NETTY_EMBED
+# xxl.job.executor.transport=NETTY_EMBED
 xxl.job.executor.address=
 xxl.job.executor.ip=
 xxl.job.executor.logpath=/data/applogs/xxl-job/jobhandler
@@ -259,7 +260,8 @@ xxl-job-boost
 ├── xxl-job-transport-api                 # 执行器传输抽象、HTTP 客户端、endpoint 解析
 ├── xxl-job-transport-netty               # 兼容 Netty 嵌入式执行器传输
 ├── xxl-job-adapter-spring-mvc            # Spring MVC HTTP 执行器传输适配
-├── xxl-job-adapter-spring-boot-starter   # Spring Boot 自动配置
+├── xxl-job-adapter-spring-boot-starter   # 原 Spring Boot starter，保留兼容
+├── xxl-job-boost-spring-boot-starter     # 推荐 Spring Boot starter，聚合 core 与执行器传输
 ├── xxl-job-executor-samples              # frameless、Spring Boot、Spring AI 样例执行器
 ├── doc                                   # 上游文档、初始化 SQL、数据库迁移脚本
 ├── docs                                  # Boost 文档、路线图、迁移指南、运行手册

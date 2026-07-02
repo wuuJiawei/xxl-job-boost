@@ -1,0 +1,3 @@
+com.xxl.job.core.spring.boot.XxlJobAutoConfiguration
+com.xxl.job.core.spring.boot.XxlJobSpringHttpTransportAutoConfiguration
+com.xxl.job.core.spring.boot.logcapture.XxlJobLogCaptureAutoConfiguration
