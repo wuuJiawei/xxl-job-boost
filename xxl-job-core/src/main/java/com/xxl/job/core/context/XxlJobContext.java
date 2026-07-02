@@ -1,5 +1,7 @@
 package com.xxl.job.core.context;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * xxl-job context
  *
@@ -70,6 +72,8 @@ public class XxlJobContext {
      */
     private String handleMsg;
 
+    private final AtomicInteger capturedLogCount = new AtomicInteger();
+
 
     public XxlJobContext(long jobId,
                          String jobParam,
@@ -131,6 +135,10 @@ public class XxlJobContext {
 
     public String getHandleMsg() {
         return handleMsg;
+    }
+
+    public int incrementCapturedLogCount() {
+        return capturedLogCount.incrementAndGet();
     }
 
     // ---------------------- tool ----------------------

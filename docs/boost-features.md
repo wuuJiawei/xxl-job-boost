@@ -303,6 +303,7 @@ Spring Boot sample 已展示：
 - `sync-mode=CREATE_UPDATE`
 - `group-title`
 - `transport=SPRING_HTTP`
+- 可选 `log-capture` 配置示例
 
 Frameless sample 保留：
 
@@ -311,10 +312,40 @@ Frameless sample 保留：
 
 这说明 Boost 当前同时支持传统嵌入式执行器和 Spring Boot HTTP 执行器。
 
+## 业务日志采集
+
+相关代码：
+
+- [`XxlJobLogbackAppender.java`](../xxl-job-adapter-spring-boot-starter/src/main/java/com/xxl/job/core/spring/boot/logcapture/XxlJobLogbackAppender.java)
+- [`XxlJobLogCaptureRegistrar.java`](../xxl-job-adapter-spring-boot-starter/src/main/java/com/xxl/job/core/spring/boot/logcapture/XxlJobLogCaptureRegistrar.java)
+- [`XxlJobContext.java`](../xxl-job-core/src/main/java/com/xxl/job/core/context/XxlJobContext.java)
+
+Spring Boot starter 提供可选 Logback appender。开启后，任务执行线程存在 `XxlJobContext` 时，普通 SLF4J/Logback 日志会追加到当前任务执行日志文件。
+
+配置默认关闭：
+
+```properties
+xxl.job.executor.log-capture.enabled=true
+xxl.job.executor.log-capture.level=INFO
+xxl.job.executor.log-capture.max-event-length=4096
+xxl.job.executor.log-capture.max-events-per-job=2000
+xxl.job.executor.log-capture.include-packages=com.yourcompany.
+xxl.job.executor.log-capture.exclude-packages=org.springframework.,spring.,com.zaxxer.hikari.
+xxl.job.executor.log-capture.include-mdc=true
+```
+
+当前边界：
+
+- 只在 classpath 存在 Logback 时注册。
+- 只采集当前任务线程和 `InheritableThreadLocal` 可传递到的新建子线程。
+- 不保证自动覆盖业务线程池复用场景。
+- 通过级别、包前缀、单条长度和单任务条数限制控制日志膨胀。
+
 ## 已知边界
 
 - 调度核心仍沿用 XXL-JOB，不做全新调度器。
 - `SPRING_HTTP` 是可选传输模式，不代表默认移除 Netty。
+- 业务日志采集第一阶段只覆盖 Logback，不做通用 SLF4J binding 改写。
 - `xxl-job-core` 中 Spring 相关依赖为 `provided`，Spring 场景通过 adapter/starter 承接；这不是彻底无 Spring 项目。
 - 新控制台已覆盖主链路，但 GLUE 类任务部分复杂操作仍保留旧控制台兜底。
 - `docs/feature-roadmap.md` 是路线图，不等同于当前已交付清单。

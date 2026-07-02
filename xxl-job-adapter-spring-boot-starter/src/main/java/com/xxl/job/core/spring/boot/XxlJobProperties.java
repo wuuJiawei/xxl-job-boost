@@ -57,6 +57,7 @@ public class XxlJobProperties {
         private String logpath;
         private int logretentiondays = 30;
         private String excludedpackage = "org.springframework.,spring.";
+        private final LogCapture logCapture = new LogCapture();
 
         public Boolean getEnabled() {
             return enabled;
@@ -144,6 +145,76 @@ public class XxlJobProperties {
 
         public void setExcludedpackage(String excludedpackage) {
             this.excludedpackage = excludedpackage;
+        }
+
+        public LogCapture getLogCapture() {
+            return logCapture;
+        }
+    }
+
+    public static class LogCapture {
+        private boolean enabled = false;
+        private String level = "INFO";
+        private int maxEventLength = 4096;
+        private int maxEventsPerJob = 2000;
+        private String includePackages = "";
+        private String excludePackages = "org.springframework.,spring.,com.zaxxer.hikari.";
+        private boolean includeMdc = true;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getLevel() {
+            return level;
+        }
+
+        public void setLevel(String level) {
+            this.level = level;
+        }
+
+        public int getMaxEventLength() {
+            return maxEventLength;
+        }
+
+        public void setMaxEventLength(int maxEventLength) {
+            this.maxEventLength = maxEventLength;
+        }
+
+        public int getMaxEventsPerJob() {
+            return maxEventsPerJob;
+        }
+
+        public void setMaxEventsPerJob(int maxEventsPerJob) {
+            this.maxEventsPerJob = maxEventsPerJob;
+        }
+
+        public String getIncludePackages() {
+            return includePackages;
+        }
+
+        public void setIncludePackages(String includePackages) {
+            this.includePackages = includePackages;
+        }
+
+        public String getExcludePackages() {
+            return excludePackages;
+        }
+
+        public void setExcludePackages(String excludePackages) {
+            this.excludePackages = excludePackages;
+        }
+
+        public boolean isIncludeMdc() {
+            return includeMdc;
+        }
+
+        public void setIncludeMdc(boolean includeMdc) {
+            this.includeMdc = includeMdc;
         }
     }
 }

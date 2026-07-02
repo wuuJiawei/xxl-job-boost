@@ -55,6 +55,7 @@ public class SampleXxlJob {
     )
     public void demoJobHandler() throws Exception {
         XxlJobHelper.log("XXL-JOB, Hello World.");
+        logger.info("XXL-JOB Boost capture this slf4j log when log-capture is enabled.");
 
         for (int i = 0; i < 5; i++) {
             XxlJobHelper.log("beat at:" + i);

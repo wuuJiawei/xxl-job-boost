@@ -1,6 +1,6 @@
 # 自动采集业务日志到 XXL-JOB 执行日志需求
 
-状态：`Draft`
+状态：`Done`
 
 创建日期：`2026-06-30`
 
@@ -204,3 +204,42 @@ xxl-job-core/src/main/java/com/xxl/job/core/log/XxlJobLogCaptureAppender.java
 - sample job handler 注释
 - 本需求文档状态和实现入口
 
+## 实现记录
+
+实现日期：`2026-07-02`
+
+已落地切片：
+
+- 在 Spring Boot starter 中提供可选 Logback appender，配置开启后自动挂到 root logger。
+- 默认关闭，不影响现有执行器。
+- 采集时只在当前线程存在 `XxlJobContext` 且存在执行日志文件名时写入。
+- 支持最低级别、include/exclude 包前缀、单条长度截断、单任务条数上限和 MDC 输出开关。
+- 达到单任务条数上限时只补一条 limit reached 提示，后续日志跳过。
+- 当前不做通用 SLF4J binding 改写，不覆盖 Log4j2，也不保证业务线程池上下文自动透传。
+
+配置入口：
+
+```properties
+xxl.job.executor.log-capture.enabled=true
+xxl.job.executor.log-capture.level=INFO
+xxl.job.executor.log-capture.max-event-length=4096
+xxl.job.executor.log-capture.max-events-per-job=2000
+xxl.job.executor.log-capture.include-packages=com.yourcompany.
+xxl.job.executor.log-capture.exclude-packages=org.springframework.,spring.,com.zaxxer.hikari.
+xxl.job.executor.log-capture.include-mdc=true
+```
+
+代码入口：
+
+- `xxl-job-adapter-spring-boot-starter/src/main/java/com/xxl/job/core/spring/boot/logcapture/XxlJobLogbackAppender.java`
+- `xxl-job-adapter-spring-boot-starter/src/main/java/com/xxl/job/core/spring/boot/logcapture/XxlJobLogCaptureRegistrar.java`
+- `xxl-job-adapter-spring-boot-starter/src/main/java/com/xxl/job/core/spring/boot/XxlJobAutoConfiguration.java`
+- `xxl-job-adapter-spring-boot-starter/src/main/java/com/xxl/job/core/spring/boot/XxlJobProperties.java`
+- `xxl-job-core/src/main/java/com/xxl/job/core/context/XxlJobContext.java`
+- `xxl-job-adapter-spring-boot-starter/src/test/java/com/xxl/job/core/spring/boot/logcapture/XxlJobLogbackAppenderTest.java`
+
+验证命令：
+
+```bash
+mvn -pl xxl-job-adapter-spring-boot-starter -am -DskipTests=false -Dmaven.test.skip=false -Dtest=XxlJobLogbackAppenderTest -Dsurefire.failIfNoSpecifiedTests=false test
+```

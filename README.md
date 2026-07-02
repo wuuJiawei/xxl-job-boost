@@ -71,7 +71,24 @@ xxl.job.executor.group-title=通用执行器Sample
 
 这让执行器不必额外再起一套 Netty 端口，在网关、容器、平台治理和安全策略上更容易统一。
 
-### 3. Spring 变成适配层，而不是核心硬前提
+### 3. 可选采集业务 Logback 日志到执行日志
+
+官方写入执行日志通常需要显式调用 `XxlJobHelper.log(...)`。Boost 在 Spring Boot starter 中提供可选 Logback appender，开启后任务线程内的普通 `logger.info/error(...)` 也会追加到当前 XXL-JOB 执行日志文件，调度中心滚动日志可以直接查到。
+
+默认关闭，按执行器开启：
+
+```properties
+xxl.job.executor.log-capture.enabled=true
+xxl.job.executor.log-capture.level=INFO
+xxl.job.executor.log-capture.max-event-length=4096
+xxl.job.executor.log-capture.max-events-per-job=2000
+xxl.job.executor.log-capture.include-packages=com.yourcompany.
+xxl.job.executor.log-capture.exclude-packages=org.springframework.,spring.,com.zaxxer.hikari.
+```
+
+第一阶段只覆盖 Logback。`max-event-length` 和 `max-events-per-job` 用来避免任务执行日志被业务高频日志打爆。
+
+### 4. Spring 变成适配层，而不是核心硬前提
 
 Boost 保留 frameless sample，也把 Spring MVC / Spring Boot 接入拆到 adapter：
 
@@ -83,7 +100,7 @@ Boost 保留 frameless sample，也把 Spring MVC / Spring Boot 接入拆到 ada
 
 这不是“完全去 Spring”，而是把 Spring 从核心前提降到可选适配路径。
 
-### 4. 新一代管理后台 `admin-next`
+### 5. 新一代管理后台 `admin-next`
 
 Boost 新增 `xxl-job-admin-ui`，基于 Vue 3、TypeScript、Vite、Pinia、Naive UI、ECharts。它不是空壳，当前已经覆盖主要日常链路：
 
@@ -103,7 +120,7 @@ Boost 新增 `xxl-job-admin-ui`，基于 Vue 3、TypeScript、Vite、Pinia、Nai
 /xxl-job-admin/admin-next/
 ```
 
-### 5. 告警、审计、治理一起落库
+### 6. 告警、审计、治理一起落库
 
 Boost 不只把页面换漂亮了，还补了后台治理链路：
 
@@ -124,6 +141,7 @@ Boost 不只把页面换漂亮了，还补了后台治理链路：
 | 执行器分组 | 通常先在控制台建档 | 可按 `appname` 自动创建 / 更新 |
 | 同步策略 | 无专门策略层 | `DISABLED / CREATE_ONLY / CREATE_UPDATE` |
 | 执行器传输 | Netty 嵌入式通信为主 | `NETTY_EMBED / SPRING_HTTP` 可选 |
+| 执行日志 | 业务日志通常需显式调用 `XxlJobHelper.log` | 可选 Logback 采集到当前执行日志，带长度和条数限制 |
 | Spring 接入 | 与核心实现耦合更重 | core + transport + adapter/starter 分层 |
 | 管理后台 | 传统后端模板页面 | Vue 3 + TypeScript + Naive UI 新控制台 |
 | 新旧控制台 | 单入口为主 | legacy + `admin-next` 双入口并存 |

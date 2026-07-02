@@ -14,4 +14,4 @@
 | 状态 | 需求 | 文档 |
 | --- | --- | --- |
 | Done | `@XxlJobBoost` 单注解化，覆盖 `@XxlJob` handler 能力 | [2026-06-30-xxljobboost-single-annotation.md](2026-06-30-xxljobboost-single-annotation.md) |
-| Draft | 自动采集业务侧 SLF4J / Logback 日志到 XXL-JOB 执行日志 | [2026-06-30-auto-capture-business-logs.md](2026-06-30-auto-capture-business-logs.md) |
+| Done | 自动采集业务侧 SLF4J / Logback 日志到 XXL-JOB 执行日志 | [2026-06-30-auto-capture-business-logs.md](2026-06-30-auto-capture-business-logs.md) |
