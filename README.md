@@ -182,6 +182,15 @@ bash scripts/dev-status.sh
 bash scripts/dev-stop.sh
 ```
 
+### 构建 Docker 部署镜像
+
+```bash
+bash scripts/docker-build.sh
+docker compose -f docker/docker-compose.yml up -d
+```
+
+`scripts/docker-build.sh` 会先构建 `xxl-job-admin-ui` 的生产产物，再用 JDK 17 打包 `xxl-job-admin` 和 Spring Boot 样例执行器，最后构建本地 Docker 镜像。这样镜像内的 `/admin-next/` 始终来自当前源码的最新版 Web 产物。
+
 ### 启动前端开发服务
 
 ```bash

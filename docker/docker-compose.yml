@@ -1,6 +1,3 @@
-# docker-compose version
-version: '3.8'
-
 services:
   mysql:
     image: mysql:8.4
@@ -34,8 +31,8 @@ services:
     #image: xuxueli/xxl-job-admin:{version}
     image: xuxueli/xxl-job-admin:local
     build:
-      context: ../xxl-job-admin
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/Dockerfile.admin
     container_name: xxl-job-admin
     environment:
       # 5、数据库密码设置，需要与上文Mysql中保持一致：
@@ -56,8 +53,8 @@ services:
   xxl-job-executor-sample-springboot:
     image: xuxueli/xxl-job-executor-sample-springboot:local
     build:
-      context: ./xxl-job-executor-samples/xxl-job-executor-sample-springboot
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/Dockerfile.executor-sample-springboot
     container_name: xxl-job-executor-sample-springboot
     environment:
       PARAMS: >-
