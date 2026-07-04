@@ -27,9 +27,8 @@ services:
       - xxl-job-network
 
   xxl-job-admin:
-    # 4、本地Build设置，如果期望使用推动DockerHub的镜像，可以注释当前启用的image、build配置，并启用如下设置版本的image配置；
-    #image: xuxueli/xxl-job-admin:{version}
-    image: xuxueli/xxl-job-admin:local
+    # 4、本地构建使用 :local；生产发布时改用版本标签镜像，例如 pub.lighting/xxl-job-boost-admin:1.0.0。
+    image: pub.lighting/xxl-job-boost-admin:local
     build:
       context: ..
       dockerfile: docker/Dockerfile.admin
@@ -51,7 +50,7 @@ services:
       - xxl-job-network
 
   xxl-job-executor-sample-springboot:
-    image: xuxueli/xxl-job-executor-sample-springboot:local
+    image: pub.lighting/xxl-job-boost-executor-sample-springboot:local
     build:
       context: ..
       dockerfile: docker/Dockerfile.executor-sample-springboot

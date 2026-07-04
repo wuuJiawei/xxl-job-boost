@@ -33,6 +33,7 @@ bash scripts/dev-start.sh
 这个脚本已经把本地联调所需动作封装好了：
 
 - 自动检查并启动 Docker MySQL 容器 `xxljob-mysql`
+- 自动按文件名顺序执行 `doc/db/migrations/*.sql` 幂等迁移
 - 首次缺少 jar 时自动执行 Maven 打包
 - 自动寻找 JDK 17
 - 自动启动调度中心 admin
@@ -218,13 +219,13 @@ export PATH="/Users/song/.nvm/versions/node/v20.19.0/bin:$PATH"
 
 如果缺少以下 jar：
 
-- `xxl-job-admin/target/xxl-job-admin-3.4.1-SNAPSHOT.jar`
-- `xxl-job-executor-samples/xxl-job-executor-sample-springboot/target/xxl-job-executor-sample-springboot-3.4.1-SNAPSHOT.jar`
+- `xxl-job-admin/target/xxl-job-admin-1.0.0.jar`
+- `xxl-job-executor-samples/xxl-job-executor-sample-springboot/target/xxl-job-executor-sample-springboot-1.0.0.jar`
 
 `scripts/dev-start.sh` 会自动执行：
 
 ```bash
-mvn -P '!release' -pl xxl-job-admin,xxl-job-executor-samples/xxl-job-executor-sample-springboot -am -DskipTests package
+mvn -P 'apps,!release' -pl xxl-job-admin,xxl-job-executor-samples/xxl-job-executor-sample-springboot -am -DskipTests package
 ```
 
 所以之前“直接跑起来”的一个原因，也是脚本把首次打包一起兜住了。
@@ -336,7 +337,7 @@ Table 'xxl_job.xxl_job_alarm_channel' doesn't exist
 - `xxl_job_alarm_channel`
 - `xxl_job_alarm_record`
 
-为避免以后重复踩坑，启动脚本里已经补上自动迁移逻辑：后续执行 `bash scripts/dev-start.sh` 时，会在保留现有数据的前提下自动补齐这批告警结构。
+为避免以后重复踩坑，启动脚本已经改成通用迁移逻辑：后续执行 `bash scripts/dev-start.sh` 时，会在保留现有数据的前提下按文件名顺序执行 `doc/db/migrations/*.sql`。
 
 ## 相关文件
 

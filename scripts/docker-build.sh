@@ -74,6 +74,6 @@ resolve_java
 
 (
   cd "$ROOT_DIR"
-  mvn -P '!release' -pl xxl-job-admin,xxl-job-executor-samples/xxl-job-executor-sample-springboot -am -DskipTests package
+  mvn -P 'apps,!release' -pl xxl-job-admin,xxl-job-executor-samples/xxl-job-executor-sample-springboot -am -DskipTests package
   docker compose -f docker/docker-compose.yml build xxl-job-admin xxl-job-executor-sample-springboot
 )

@@ -287,8 +287,9 @@ NETTY_EMBED::http://127.0.0.1:9999/
 
 增量脚本：
 
-- [`2026-06-13-add-operator-user-id-to-audit-log.sql`](../doc/db/migrations/2026-06-13-add-operator-user-id-to-audit-log.sql)
 - [`2026-06-13-add-alarm-rule-table.sql`](../doc/db/migrations/2026-06-13-add-alarm-rule-table.sql)
+- [`2026-06-13-add-operator-user-id-to-audit-log.sql`](../doc/db/migrations/2026-06-13-add-operator-user-id-to-audit-log.sql)
+- [`2026-07-04-upgrade-to-xxl-job-boost-1.0.0.sql`](../doc/db/migrations/2026-07-04-upgrade-to-xxl-job-boost-1.0.0.sql)
 
 ## 样例执行器
 

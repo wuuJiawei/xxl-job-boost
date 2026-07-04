@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://github.com/xuxueli/xxl-job"><img src="https://img.shields.io/badge/upstream-XXL--JOB-blue" alt="Upstream XXL-JOB"></a>
-  <img src="https://img.shields.io/badge/version-3.4.1--SNAPSHOT-orange" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.0.0-orange" alt="Version">
   <img src="https://img.shields.io/badge/JDK-17%2B-brightgreen" alt="JDK 17+">
   <img src="https://img.shields.io/badge/Spring%20Boot-4.x-6DB33F" alt="Spring Boot 4">
   <img src="https://img.shields.io/badge/Vue-3-42b883" alt="Vue 3">
@@ -170,6 +170,7 @@ bash scripts/dev-start.sh
 脚本会：
 
 - 拉起或复用 Docker MySQL 容器 `xxljob-mysql`
+- 对已有数据库按 `doc/db/migrations/*.sql` 顺序执行幂等迁移
 - 首次缺少 jar 时自动执行 Maven 打包
 - 启动调度中心 `xxl-job-admin`
 - 启动 Spring Boot 样例执行器
@@ -223,9 +224,9 @@ Spring Boot 执行器只需要引入 starter：
 
 ```xml
 <dependency>
-    <groupId>com.xuxueli</groupId>
+    <groupId>pub.lighting</groupId>
     <artifactId>xxl-job-boost-spring-boot-starter</artifactId>
-    <version>3.4.1-SNAPSHOT</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 
@@ -287,19 +288,22 @@ xxl-job-boost
 
 从旧库升级时，除对齐初始化 SQL 外，还需要关注增量脚本：
 
-- [2026-06-13-add-operator-user-id-to-audit-log.sql](doc/db/migrations/2026-06-13-add-operator-user-id-to-audit-log.sql)
 - [2026-06-13-add-alarm-rule-table.sql](doc/db/migrations/2026-06-13-add-alarm-rule-table.sql)
+- [2026-06-13-add-operator-user-id-to-audit-log.sql](doc/db/migrations/2026-06-13-add-operator-user-id-to-audit-log.sql)
+- [2026-07-04-upgrade-to-xxl-job-boost-1.0.0.sql](doc/db/migrations/2026-07-04-upgrade-to-xxl-job-boost-1.0.0.sql)
 
 迁移前请阅读 [从 XXL-JOB 迁移到 Boost](docs/migration-from-xxl-job.md)。
 
 ## 文档
 
 - [Boost Features](docs/boost-features.md)：当前代码已落地能力的完整说明
+- [生产部署方案](docs/production-deployment.md)：生产 Docker 镜像发布与部署建议
 - [本地运行与排障记录](docs/local-dev-runbook.md)：本机启动方式、端口、常见故障
 - [从 XXL-JOB 迁移到 Boost](docs/migration-from-xxl-job.md)：迁移路径、版本边界、数据库升级
 - [功能路线图 / Roadmap](docs/feature-roadmap.md)：后续演进方向，不等同于已交付清单
 - [管理后台迁移计划](docs/admin-ui-migration-plan.md)：admin-next 的迁移思路
 - [源码增强策略](docs/upstream-extension-strategy.md)：为什么采用源码内渐进增强
+- [1.0.0 发布说明](docs/release-notes-1.0.0.md)：首个自有坐标发布准备说明
 - [项目版本说明](docs/release-notes-2026-06-10.md)：早期可用基线说明
 - [官方中文文档镜像](doc/XXL-JOB官方文档.md)
 - [Official English Documentation mirror](doc/XXL-JOB-English-Documentation.md)

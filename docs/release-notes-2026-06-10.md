@@ -118,8 +118,9 @@
 
 如果不是全新初始化数据库，而是基于旧库继续升级，请额外执行增量 SQL。
 
-- [审计日志 operator_user_id 升级脚本](../doc/db/migrations/2026-06-13-add-operator-user-id-to-audit-log.sql)
 - [告警规则表升级脚本](../doc/db/migrations/2026-06-13-add-alarm-rule-table.sql)
+- [审计日志 operator_user_id 升级脚本](../doc/db/migrations/2026-06-13-add-operator-user-id-to-audit-log.sql)
+- [1.0.0 完整升级脚本](../doc/db/migrations/2026-07-04-upgrade-to-xxl-job-boost-1.0.0.sql)
 
 ## 相关文档
 

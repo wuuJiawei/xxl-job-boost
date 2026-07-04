@@ -29,7 +29,7 @@
 - 官方文档明确说明：`v3.0.0` 开始，数据模型和通讯协议对 `v2.4.*` 及后续版本向前兼容，可以无缝升级。
 - 官方文档没有承诺 `2.3.x` 及更早版本可以直接无缝升级到 `3.x`。
 - 官方 `v2.5.0` 是基于 `JDK 8` 的最后一个大版本，适合作为老 2.x 系统过渡站。
-- `XXL-JOB Boost` 当前代码基线是 `3.4.1-SNAPSHOT`，并且仓库要求 `JDK 17+`。
+- `XXL-JOB Boost` 当前代码基线是 `1.0.0`，并且仓库要求 `JDK 17+`。
 
 ## 版本边界
 
@@ -55,7 +55,7 @@
 
 当前仓库基线：
 
-- 版本：`3.4.1-SNAPSHOT`
+- 版本：`1.0.0`
 - Java：`JDK 17+`
 - 后端：`Spring Boot 4`
 - 新旧控制台并存：
@@ -108,15 +108,16 @@ Boost 不是脱离官方 3.x 重新设计的一套系统，而是在 `XXL-JOB 3.
 
 - 基线文件：`doc/db/tables_xxl_job.sql`
 
-如果你不是从 Boost 初始化的数据库，而是从官方 XXL-JOB 库升级过来的，至少确认下面两个增量已经补齐：
+如果你不是从 Boost 初始化的数据库，而是从官方 XXL-JOB 库升级过来的，至少按文件名顺序执行并确认下面增量已经补齐：
 
-- `doc/db/migrations/2026-06-13-add-operator-user-id-to-audit-log.sql`
 - `doc/db/migrations/2026-06-13-add-alarm-rule-table.sql`
+- `doc/db/migrations/2026-06-13-add-operator-user-id-to-audit-log.sql`
+- `doc/db/migrations/2026-07-04-upgrade-to-xxl-job-boost-1.0.0.sql`
 
 说明：
 
-- 这两个脚本是当前仓库明确提供的增量升级脚本
-- 如果你的库和 `doc/db/tables_xxl_job.sql` 相比还有别的差异，需要额外补齐
+- 这些脚本按幂等方式编写，可重复执行
+- 如果你的库和 `doc/db/tables_xxl_job.sql` 相比还有别的差异，需要先在预发库确认原因，再决定是否额外补齐
 
 #### 3. 替换调度中心
 
@@ -307,10 +308,11 @@ Boost 不是脱离官方 3.x 重新设计的一套系统，而是在 `XXL-JOB 3.
 
 当前仓库明确提供的增量脚本：
 
-- `doc/db/migrations/2026-06-13-add-operator-user-id-to-audit-log.sql`
 - `doc/db/migrations/2026-06-13-add-alarm-rule-table.sql`
+- `doc/db/migrations/2026-06-13-add-operator-user-id-to-audit-log.sql`
+- `doc/db/migrations/2026-07-04-upgrade-to-xxl-job-boost-1.0.0.sql`
 
-如果你是从官方库直接迁过来，建议把你的现网库与 `doc/db/tables_xxl_job.sql` 做一次结构对比，而不是只跑这两个脚本就结束。
+如果你是从官方库直接迁过来，建议把你的现网库与 `doc/db/tables_xxl_job.sql` 做一次结构对比，并在预发环境完整演练上述迁移链。
 
 ## 迁移过程中的验证清单
 
@@ -390,6 +392,8 @@ Boost 不是脱离官方 3.x 重新设计的一套系统，而是在 `XXL-JOB 3.
 ## 相关文档
 
 - [README](../README.md)
+- [1.0.0 发布说明](./release-notes-1.0.0.md)
+- [生产部署方案](./production-deployment.md)
 - [项目版本说明](./release-notes-2026-06-10.md)
 - [管理后台迁移计划](./admin-ui-migration-plan.md)
 - [源码增强策略](./upstream-extension-strategy.md)
@@ -405,6 +409,6 @@ Boost 不是脱离官方 3.x 重新设计的一套系统，而是在 `XXL-JOB 3.
   - 当前 Boost 版本与 JDK 基线
 - `doc/db/tables_xxl_job.sql`
   - 当前仓库数据库基线
-- `doc/db/migrations/2026-06-13-add-operator-user-id-to-audit-log.sql`
 - `doc/db/migrations/2026-06-13-add-alarm-rule-table.sql`
-
+- `doc/db/migrations/2026-06-13-add-operator-user-id-to-audit-log.sql`
+- `doc/db/migrations/2026-07-04-upgrade-to-xxl-job-boost-1.0.0.sql`

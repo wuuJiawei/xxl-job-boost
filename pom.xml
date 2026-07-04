@@ -1,14 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.xuxueli</groupId>
+	<groupId>pub.lighting</groupId>
 	<artifactId>xxl-job-boost</artifactId>
-	<version>3.4.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<packaging>pom</packaging>
 
 	<name>XXL-JOB Boost</name>
 	<description>An unofficial enhanced distribution of XXL-JOB for modern Java teams.</description>
-	<url>https://github.com/your-org/xxl-job-boost</url>
+	<url>https://github.com/wuuJiawei/xxl-job-boost</url>
 
 	<modules>
 		<module>xxl-job-core</module>
@@ -17,8 +17,6 @@
 		<module>xxl-job-adapter-spring-mvc</module>
 		<module>xxl-job-adapter-spring-boot-starter</module>
 		<module>xxl-job-boost-spring-boot-starter</module>
-		<module>xxl-job-admin</module>
-		<module>xxl-job-executor-samples</module>
     </modules>
 
 	<properties>
@@ -154,34 +152,34 @@
 
 			<!-- xxl-job-core -->
 			<dependency>
-				<groupId>com.xuxueli</groupId>
+				<groupId>pub.lighting</groupId>
 				<artifactId>xxl-job-core</artifactId>
-				<version>${project.parent.version}</version>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.xuxueli</groupId>
+				<groupId>pub.lighting</groupId>
 				<artifactId>xxl-job-transport-api</artifactId>
-				<version>${project.parent.version}</version>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.xuxueli</groupId>
+				<groupId>pub.lighting</groupId>
 				<artifactId>xxl-job-transport-netty</artifactId>
-				<version>${project.parent.version}</version>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.xuxueli</groupId>
+				<groupId>pub.lighting</groupId>
 				<artifactId>xxl-job-adapter-spring-mvc</artifactId>
-				<version>${project.parent.version}</version>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.xuxueli</groupId>
+				<groupId>pub.lighting</groupId>
 				<artifactId>xxl-job-adapter-spring-boot-starter</artifactId>
-				<version>${project.parent.version}</version>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.xuxueli</groupId>
+				<groupId>pub.lighting</groupId>
 				<artifactId>xxl-job-boost-spring-boot-starter</artifactId>
-				<version>${project.parent.version}</version>
+				<version>${project.version}</version>
 			</dependency>
 
 			<!-- xxl-sso (xxl-tool、gson) -->
@@ -216,20 +214,22 @@
 		<license>
 			<name>GNU General Public License version 3</name>
 			<url>https://opensource.org/licenses/GPL-3.0</url>
+			<distribution>repo</distribution>
 		</license>
 	</licenses>
 	<scm>
-		<tag>master</tag>
-		<url>https://github.com/xuxueli/xxl-job.git</url>
-		<connection>scm:git:https://github.com/xuxueli/xxl-job.git</connection>
-		<developerConnection>scm:git:git@github.com:xuxueli/xxl-job.git</developerConnection>
+		<tag>v1.0.0</tag>
+		<url>https://github.com/wuuJiawei/xxl-job-boost</url>
+		<connection>scm:git:https://github.com/wuuJiawei/xxl-job-boost.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/wuuJiawei/xxl-job-boost.git</developerConnection>
 	</scm>
 	<developers>
 		<developer>
-			<id>XXL</id>
-			<name>xuxueli</name>
-			<email>931591021@qq.com</email>
-			<url>https://github.com/xuxueli</url>
+			<id>wuu</id>
+			<name>Jiawei Wu</name>
+			<email>wujiawei0926@gmail.com</email>
+			<organization>lighting.pub</organization>
+			<organizationUrl>https://lighting.pub</organizationUrl>
 		</developer>
 	</developers>
 
@@ -239,20 +239,19 @@
 	</build>
 
 	<profiles>
-
 		<profile>
-			<id>release</id>
+			<id>apps</id>
 			<activation>
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<modules>
-				<module>xxl-job-core</module>
-				<module>xxl-job-transport-api</module>
-				<module>xxl-job-transport-netty</module>
-				<module>xxl-job-adapter-spring-mvc</module>
-				<module>xxl-job-adapter-spring-boot-starter</module>
-				<module>xxl-job-boost-spring-boot-starter</module>
+				<module>xxl-job-admin</module>
+				<module>xxl-job-executor-samples</module>
 			</modules>
+		</profile>
+
+		<profile>
+			<id>release</id>
 			<build>
 				<plugins>
 					<!-- Compiler -->
@@ -303,7 +302,11 @@
                         <artifactId>maven-gpg-plugin</artifactId>
                         <version>${maven-gpg-plugin.version}</version>
 						<configuration>
-							<useAgent>false</useAgent>
+							<keyname>${gpg.keyname}</keyname>
+							<gpgArguments>
+								<arg>--pinentry-mode</arg>
+								<arg>loopback</arg>
+							</gpgArguments>
 						</configuration>
                         <executions>
                             <execution>
@@ -322,13 +325,7 @@
 						<extensions>true</extensions>
 						<configuration>
 							<publishingServerId>central</publishingServerId>
-							<excludeArtifacts>
-								<artifact>xxl-job-admin</artifact>
-								<artifact>xxl-job-executor-samples</artifact>
-								<artifact>xxl-job-executor-sample-frameless</artifact>
-								<artifact>xxl-job-executor-sample-springboot</artifact>
-								<artifact>xxl-job-executor-sample-springboot-ai</artifact>
-							</excludeArtifacts>
+							<autoPublish>true</autoPublish>
 						</configuration>
 					</plugin>
 				</plugins>
