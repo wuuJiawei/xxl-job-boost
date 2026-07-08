@@ -1,5 +1,7 @@
 package com.xxl.job.core.constant;
 
+import com.xxl.job.core.server.ExecutorEndpointHeaders;
+
 /**
  * Created by xuxueli on 17/5/10.
  */
@@ -10,7 +12,7 @@ public class Const {
     /**
      * access token
      */
-    public static final String XXL_JOB_ACCESS_TOKEN = "XXL-JOB-ACCESS-TOKEN";
+    public static final String XXL_JOB_ACCESS_TOKEN = ExecutorEndpointHeaders.ACCESS_TOKEN;
 
 
     // ---------------------- for registry ----------------------

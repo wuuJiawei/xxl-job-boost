@@ -6,6 +6,8 @@ import com.xxl.job.core.openapi.model.KillRequest;
 import com.xxl.job.core.openapi.model.LogRequest;
 import com.xxl.job.core.openapi.model.LogResult;
 import com.xxl.job.core.openapi.model.TriggerRequest;
+import com.xxl.job.core.server.ExecutorEndpoint;
+import com.xxl.job.core.server.ExecutorEndpointHeaders;
 import com.xxl.tool.json.GsonTool;
 import com.xxl.tool.response.Response;
 
@@ -33,41 +35,43 @@ public class HttpExecutorBizClient implements ExecutorBiz {
 
     @Override
     public Response<String> beat() {
-        return post("beat", null, String.class);
+        return post(ExecutorEndpoint.BEAT, null, String.class);
     }
 
     @Override
     public Response<String> idleBeat(IdleBeatRequest idleBeatRequest) {
-        return post("idleBeat", idleBeatRequest, String.class);
+        return post(ExecutorEndpoint.IDLE_BEAT, idleBeatRequest, String.class);
     }
 
     @Override
     public Response<String> run(TriggerRequest triggerRequest) {
-        return post("run", triggerRequest, String.class);
+        return post(ExecutorEndpoint.RUN, triggerRequest, String.class);
     }
 
     @Override
     public Response<String> kill(KillRequest killRequest) {
-        return post("kill", killRequest, String.class);
+        return post(ExecutorEndpoint.KILL, killRequest, String.class);
     }
 
     @Override
     public Response<LogResult> log(LogRequest logRequest) {
-        return execute("log", logRequest, Response.class, LogResult.class);
+        return execute(ExecutorEndpoint.LOG, logRequest, Response.class, LogResult.class);
     }
 
-    private <T> Response<T> post(String path, Object requestBody, Class<T> responseType) {
-        return execute(path, requestBody, Response.class, responseType);
+    private <T> Response<T> post(ExecutorEndpoint endpoint, Object requestBody, Class<T> responseType) {
+        return execute(endpoint, requestBody, Response.class, responseType);
     }
 
     @SuppressWarnings("unchecked")
-    private <T> T execute(String path, Object requestBody, Class<T> rawType, java.lang.reflect.Type... actualTypeArguments) {
-        String finalUrl = addressUrl + path;
+    private <T> T execute(ExecutorEndpoint endpoint, Object requestBody, Class<T> rawType, java.lang.reflect.Type... actualTypeArguments) {
+        String finalUrl = endpointUrl(endpoint);
         String requestJson = requestBody == null ? "" : GsonTool.toJson(requestBody);
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(finalUrl))
-                .timeout(Duration.ofSeconds(timeout))
-                .header("XXL-JOB-ACCESS-TOKEN", accessToken);
+                .timeout(Duration.ofSeconds(timeout));
+        if (accessToken != null) {
+            requestBuilder.header(ExecutorEndpointHeaders.ACCESS_TOKEN, accessToken);
+        }
 
         if (requestJson.isEmpty()) {
             requestBuilder.POST(HttpRequest.BodyPublishers.noBody());
@@ -84,5 +88,12 @@ public class HttpExecutorBizClient implements ExecutorBiz {
         } catch (Exception e) {
             throw new RuntimeException("Http Request Error (" + e.getMessage() + "). for url : " + finalUrl, e);
         }
+    }
+
+    private String endpointUrl(ExecutorEndpoint endpoint) {
+        String finalAddress = addressUrl.endsWith("/")
+                ? addressUrl.substring(0, addressUrl.length() - 1)
+                : addressUrl;
+        return finalAddress + endpoint.path();
     }
 }

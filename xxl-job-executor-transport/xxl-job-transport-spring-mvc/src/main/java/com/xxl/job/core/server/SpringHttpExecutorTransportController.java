@@ -1,5 +1,8 @@
 package com.xxl.job.core.server;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -9,40 +12,50 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-public class SpringHttpExecutorTransportController {
+public class SpringHttpExecutorTransportController implements ExecutorEndpointAdapter {
 
-    private final ExecutorTransportDispatcher executorTransportDispatcher;
+    private final ExecutorEndpointDispatcher executorEndpointDispatcher;
 
-    public SpringHttpExecutorTransportController(ExecutorTransportDispatcher executorTransportDispatcher) {
-        this.executorTransportDispatcher = executorTransportDispatcher;
+    public SpringHttpExecutorTransportController(ExecutorEndpointDispatcher executorEndpointDispatcher) {
+        this.executorEndpointDispatcher = executorEndpointDispatcher;
     }
 
-    @PostMapping("/beat")
-    public Object beat(@RequestHeader(value = "XXL-JOB-ACCESS-TOKEN", required = false) String accessToken) {
-        return executorTransportDispatcher.dispatch("POST", "/beat", null, accessToken);
+    @PostMapping(ExecutorEndpointPaths.BEAT)
+    public Object beat(@RequestHeader(value = ExecutorEndpointHeaders.ACCESS_TOKEN, required = false) String accessToken) {
+        return executorEndpointDispatcher.dispatch("POST", ExecutorEndpointPaths.BEAT, null, accessToken);
     }
 
-    @PostMapping("/idleBeat")
+    @PostMapping(ExecutorEndpointPaths.IDLE_BEAT)
     public Object idleBeat(@RequestBody(required = false) String body,
-                           @RequestHeader(value = "XXL-JOB-ACCESS-TOKEN", required = false) String accessToken) {
-        return executorTransportDispatcher.dispatch("POST", "/idleBeat", body, accessToken);
+                           @RequestHeader(value = ExecutorEndpointHeaders.ACCESS_TOKEN, required = false) String accessToken) {
+        return executorEndpointDispatcher.dispatch("POST", ExecutorEndpointPaths.IDLE_BEAT, body, accessToken);
     }
 
-    @PostMapping("/run")
+    @PostMapping(ExecutorEndpointPaths.RUN)
     public Object run(@RequestBody(required = false) String body,
-                      @RequestHeader(value = "XXL-JOB-ACCESS-TOKEN", required = false) String accessToken) {
-        return executorTransportDispatcher.dispatch("POST", "/run", body, accessToken);
+                      @RequestHeader(value = ExecutorEndpointHeaders.ACCESS_TOKEN, required = false) String accessToken) {
+        return executorEndpointDispatcher.dispatch("POST", ExecutorEndpointPaths.RUN, body, accessToken);
     }
 
-    @PostMapping("/kill")
+    @PostMapping(ExecutorEndpointPaths.KILL)
     public Object kill(@RequestBody(required = false) String body,
-                       @RequestHeader(value = "XXL-JOB-ACCESS-TOKEN", required = false) String accessToken) {
-        return executorTransportDispatcher.dispatch("POST", "/kill", body, accessToken);
+                       @RequestHeader(value = ExecutorEndpointHeaders.ACCESS_TOKEN, required = false) String accessToken) {
+        return executorEndpointDispatcher.dispatch("POST", ExecutorEndpointPaths.KILL, body, accessToken);
     }
 
-    @PostMapping("/log")
+    @PostMapping(ExecutorEndpointPaths.LOG)
     public Object log(@RequestBody(required = false) String body,
-                      @RequestHeader(value = "XXL-JOB-ACCESS-TOKEN", required = false) String accessToken) {
-        return executorTransportDispatcher.dispatch("POST", "/log", body, accessToken);
+                      @RequestHeader(value = ExecutorEndpointHeaders.ACCESS_TOKEN, required = false) String accessToken) {
+        return executorEndpointDispatcher.dispatch("POST", ExecutorEndpointPaths.LOG, body, accessToken);
+    }
+
+    @Override
+    public String framework() {
+        return "Spring MVC";
+    }
+
+    @Override
+    public Set<ExecutorEndpoint> supportedEndpoints() {
+        return EnumSet.allOf(ExecutorEndpoint.class);
     }
 }

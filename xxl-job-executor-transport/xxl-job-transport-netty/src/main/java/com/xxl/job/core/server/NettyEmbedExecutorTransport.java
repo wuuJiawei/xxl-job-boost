@@ -39,11 +39,11 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class NettyEmbedExecutorTransport implements ExecutorTransport {
+public class NettyEmbedExecutorTransport implements EmbeddedExecutorTransport {
     private static final Logger logger = LoggerFactory.getLogger(NettyEmbedExecutorTransport.class);
 
     private ExecutorBiz executorBiz;
-    private ExecutorTransportDispatcher dispatcher;
+    private ExecutorEndpointDispatcher dispatcher;
     private Thread thread;
 
     @Override
@@ -61,7 +61,7 @@ public class NettyEmbedExecutorTransport implements ExecutorTransport {
 
     @Override
     public void start(final String address, final int port, final String appname, final String accessToken) {
-        dispatcher = new ExecutorTransportDispatcher(this, accessToken);
+        dispatcher = new ExecutorEndpointDispatcher(this, accessToken);
         thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -146,10 +146,10 @@ public class NettyEmbedExecutorTransport implements ExecutorTransport {
     public static class NettyEmbedHttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
         private static final Logger logger = LoggerFactory.getLogger(NettyEmbedHttpServerHandler.class);
 
-        private final ExecutorTransportDispatcher dispatcher;
+        private final ExecutorEndpointDispatcher dispatcher;
         private final ThreadPoolExecutor bizThreadPool;
 
-        public NettyEmbedHttpServerHandler(ExecutorTransportDispatcher dispatcher, ThreadPoolExecutor bizThreadPool) {
+        public NettyEmbedHttpServerHandler(ExecutorEndpointDispatcher dispatcher, ThreadPoolExecutor bizThreadPool) {
             this.dispatcher = dispatcher;
             this.bizThreadPool = bizThreadPool;
         }
