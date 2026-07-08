@@ -16,10 +16,10 @@
 计划发布以下库模块：
 
 - `pub.lighting:xxl-job-core:1.0.0`
+- `pub.lighting:xxl-job-executor-transport:1.0.0`
 - `pub.lighting:xxl-job-transport-api:1.0.0`
 - `pub.lighting:xxl-job-transport-netty:1.0.0`
-- `pub.lighting:xxl-job-adapter-spring-mvc:1.0.0`
-- `pub.lighting:xxl-job-adapter-spring-boot-starter:1.0.0`
+- `pub.lighting:xxl-job-transport-spring-mvc:1.0.0`
 - `pub.lighting:xxl-job-boost-spring-boot-starter:1.0.0`
 
 `xxl-job-admin` 和 `xxl-job-executor-samples` 不作为 Maven Central 库模块发布。

@@ -90,13 +90,14 @@ xxl.job.executor.log-capture.exclude-packages=org.springframework.,spring.,com.z
 
 ### 4. Spring 变成适配层，而不是核心硬前提
 
-Boost 保留 frameless sample，也把 Spring MVC / Spring Boot 接入拆到 adapter：
+Boost 保留 frameless sample，也把执行器传输实现和 Spring Boot 推荐入口拆开：
 
 - `xxl-job-core`：核心执行器与 handler 能力
+- `xxl-job-executor-transport`：执行器传输聚合模块
 - `xxl-job-transport-api`：传输抽象与执行器客户端
 - `xxl-job-transport-netty`：Netty 传输实现
-- `xxl-job-adapter-spring-mvc`：Spring HTTP 传输适配
-- `xxl-job-adapter-spring-boot-starter`：Spring Boot 自动配置
+- `xxl-job-transport-spring-mvc`：Spring MVC 传输实现
+- `xxl-job-boost-spring-boot-starter`：推荐 Spring Boot starter
 
 这不是“完全去 Spring”，而是把 Spring 从核心前提降到可选适配路径。
 
@@ -267,10 +268,10 @@ xxl-job-boost
 ├── xxl-job-admin-ui                      # 新控制台源码，Vue 3 + TypeScript + Vite + Naive UI
 ├── xxl-job-admin-ui-legacy               # 保留的旧前端工程
 ├── xxl-job-core                          # 核心执行器、handler、日志、回调、任务同步扫描
-├── xxl-job-transport-api                 # 执行器传输抽象、HTTP 客户端、endpoint 解析
-├── xxl-job-transport-netty               # 兼容 Netty 嵌入式执行器传输
-├── xxl-job-adapter-spring-mvc            # Spring MVC HTTP 执行器传输适配
-├── xxl-job-adapter-spring-boot-starter   # 原 Spring Boot starter，保留兼容
+├── xxl-job-executor-transport            # 执行器传输聚合模块
+│   ├── xxl-job-transport-api             # 执行器传输抽象、HTTP 客户端、endpoint 解析
+│   ├── xxl-job-transport-netty           # 兼容 Netty 嵌入式执行器传输
+│   └── xxl-job-transport-spring-mvc      # Spring MVC HTTP 执行器传输实现
 ├── xxl-job-boost-spring-boot-starter     # 推荐 Spring Boot starter，聚合 core 与执行器传输
 ├── xxl-job-executor-samples              # frameless、Spring Boot、Spring AI 样例执行器
 ├── doc                                   # 上游文档、初始化 SQL、数据库迁移脚本
@@ -297,6 +298,7 @@ xxl-job-boost
 ## 文档
 
 - [Boost Features](docs/boost-features.md)：当前代码已落地能力的完整说明
+- [1.0.0 测试用例](docs/test-plan-1.0.0.md)：发布前自测、预发验收和生产上线检查
 - [生产部署方案](docs/production-deployment.md)：生产 Docker 镜像发布与部署建议
 - [本地运行与排障记录](docs/local-dev-runbook.md)：本机启动方式、端口、常见故障
 - [从 XXL-JOB 迁移到 Boost](docs/migration-from-xxl-job.md)：迁移路径、版本边界、数据库升级

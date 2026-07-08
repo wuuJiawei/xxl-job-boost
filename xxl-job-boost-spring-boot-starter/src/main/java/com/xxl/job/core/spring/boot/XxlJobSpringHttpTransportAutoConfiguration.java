@@ -2,8 +2,8 @@ package com.xxl.job.core.spring.boot;
 
 import com.xxl.job.core.executor.impl.XxlJobSpringExecutor;
 import com.xxl.job.core.openapi.ExecutorBiz;
-import com.xxl.job.core.openapi.impl.ExecutorBizImpl;
 import com.xxl.job.core.server.ExecutorTransportDispatcher;
+import com.xxl.job.core.server.ExecutorTransportFactory;
 import com.xxl.job.core.server.SpringHttpExecutorTransportController;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -19,8 +19,8 @@ public class XxlJobSpringHttpTransportAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public ExecutorBiz executorBiz() {
-        return new ExecutorBizImpl();
+    public ExecutorBiz executorBiz(XxlJobSpringExecutor xxlJobSpringExecutor) {
+        return ExecutorTransportFactory.create(xxlJobSpringExecutor.getTransport());
     }
 
     @Bean

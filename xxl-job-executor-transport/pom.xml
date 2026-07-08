@@ -1,0 +1,20 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>pub.lighting</groupId>
+        <artifactId>xxl-job-boost</artifactId>
+        <version>1.0.0</version>
+    </parent>
+    <artifactId>xxl-job-executor-transport</artifactId>
+    <packaging>pom</packaging>
+
+    <name>${project.artifactId}</name>
+    <description>Executor transport modules for XXL-JOB Boost.</description>
+
+    <modules>
+        <module>xxl-job-transport-api</module>
+        <module>xxl-job-transport-netty</module>
+        <module>xxl-job-transport-spring-mvc</module>
+    </modules>
+</project>

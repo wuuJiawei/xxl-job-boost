@@ -37,7 +37,7 @@
         </dependency>
         <dependency>
             <groupId>pub.lighting</groupId>
-            <artifactId>xxl-job-adapter-spring-mvc</artifactId>
+            <artifactId>xxl-job-transport-spring-mvc</artifactId>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>

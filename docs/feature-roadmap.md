@@ -379,10 +379,11 @@ xxl-job-boost
 ├── xxl-job-core
 ├── xxl-job-alert
 ├── xxl-job-registry
-├── xxl-job-transport-api
-├── xxl-job-transport-netty
-├── xxl-job-adapter-spring-mvc
-├── xxl-job-adapter-spring-boot-starter
+├── xxl-job-executor-transport
+│   ├── xxl-job-transport-api
+│   ├── xxl-job-transport-netty
+│   └── xxl-job-transport-spring-mvc
+├── xxl-job-boost-spring-boot-starter
 ├── xxl-job-adapter-solon
 └── xxl-job-governance
 ```

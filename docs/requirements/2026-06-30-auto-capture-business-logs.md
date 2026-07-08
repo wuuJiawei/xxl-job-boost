@@ -134,7 +134,7 @@ xxl-job-core/src/main/java/com/xxl/job/core/log/XxlJobLogCaptureAppender.java
 
 ### Slice 2：Spring Boot 自动配置
 
-在 `xxl-job-adapter-spring-boot-starter` 中按配置自动注册 Logback appender。
+在 `xxl-job-boost-spring-boot-starter` 中按配置自动注册 Logback appender。
 
 约束：
 
@@ -231,15 +231,15 @@ xxl.job.executor.log-capture.include-mdc=true
 
 代码入口：
 
-- `xxl-job-adapter-spring-boot-starter/src/main/java/com/xxl/job/core/spring/boot/logcapture/XxlJobLogbackAppender.java`
-- `xxl-job-adapter-spring-boot-starter/src/main/java/com/xxl/job/core/spring/boot/logcapture/XxlJobLogCaptureRegistrar.java`
-- `xxl-job-adapter-spring-boot-starter/src/main/java/com/xxl/job/core/spring/boot/XxlJobAutoConfiguration.java`
-- `xxl-job-adapter-spring-boot-starter/src/main/java/com/xxl/job/core/spring/boot/XxlJobProperties.java`
+- `xxl-job-boost-spring-boot-starter/src/main/java/com/xxl/job/core/spring/boot/logcapture/XxlJobLogbackAppender.java`
+- `xxl-job-boost-spring-boot-starter/src/main/java/com/xxl/job/core/spring/boot/logcapture/XxlJobLogCaptureRegistrar.java`
+- `xxl-job-boost-spring-boot-starter/src/main/java/com/xxl/job/core/spring/boot/XxlJobAutoConfiguration.java`
+- `xxl-job-boost-spring-boot-starter/src/main/java/com/xxl/job/core/spring/boot/XxlJobProperties.java`
 - `xxl-job-core/src/main/java/com/xxl/job/core/context/XxlJobContext.java`
-- `xxl-job-adapter-spring-boot-starter/src/test/java/com/xxl/job/core/spring/boot/logcapture/XxlJobLogbackAppenderTest.java`
+- `xxl-job-boost-spring-boot-starter/src/test/java/com/xxl/job/core/spring/boot/logcapture/XxlJobLogbackAppenderTest.java`
 
 验证命令：
 
 ```bash
-mvn -pl xxl-job-adapter-spring-boot-starter -am -DskipTests=false -Dmaven.test.skip=false -Dtest=XxlJobLogbackAppenderTest -Dsurefire.failIfNoSpecifiedTests=false test
+mvn -pl xxl-job-boost-spring-boot-starter -am -DskipTests=false -Dmaven.test.skip=false -Dtest=XxlJobLogbackAppenderTest -Dsurefire.failIfNoSpecifiedTests=false test
 ```

@@ -12,10 +12,7 @@
 
 	<modules>
 		<module>xxl-job-core</module>
-		<module>xxl-job-transport-api</module>
-		<module>xxl-job-transport-netty</module>
-		<module>xxl-job-adapter-spring-mvc</module>
-		<module>xxl-job-adapter-spring-boot-starter</module>
+		<module>xxl-job-executor-transport</module>
 		<module>xxl-job-boost-spring-boot-starter</module>
     </modules>
 
@@ -168,12 +165,7 @@
 			</dependency>
 			<dependency>
 				<groupId>pub.lighting</groupId>
-				<artifactId>xxl-job-adapter-spring-mvc</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>pub.lighting</groupId>
-				<artifactId>xxl-job-adapter-spring-boot-starter</artifactId>
+				<artifactId>xxl-job-transport-spring-mvc</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>

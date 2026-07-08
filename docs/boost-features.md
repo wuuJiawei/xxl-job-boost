@@ -75,10 +75,10 @@ XXL-JOB Boost 是 XXL-JOB 的增强发行版，不是重写版。
 
 相关代码：
 
-- [`xxl-job-transport-api`](../xxl-job-transport-api)
-- [`xxl-job-transport-netty`](../xxl-job-transport-netty)
-- [`xxl-job-adapter-spring-mvc`](../xxl-job-adapter-spring-mvc)
-- [`xxl-job-adapter-spring-boot-starter`](../xxl-job-adapter-spring-boot-starter)
+- [`xxl-job-executor-transport`](../xxl-job-executor-transport)
+- [`xxl-job-transport-api`](../xxl-job-executor-transport/xxl-job-transport-api)
+- [`xxl-job-transport-netty`](../xxl-job-executor-transport/xxl-job-transport-netty)
+- [`xxl-job-transport-spring-mvc`](../xxl-job-executor-transport/xxl-job-transport-spring-mvc)
 - [`xxl-job-boost-spring-boot-starter`](../xxl-job-boost-spring-boot-starter)
 
 当前服务端传输：
@@ -86,7 +86,7 @@ XXL-JOB Boost 是 XXL-JOB 的增强发行版，不是重写版。
 | 类型 | 模块 | 说明 |
 | --- | --- | --- |
 | `NETTY_EMBED` | `xxl-job-transport-netty` | 兼容官方嵌入式 Netty 执行器通信 |
-| `SPRING_HTTP` | `xxl-job-adapter-spring-mvc` | 复用 Spring Web 容器承接执行器 API |
+| `SPRING_HTTP` | `xxl-job-transport-spring-mvc` | 复用 Spring Web 容器承接执行器 API |
 
 `SPRING_HTTP` 暴露的执行器接口：
 
@@ -109,14 +109,14 @@ NETTY_EMBED::http://127.0.0.1:9999/
 
 相关代码：
 
-- [`XxlJobAutoConfiguration.java`](../xxl-job-adapter-spring-boot-starter/src/main/java/com/xxl/job/core/spring/boot/XxlJobAutoConfiguration.java)
-- [`XxlJobProperties.java`](../xxl-job-adapter-spring-boot-starter/src/main/java/com/xxl/job/core/spring/boot/XxlJobProperties.java)
+- [`XxlJobAutoConfiguration.java`](../xxl-job-boost-spring-boot-starter/src/main/java/com/xxl/job/core/spring/boot/XxlJobAutoConfiguration.java)
+- [`XxlJobProperties.java`](../xxl-job-boost-spring-boot-starter/src/main/java/com/xxl/job/core/spring/boot/XxlJobProperties.java)
 
 自动配置能力：
 
 - 根据 `xxl.job.executor.appname` 创建 `XxlJobSpringExecutor`。
 - 注入 admin 地址、accessToken、timeout、appname、groupTitle、syncMode、transport、日志配置。
-- 使用 `xxl-job-boost-spring-boot-starter` 时默认启用 `SPRING_HTTP`；旧 starter 或显式配置 `xxl.job.executor.transport=SPRING_HTTP` 时自动注册：
+- 使用 `xxl-job-boost-spring-boot-starter` 时默认启用 `SPRING_HTTP`；显式配置 `xxl.job.executor.transport=SPRING_HTTP` 时自动注册：
   - `ExecutorBiz`
   - `ExecutorTransportDispatcher`
   - `SpringHttpExecutorTransportController`
@@ -318,8 +318,8 @@ Frameless sample 保留：
 
 相关代码：
 
-- [`XxlJobLogbackAppender.java`](../xxl-job-adapter-spring-boot-starter/src/main/java/com/xxl/job/core/spring/boot/logcapture/XxlJobLogbackAppender.java)
-- [`XxlJobLogCaptureRegistrar.java`](../xxl-job-adapter-spring-boot-starter/src/main/java/com/xxl/job/core/spring/boot/logcapture/XxlJobLogCaptureRegistrar.java)
+- [`XxlJobLogbackAppender.java`](../xxl-job-boost-spring-boot-starter/src/main/java/com/xxl/job/core/spring/boot/logcapture/XxlJobLogbackAppender.java)
+- [`XxlJobLogCaptureRegistrar.java`](../xxl-job-boost-spring-boot-starter/src/main/java/com/xxl/job/core/spring/boot/logcapture/XxlJobLogCaptureRegistrar.java)
 - [`XxlJobContext.java`](../xxl-job-core/src/main/java/com/xxl/job/core/context/XxlJobContext.java)
 
 Spring Boot starter 提供可选 Logback appender。开启后，任务执行线程存在 `XxlJobContext` 时，普通 SLF4J/Logback 日志会追加到当前任务执行日志文件。

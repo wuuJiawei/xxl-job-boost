@@ -34,7 +34,7 @@
         <!-- xxl-job starter -->
         <dependency>
             <groupId>pub.lighting</groupId>
-            <artifactId>xxl-job-adapter-spring-boot-starter</artifactId>
+            <artifactId>xxl-job-boost-spring-boot-starter</artifactId>
         </dependency>
 
         <!-- spring-ai: ollama  -->
