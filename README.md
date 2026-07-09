@@ -1,6 +1,10 @@
 # XXL-JOB Boost
 
 <p align="center">
+  <img src="xxl-job-admin-ui/public/xxl-job-boost-logo.png" alt="XXL-JOB Boost logo" width="160">
+</p>
+
+<p align="center">
   <strong>XXL-JOB enhanced for modern Java teams.</strong>
 </p>
 
