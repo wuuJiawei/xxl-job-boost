@@ -3,6 +3,10 @@ interface Props {
   url: string;
 }
 
+defineOptions({
+  name: 'iframe-page'
+});
+
 defineProps<Props>();
 </script>
 

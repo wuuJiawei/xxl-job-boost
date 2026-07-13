@@ -116,6 +116,10 @@ import {
   type ExecutorGroup
 } from '@/api/executors';
 
+defineOptions({
+  name: 'executors'
+});
+
 const message = useMessage();
 const loading = ref(false);
 const rows = ref<ExecutorGroup[]>([]);

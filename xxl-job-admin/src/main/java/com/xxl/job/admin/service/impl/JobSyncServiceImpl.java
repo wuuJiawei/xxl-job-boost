@@ -141,15 +141,19 @@ public class JobSyncServiceImpl implements JobSyncService {
 
         Map<String, Object> diff = buildDiff(exists, item);
         if (diff.isEmpty()) {
+            if (item.isAutoStart()) {
+                startJob(exists);
+            }
             summary.unchanged++;
             return;
         }
 
         fillJob(exists, group.getId(), item);
         exists.setUpdateTime(new Date());
-        xxlJobInfoMapper.update(exists);
-        if (item.isAutoStart() && exists.getTriggerStatus() != TriggerStatus.RUNNING.getValue()) {
+        if (item.isAutoStart()) {
             startJob(exists);
+        } else {
+            xxlJobInfoMapper.update(exists);
         }
         summary.updated++;
         recordSyncAudit("job-sync-update", exists, item, buildUpdateDetail(group, item, exists, diff));

@@ -1,8 +1,13 @@
 package com.xxl.job.executor.jobhandler;
 
 import com.xxl.job.core.context.XxlJobHelper;
+import com.xxl.job.core.constant.ExecutorBlockStrategyEnum;
 import com.xxl.job.core.handler.annotation.XxlJob;
+import com.xxl.job.core.constant.XxlJobAlarmEventType;
 import com.xxl.job.core.handler.annotation.XxlJobBoost;
+import com.xxl.job.core.constant.XxlJobMisfireStrategy;
+import com.xxl.job.core.constant.XxlJobRouteStrategy;
+import com.xxl.job.core.constant.XxlJobScheduleType;
 import com.xxl.tool.core.StringTool;
 import com.xxl.tool.json.GsonTool;
 import com.xxl.tool.http.HttpTool;
@@ -35,23 +40,52 @@ import java.util.concurrent.TimeUnit;
 public class SampleXxlJob {
     private static final Logger logger = LoggerFactory.getLogger(SampleXxlJob.class);
 
+    private static final String DEMO_JOB_DESC = "示例任务01";
+    private static final String SAMPLE_AUTHOR = "XXL";
+    private static final String DEMO_JOB_TAGS = "sample,demo";
+    private static final String DEMO_ALARM_EMAIL = "demo@example.com";
+    private static final String DEMO_DAILY_CRON = "0 0 0 * * ? *";
+
+    private static final String SHARDING_JOB_DESC = "分片广播示例任务";
+    private static final String SHARDING_JOB_HANDLER = "shardingJobHandler";
+    private static final String SHARDING_JOB_TAGS = "sample,sharding";
 
     /**
      * 1、简单任务示例（Bean模式）
+     *
+     * XxlJobBoost 会在执行器启动扫描时把任务元数据同步到调度中心：
+     * - value 对应 JobHandler 名称，也是调度中心触发任务时使用的 handler 标识；
+     * - desc、author、jobTag 会写入任务基础信息，便于在控制台检索和治理；
+     * - alarmEmail、alarmEventTypes 控制默认失败告警范围；
+     * - scheduleType、scheduleConf 控制自动调度方式；
+     * - routeStrategy、misfireStrategy、blockStrategy 对应控制台高级配置；
+     * - autoStart=false 表示只同步任务配置，不自动启动调度。
      */
     @XxlJobBoost(
+            // JobHandler 名称；如果没有同时声明 @XxlJob，该值必填。
             value = "demoJobHandler",
+            // 控制台任务描述。
             desc = "示例任务01",
+            // 任务负责人。
             author = "XXL",
+            // 任务标签，多个标签用英文逗号分隔。
             jobTag = "sample,demo",
-            alarmEmail = "demo@example.com",
-            alarmEventTypes = "EXECUTOR_FAIL,TRIGGER_FAIL",
-            scheduleType = "CRON",
-            scheduleConf = "0 0 0 * * ? *",
-            routeStrategy = "FIRST",
-            misfireStrategy = "DO_NOTHING",
-            blockStrategy = "SERIAL_EXECUTION",
-            autoStart = false
+            // 邮件告警收件人，多个邮箱用英文逗号分隔。
+            alarmEmail = DEMO_ALARM_EMAIL,
+            // 触发告警的失败事件；留空则由调度中心按默认失败事件处理。
+            alarmEventTypes = {XxlJobAlarmEventType.EXECUTOR_FAIL, XxlJobAlarmEventType.TRIGGER_FAIL},
+            // CRON 表示按 Cron 表达式自动调度；NONE 表示只注册任务，不配置自动调度。
+            scheduleType = XxlJobScheduleType.CRON,
+            // 当前 scheduleType=CRON，因此这里填写 Cron 表达式。
+            scheduleConf = "*/10 * * * * ?",
+            // FIRST 表示选择第一个可用执行器地址。
+            routeStrategy = XxlJobRouteStrategy.FIRST,
+            // DO_NOTHING 表示调度过期后不补偿触发。
+            misfireStrategy = XxlJobMisfireStrategy.DO_NOTHING,
+            // SERIAL_EXECUTION 表示同一任务串行执行，避免并发重入。
+            blockStrategy = ExecutorBlockStrategyEnum.SERIAL_EXECUTION,
+            // false 表示同步后保持停止状态，需要在控制台手动启动。
+            autoStart = true
     )
     public void demoJobHandler() throws Exception {
         XxlJobHelper.log("XXL-JOB, Hello World.");
@@ -68,16 +102,16 @@ public class SampleXxlJob {
     /**
      * 2、分片广播任务
      */
-    @XxlJob("shardingJobHandler")
+    @XxlJob(SHARDING_JOB_HANDLER)
     @XxlJobBoost(
-            desc = "分片广播示例任务",
-            author = "XXL",
-            jobTag = "sample,sharding",
-            alarmEventTypes = "EXECUTOR_FAIL",
-            scheduleType = "NONE",
-            routeStrategy = "SHARDING_BROADCAST",
-            misfireStrategy = "DO_NOTHING",
-            blockStrategy = "SERIAL_EXECUTION",
+            desc = SHARDING_JOB_DESC,
+            author = SAMPLE_AUTHOR,
+            jobTag = SHARDING_JOB_TAGS,
+            alarmEventTypes = XxlJobAlarmEventType.EXECUTOR_FAIL,
+            scheduleType = XxlJobScheduleType.NONE,
+            routeStrategy = XxlJobRouteStrategy.SHARDING_BROADCAST,
+            misfireStrategy = XxlJobMisfireStrategy.DO_NOTHING,
+            blockStrategy = ExecutorBlockStrategyEnum.SERIAL_EXECUTION,
             autoStart = false
     )
     public void shardingJobHandler() throws Exception {

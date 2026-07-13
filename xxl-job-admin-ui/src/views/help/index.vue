@@ -20,6 +20,10 @@ import { onMounted, ref } from 'vue';
 import { NCard, useMessage } from 'naive-ui';
 import { fetchHelpInfo, type HelpInfo } from '@/api/help';
 
+defineOptions({
+  name: 'help'
+});
+
 const message = useMessage();
 const helpInfo = ref<HelpInfo | null>(null);
 

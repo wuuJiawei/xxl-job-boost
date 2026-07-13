@@ -73,6 +73,10 @@ import { $t } from '@/locales';
 import { fetchFailureAggregates, type JobFailureAggregate } from '@/api/failure-aggregates';
 import { fetchJobGroups, fetchJobsByGroup, type JobGroupOption, type JobOption } from '@/api/admin-next';
 
+defineOptions({
+  name: 'failure-aggregates'
+});
+
 const router = useRouter();
 const message = useMessage();
 const loading = ref(false);

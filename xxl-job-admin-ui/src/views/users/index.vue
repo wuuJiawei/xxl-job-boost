@@ -111,6 +111,10 @@ import {
 } from 'naive-ui';
 import { createUser, deleteUser, fetchUserDetail, fetchUserMetadata, fetchUsers, updateUser, type UserInfo, type UserMetadata } from '@/api/users';
 
+defineOptions({
+  name: 'users'
+});
+
 const dialog = useDialog();
 const message = useMessage();
 const loading = ref(false);

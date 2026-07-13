@@ -149,7 +149,11 @@
             <n-select v-model:value="formValue.scheduleType" :options="scheduleTypeOptions" placeholder="请选择调度类型" />
           </n-form-item-gi>
           <n-form-item-gi v-if="formValue.scheduleType !== 'NONE'" path="scheduleConf" :label="scheduleConfLabel">
-            <n-input v-model:value="formValue.scheduleConf" :placeholder="scheduleConfPlaceholder" />
+            <n-input-group v-if="formValue.scheduleType === 'CRON'">
+              <n-input v-model:value="formValue.scheduleConf" :placeholder="scheduleConfPlaceholder" />
+              <n-button @click="openCrontabPicker">可视化配置</n-button>
+            </n-input-group>
+            <n-input v-else v-model:value="formValue.scheduleConf" :placeholder="scheduleConfPlaceholder" />
           </n-form-item-gi>
         </n-grid>
 
@@ -270,6 +274,16 @@
         </n-tag>
       </div>
     </n-modal>
+
+    <n-modal v-model:show="crontabModalVisible" preset="card" title="Cron 可视化配置" style="width: 860px;">
+      <CrontabPicker v-model:value="crontabDraft" />
+      <template #action>
+        <div class="table-actions">
+          <n-button @click="crontabModalVisible = false">取消</n-button>
+          <n-button type="primary" @click="applyCrontab">应用</n-button>
+        </div>
+      </template>
+    </n-modal>
   </div>
 </template>
 
@@ -324,6 +338,11 @@ import {
   updateJob,
   type JobInfo
 } from '@/api/jobs';
+import CrontabPicker from '@/components/business/crontab-picker.vue';
+
+defineOptions({
+  name: 'jobs'
+});
 
 const router = useRouter();
 const dialog = useDialog();
@@ -338,11 +357,13 @@ const registryDrawerVisible = ref(false);
 const nextTimeVisible = ref(false);
 const triggerModalVisible = ref(false);
 const formModalVisible = ref(false);
+const crontabModalVisible = ref(false);
 const triggering = ref(false);
 const submitting = ref(false);
 const formRef = ref<FormInst | null>(null);
 const activeRegistryList = ref<string[]>([]);
 const nextTriggerTime = ref<string[]>([]);
+const crontabDraft = ref('0 0 0 * * ?');
 const formMode = ref<'create' | 'edit' | 'copy'>('create');
 const expandedTreeKeys = ref<Array<string | number>>([]);
 const selectedTreeKeys = ref<Array<string | number>>([]);
@@ -659,6 +680,28 @@ function resetFormValue() {
   formValue.executorBlockStrategy = metadata.value?.blockStrategies[0]?.value || '';
   formValue.executorTimeout = '0';
   formValue.executorFailRetryCount = '0';
+}
+
+function normalizeCronValue(value: string) {
+  return value.trim() || '0 0 0 * * ?';
+}
+
+function openCrontabPicker() {
+  crontabDraft.value = normalizeCronValue(formValue.scheduleConf);
+  crontabModalVisible.value = true;
+}
+
+function applyCrontab() {
+  formValue.scheduleConf = crontabDraft.value;
+  crontabModalVisible.value = false;
+  void formRef.value?.validate(
+    errors => {
+      if (errors) {
+        return;
+      }
+    },
+    rule => rule?.key === 'scheduleConf'
+  );
 }
 
 function hydrateForm(job: JobInfo) {

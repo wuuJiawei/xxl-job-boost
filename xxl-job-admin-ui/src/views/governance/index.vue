@@ -105,7 +105,7 @@ import HeaderBanner from '@/views/home/modules/header-banner.vue';
 import CardData from '@/views/home/modules/card-data.vue';
 
 defineOptions({
-  name: 'GovernancePage'
+  name: 'governance'
 });
 
 const router = useRouter();

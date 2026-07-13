@@ -271,6 +271,10 @@ import {
   type JobOption
 } from '@/api/admin-next';
 
+defineOptions({
+  name: 'alerts'
+});
+
 const authStore = useAuthStore();
 const dialog = useDialog();
 const message = useMessage();

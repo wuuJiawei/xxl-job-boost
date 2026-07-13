@@ -41,6 +41,10 @@ import { NButton, NCard, useMessage } from 'naive-ui';
 import { fetchLogDetailMeta, type LogDetailMeta } from '@/api/admin-next';
 import { fetchLogChunk } from '@/api/logs';
 
+defineOptions({
+  name: 'log-detail'
+});
+
 const route = useRoute();
 const router = useRouter();
 const message = useMessage();

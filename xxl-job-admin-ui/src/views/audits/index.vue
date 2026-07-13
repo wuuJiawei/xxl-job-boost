@@ -63,6 +63,10 @@ import { $t } from '@/locales';
 import { fetchJobGroups, type JobGroupOption } from '@/api/admin-next';
 import { fetchAuditLogs, type AuditLog } from '@/api/audit-logs';
 
+defineOptions({
+  name: 'audits'
+});
+
 const message = useMessage();
 const loading = ref(false);
 const rows = ref<AuditLog[]>([]);

@@ -69,6 +69,10 @@ import { $t } from '@/locales';
 import { fetchSlowTasks, type JobSlowAggregate } from '@/api/slow-tasks';
 import { fetchJobGroups, fetchJobsByGroup, type JobGroupOption, type JobOption } from '@/api/admin-next';
 
+defineOptions({
+  name: 'slow-tasks'
+});
+
 const router = useRouter();
 const message = useMessage();
 const loading = ref(false);

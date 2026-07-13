@@ -66,7 +66,7 @@
           </template>
           <template #header-extra>
             <div class="table-actions">
-              <n-button :disabled="!selectedRow" @click="() => openDetail()">滚动日志</n-button>
+              <n-button :disabled="!selectedRow" @click="() => void openDetail()">滚动日志</n-button>
               <n-button :disabled="!selectedRow" type="warning" @click="() => void killSelected()">终止运行</n-button>
             </div>
           </template>
@@ -88,17 +88,48 @@
     <n-modal v-model:show="messageModalVisible" preset="card" :title="messageModalTitle" style="width: 720px;">
       <pre class="message-preview">{{ messageModalContent || '空' }}</pre>
     </n-modal>
+
+    <n-drawer v-model:show="logDrawerVisible" :width="920" placement="right">
+      <n-drawer-content :title="logDrawerTitle" closable>
+        <template #header>
+          <div class="log-drawer-header">
+            <div class="table-header">
+              <div class="table-title">{{ logDrawerTitle }}</div>
+              <div class="table-subtitle">
+                <span>日志 ID：{{ activeLogId || '-' }}</span>
+                <span>任务 ID：{{ detailMeta?.jobId ?? '-' }}</span>
+                <span>触发时间：{{ formatDateTime(detailMeta?.triggerTime) || '-' }}</span>
+              </div>
+            </div>
+            <div class="table-actions">
+              <n-button size="small" @click="() => void reloadDetail()">刷新</n-button>
+            </div>
+          </div>
+        </template>
+
+        <div class="table-header mb-12px">
+          <div class="table-subtitle">
+            <span>执行地址：{{ detailMeta?.executorAddress || '未知' }}</span>
+            <span>状态：{{ detailStatusText }}</span>
+          </div>
+        </div>
+        <pre ref="logStreamRef" class="log-stream log-drawer-stream"><code v-html="detailLogHtml"></code></pre>
+        <div v-if="detailRunning" class="log-stream-running">正在持续拉取日志...</div>
+      </n-drawer-content>
+    </n-drawer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, h, onMounted, reactive, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { computed, h, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import {
   NButton,
   NCard,
   NDataTable,
   NDatePicker,
+  NDrawer,
+  NDrawerContent,
   NEmpty,
   NModal,
   NSelect,
@@ -111,11 +142,21 @@ import {
   type SelectOption,
   type TreeOption
 } from 'naive-ui';
-import { fetchJobGroups, fetchJobsByGroup, type JobGroupOption, type JobOption } from '@/api/admin-next';
-import { fetchLogs, killLog, type JobLog } from '@/api/logs';
+import {
+  fetchJobGroups,
+  fetchJobsByGroup,
+  fetchLogDetailMeta,
+  type JobGroupOption,
+  type JobOption,
+  type LogDetailMeta
+} from '@/api/admin-next';
+import { fetchLogChunk, fetchLogs, killLog, type JobLog } from '@/api/logs';
+
+defineOptions({
+  name: 'logs'
+});
 
 const route = useRoute();
-const router = useRouter();
 const dialog = useDialog();
 const message = useMessage();
 const loading = ref(false);
@@ -128,6 +169,15 @@ const messageModalTitle = ref('');
 const messageModalContent = ref('');
 const expandedTreeKeys = ref<Array<string | number>>([]);
 const selectedTreeKeys = ref<Array<string | number>>([]);
+const logDrawerVisible = ref(false);
+const activeLogId = ref(0);
+const detailMeta = ref<LogDetailMeta | null>(null);
+const detailLogHtml = ref('');
+const detailRunning = ref(false);
+const detailFromLineNum = ref(1);
+const detailPullFailCount = ref(0);
+const logStreamRef = ref<HTMLPreElement | null>(null);
+let detailTimer: ReturnType<typeof setInterval> | null = null;
 
 const statusOptions: SelectOption[] = [
   { label: '全部', value: -1 },
@@ -208,6 +258,27 @@ const pagination = reactive<PaginationProps>({
 const selectedRow = computed(() =>
   rows.value.find((row) => row.id === checkedRowKeys.value[0]) || null
 );
+
+const logDrawerTitle = computed(() => detailMeta.value?.jobDesc || `日志 #${activeLogId.value || '-'}`);
+
+const detailStatusText = computed(() => {
+  if (!detailMeta.value) {
+    return '初始化中';
+  }
+  if (detailMeta.value.handleCode === 200) {
+    return '执行成功';
+  }
+  if (detailMeta.value.handleCode === 502) {
+    return '执行超时';
+  }
+  if (detailMeta.value.handleCode > 0) {
+    return '执行失败';
+  }
+  if (detailMeta.value.triggerCode !== 200) {
+    return '触发失败';
+  }
+  return '执行中';
+});
 
 const columns: DataTableColumns<JobLog> = [
   { type: 'selection', multiple: false },
@@ -363,6 +434,128 @@ function showMessage(title: string, content: string) {
   messageModalTitle.value = title;
   messageModalContent.value = content;
   messageModalVisible.value = true;
+}
+
+function stopDetailPolling() {
+  detailRunning.value = false;
+  if (detailTimer) {
+    clearInterval(detailTimer);
+    detailTimer = null;
+  }
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+async function scrollDetailToBottom() {
+  await nextTick();
+  const el = logStreamRef.value;
+  if (el) {
+    el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+  }
+}
+
+async function pullDetailLog() {
+  if (!activeLogId.value) {
+    return;
+  }
+  if (detailPullFailCount.value > 20) {
+    stopDetailPolling();
+    detailLogHtml.value += '<br><span style="color:#d03050;">[拉取失败次数过多，已停止]</span>';
+    await scrollDetailToBottom();
+    return;
+  }
+  try {
+    const response = await fetchLogChunk(activeLogId.value, detailFromLineNum.value);
+    if (response.code !== 200) {
+      detailPullFailCount.value += 1;
+      detailLogHtml.value += `<br><span style="color:#d03050;">[Rolling Log Error] ${escapeHtml(response.msg || '日志拉取失败')}</span>`;
+      await scrollDetailToBottom();
+      return;
+    }
+    const chunk = response.data;
+    if (!chunk) {
+      detailPullFailCount.value += 1;
+      return;
+    }
+    if (detailFromLineNum.value !== chunk.fromLineNum) {
+      detailPullFailCount.value += 1;
+      return;
+    }
+    if (detailFromLineNum.value <= chunk.toLineNum) {
+      detailFromLineNum.value = chunk.toLineNum + 1;
+      detailLogHtml.value += chunk.logContent || '';
+      detailPullFailCount.value = 0;
+      await scrollDetailToBottom();
+    }
+    if (chunk.end) {
+      stopDetailPolling();
+      detailLogHtml.value += '<br><span style="color:#2f9e44;">[Rolling Log End]</span>';
+      await scrollDetailToBottom();
+    }
+  } catch (error) {
+    detailPullFailCount.value += 1;
+    const err = error as Error;
+    detailLogHtml.value += `<br><span style="color:#d03050;">[Rolling Log Error] ${escapeHtml(err.message || '日志拉取失败')}</span>`;
+    await scrollDetailToBottom();
+  }
+}
+
+function startDetailPolling() {
+  stopDetailPolling();
+  detailRunning.value = true;
+  detailTimer = setInterval(() => {
+    void pullDetailLog();
+  }, 3000);
+}
+
+async function bootstrapDetail(logId: number) {
+  stopDetailPolling();
+  activeLogId.value = logId;
+  detailMeta.value = null;
+  detailLogHtml.value = '';
+  detailFromLineNum.value = 1;
+  detailPullFailCount.value = 0;
+
+  const metaResponse = await fetchLogDetailMeta(logId);
+  if (metaResponse.code !== 200) {
+    throw new Error(metaResponse.msg || '日志详情加载失败');
+  }
+  detailMeta.value = metaResponse.data;
+
+  if (detailMeta.value.triggerCode !== 200 && detailMeta.value.handleCode === 0) {
+    detailLogHtml.value = '<span style="color:#d03050;">[调度失败，未进入执行阶段]</span>';
+    detailRunning.value = false;
+    await scrollDetailToBottom();
+    return;
+  }
+
+  await pullDetailLog();
+
+  if (detailMeta.value.handleCode > 0) {
+    detailRunning.value = false;
+    return;
+  }
+
+  startDetailPolling();
+}
+
+async function reloadDetail() {
+  if (!activeLogId.value) {
+    return;
+  }
+  try {
+    await bootstrapDetail(activeLogId.value);
+  } catch (error) {
+    const err = error as Error;
+    message.error(err.message || '日志详情刷新失败');
+  }
 }
 
 function applyRouteQuery() {
@@ -530,15 +723,18 @@ function resetTreeSelection() {
   void loadData();
 }
 
-function openDetail(row?: JobLog | null) {
+async function openDetail(row?: JobLog | null) {
   const target = row || selectedRow.value;
   if (!target) {
     return;
   }
-  router.push({
-    name: 'log-detail',
-    query: { logId: String(target.id) }
-  });
+  logDrawerVisible.value = true;
+  try {
+    await bootstrapDetail(target.id);
+  } catch (error) {
+    const err = error as Error;
+    message.error(err.message || '日志详情加载失败');
+  }
 }
 
 async function killSelected(row?: JobLog | null) {
@@ -578,6 +774,12 @@ watch(
   }
 );
 
+watch(logDrawerVisible, (visible) => {
+  if (!visible) {
+    stopDetailPolling();
+  }
+});
+
 onMounted(async () => {
   try {
     applyRouteQuery();
@@ -589,5 +791,9 @@ onMounted(async () => {
     const err = error as Error;
     message.error(err.message || '日志页初始化失败');
   }
+});
+
+onBeforeUnmount(() => {
+  stopDetailPolling();
 });
 </script>

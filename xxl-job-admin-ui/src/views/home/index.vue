@@ -8,6 +8,10 @@ import CardData from './modules/card-data.vue';
 import LineChart from './modules/line-chart.vue';
 import PieChart from './modules/pie-chart.vue';
 
+defineOptions({
+  name: 'home'
+});
+
 interface DashboardSummary {
   jobInfoCount: number;
   jobLogCount: number;

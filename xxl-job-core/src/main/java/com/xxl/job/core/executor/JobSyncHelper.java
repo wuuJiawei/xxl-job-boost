@@ -2,6 +2,7 @@ package com.xxl.job.core.executor;
 
 import com.xxl.job.core.constant.Const;
 import com.xxl.job.core.handler.annotation.XxlJobBoost;
+import com.xxl.job.core.constant.XxlJobAlarmEventType;
 import com.xxl.job.core.openapi.model.JobSyncItem;
 import com.xxl.job.core.openapi.model.JobSyncRequest;
 import com.xxl.tool.core.StringTool;
@@ -72,17 +73,34 @@ public class JobSyncHelper {
         item.setJobTag(xxlJobBoost.jobTag().trim());
         item.setAlarmEmail(xxlJobBoost.alarmEmail().trim());
         item.setAlarmChannelIds(xxlJobBoost.alarmChannelIds().trim());
-        item.setAlarmEventTypes(xxlJobBoost.alarmEventTypes().trim());
-        item.setScheduleType(xxlJobBoost.scheduleType().trim());
+        item.setAlarmEventTypes(toAlarmEventTypes(xxlJobBoost.alarmEventTypes()));
+        item.setScheduleType(xxlJobBoost.scheduleType().name());
         item.setScheduleConf(xxlJobBoost.scheduleConf().trim());
         item.setExecutorParam(xxlJobBoost.executorParam());
-        item.setExecutorRouteStrategy(xxlJobBoost.routeStrategy().trim());
-        item.setMisfireStrategy(xxlJobBoost.misfireStrategy().trim());
-        item.setExecutorBlockStrategy(xxlJobBoost.blockStrategy().trim());
+        item.setExecutorRouteStrategy(xxlJobBoost.routeStrategy().name());
+        item.setMisfireStrategy(xxlJobBoost.misfireStrategy().name());
+        item.setExecutorBlockStrategy(xxlJobBoost.blockStrategy().name());
         item.setExecutorTimeout(xxlJobBoost.timeout());
         item.setExecutorFailRetryCount(xxlJobBoost.retryCount());
         item.setAutoStart(xxlJobBoost.autoStart());
         return item;
+    }
+
+    private static String toAlarmEventTypes(XxlJobAlarmEventType[] alarmEventTypes) {
+        if (alarmEventTypes == null || alarmEventTypes.length == 0) {
+            return "";
+        }
+        StringBuilder result = new StringBuilder();
+        for (XxlJobAlarmEventType alarmEventType : alarmEventTypes) {
+            if (alarmEventType == null) {
+                continue;
+            }
+            if (result.length() > 0) {
+                result.append(',');
+            }
+            result.append(alarmEventType.name());
+        }
+        return result.toString();
     }
 
     public static List<JobSyncItem> newItems() {

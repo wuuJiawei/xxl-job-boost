@@ -155,7 +155,9 @@ export function getCacheRouteNames(routes: RouteRecordRaw[]) {
   routes.forEach(route => {
     // only get last two level route, which has component
     route.children?.forEach(child => {
-      if (child.component && child.meta?.keepAlive) {
+      const shouldCache = child.meta?.keepAlive || (!child.meta?.constant && child.meta?.keepAlive !== false);
+
+      if (child.component && shouldCache) {
         cacheNames.push(child.name as LastLevelRouteKey);
       }
     });

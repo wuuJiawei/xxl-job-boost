@@ -80,6 +80,10 @@ import {
   type JobCodeVersion
 } from '@/api/job-code';
 
+defineOptions({
+  name: 'job-code'
+});
+
 const route = useRoute();
 const router = useRouter();
 const message = useMessage();
