@@ -63,18 +63,18 @@
           <template #header-extra>
             <div class="table-actions">
               <n-button type="primary" @click="openCreate">新增任务</n-button>
-              <n-button :disabled="!selectedRow" @click="() => void openEdit()">编辑</n-button>
-              <n-button :disabled="!selectedRow" @click="() => void copySelected()">复制</n-button>
-              <n-button :disabled="!selectedRow" type="error" ghost @click="() => void deleteSelected()">删除</n-button>
-              <n-button :disabled="!selectedRow" @click="runSelected">执行一次</n-button>
-              <n-button :disabled="!selectedRow" @click="openLogs">日志</n-button>
-              <n-button :disabled="!selectedRow" @click="openCode">代码</n-button>
-              <n-button :disabled="!selectedRow" @click="showRegistry">注册节点</n-button>
-              <n-button :disabled="!selectedRow" @click="showNextTime">下次执行</n-button>
-              <n-button :disabled="!selectedRow || selectedRow?.triggerStatus === 1" type="primary" @click="startSelected">
+              <n-button :disabled="selectedRowCount !== 1" @click="() => void openEdit()">编辑</n-button>
+              <n-button :disabled="selectedRowCount !== 1" @click="() => void copySelected()">复制</n-button>
+              <n-button :disabled="!selectedRowCount" type="error" ghost @click="() => void deleteSelected()">删除</n-button>
+              <n-button :disabled="selectedRowCount !== 1" @click="() => runSelected()">执行一次</n-button>
+              <n-button :disabled="selectedRowCount !== 1" @click="() => openLogs()">日志</n-button>
+              <n-button :disabled="selectedRowCount !== 1" @click="() => openCode()">代码</n-button>
+              <n-button :disabled="selectedRowCount !== 1" @click="() => showRegistry()">注册节点</n-button>
+              <n-button :disabled="selectedRowCount !== 1" @click="() => void showNextTime()">下次执行</n-button>
+              <n-button :disabled="!selectedRowCount" type="primary" @click="() => void startSelected()">
                 启动
               </n-button>
-              <n-button :disabled="!selectedRow || selectedRow?.triggerStatus === 0" type="warning" @click="stopSelected">
+              <n-button :disabled="!selectedRowCount" type="warning" @click="() => void stopSelected()">
                 停止
               </n-button>
             </div>
@@ -87,6 +87,7 @@
             :loading="loading"
             :pagination="pagination"
             :row-key="rowKey"
+            :scroll-x="1430"
             :single-line="false"
             @update:checked-row-keys="handleCheckedRowKeys"
           />
@@ -297,6 +298,7 @@ import {
   NDataTable,
   NDrawer,
   NDrawerContent,
+  NDropdown,
   NEmpty,
   NForm,
   NFormItem,
@@ -310,6 +312,7 @@ import {
   useDialog,
   useMessage,
   type DataTableColumns,
+  type DropdownOption,
   type FormInst,
   type FormRules,
   type PaginationProps,
@@ -557,11 +560,30 @@ const pagination = reactive<PaginationProps>({
 const selectedRow = computed(() =>
   rows.value.find((row) => row.id === checkedRowKeys.value[0]) || null
 );
+const selectedRows = computed(() =>
+  checkedRowKeys.value
+    .map((key) => rows.value.find((row) => row.id === key))
+    .filter((row): row is JobInfo => Boolean(row))
+);
+const selectedRowCount = computed(() => selectedRows.value.length);
+
+type JobActionKey =
+  | 'edit'
+  | 'copy'
+  | 'trigger'
+  | 'logs'
+  | 'code'
+  | 'registry'
+  | 'nextTime'
+  | 'start'
+  | 'stop'
+  | 'delete';
 
 const columns: DataTableColumns<JobInfo> = [
   {
     type: 'selection',
-    multiple: false
+    fixed: 'left',
+    width: 54
   },
   {
     title: 'ID',
@@ -610,40 +632,63 @@ const columns: DataTableColumns<JobInfo> = [
   {
     title: '操作',
     key: 'actions',
-    width: 230,
+    fixed: 'right',
+    width: 110,
     render: (row) =>
-      h('div', { class: 'table-actions' }, [
+      h('div', { class: 'table-actions table-row-actions' }, [
         h(
-          NButton,
+          NDropdown,
           {
-            size: 'small',
-            quaternary: true,
-            onClick: () => openEdit(row)
+            trigger: 'click',
+            placement: 'bottom-end',
+            options: getJobActionOptions(row),
+            onSelect: (key: JobActionKey) => handleJobActionSelect(row, key)
           },
-          { default: () => '编辑' }
-        ),
-        h(
-          NButton,
           {
-            size: 'small',
-            quaternary: true,
-            onClick: () => copySelected(row)
-          },
-          { default: () => '复制' }
-        ),
-        h(
-          NButton,
-          {
-            size: 'small',
-            type: 'error',
-            ghost: true,
-            onClick: () => void deleteSelected(row)
-          },
-          { default: () => '删除' }
+            default: () =>
+              h(
+                NButton,
+                { size: 'small', quaternary: true },
+                { default: () => '更多' }
+              )
+          }
         )
       ])
   }
 ];
+
+function getJobActionOptions(row: JobInfo): DropdownOption[] {
+  return [
+    { label: '编辑', key: 'edit' },
+    { label: '复制', key: 'copy' },
+    { label: '执行一次', key: 'trigger' },
+    { label: '查看日志', key: 'logs' },
+    { label: '代码', key: 'code', disabled: row.glueType === 'BEAN' },
+    { label: '注册节点', key: 'registry' },
+    { label: '下次执行', key: 'nextTime' },
+    { type: 'divider', key: 'status-divider' },
+    { label: '启动', key: 'start', disabled: row.triggerStatus === 1 },
+    { label: '停止', key: 'stop', disabled: row.triggerStatus === 0 },
+    { type: 'divider', key: 'danger-divider' },
+    { label: '删除', key: 'delete' }
+  ];
+}
+
+function handleJobActionSelect(row: JobInfo, key: JobActionKey) {
+  const actionMap: Record<JobActionKey, () => void> = {
+    edit: () => void openEdit(row),
+    copy: () => void copySelected(row),
+    trigger: () => runSelected(row),
+    logs: () => openLogs(row),
+    code: () => openCode(row),
+    registry: () => showRegistry(row),
+    nextTime: () => void showNextTime(row),
+    start: () => void startSelected(row),
+    stop: () => void stopSelected(row),
+    delete: () => void deleteSelected(row)
+  };
+  actionMap[key]();
+}
 
 function toSelectOptions(items: MetadataOption[]) {
   return items.map((item) => ({
@@ -1032,20 +1077,23 @@ async function submitForm() {
 }
 
 async function deleteSelected(row?: JobInfo | null) {
-  const target = row || selectedRow.value;
-  if (!target) {
+  const targets = row ? [row] : selectedRows.value;
+  if (!targets.length) {
     return;
   }
+  const targetIds = targets.map((item) => item.id);
   dialog.warning({
     title: '删除任务',
-    content: `确认删除任务 #${target.id} 吗？`,
+    content: targetIds.length === 1 ? `确认删除任务 #${targetIds[0]} 吗？` : `确认删除选中的 ${targetIds.length} 个任务吗？`,
     positiveText: '确认',
     negativeText: '取消',
     onPositiveClick: async () => {
-      const response = await deleteJob(target.id);
-      if (response.code !== 200) {
-        message.error(response.msg || '删除失败');
-        return;
+      for (const targetId of targetIds) {
+        const response = await deleteJob(targetId);
+        if (response.code !== 200) {
+          message.error(response.msg || `任务 #${targetId} 删除失败`);
+          return;
+        }
       }
       message.success('删除成功');
       await loadData();
@@ -1058,37 +1106,51 @@ function openLegacyForCurrentForm() {
   window.open(`/xxl-job-admin/jobinfo?jobGroup=${groupId}`, '_blank');
 }
 
-async function startSelected() {
-  if (!selectedRow.value) {
+async function startSelected(row?: JobInfo | null) {
+  const targets = row ? [row] : selectedRows.value;
+  if (!targets.length) {
     return;
   }
-  const response = await startJob(selectedRow.value.id);
-  if (response.code !== 200) {
-    message.error(response.msg || '启动失败');
-    return;
+  for (const target of targets) {
+    if (target.triggerStatus === 1) {
+      continue;
+    }
+    const response = await startJob(target.id);
+    if (response.code !== 200) {
+      message.error(response.msg || `任务 #${target.id} 启动失败`);
+      return;
+    }
   }
   message.success('启动成功');
   void loadData();
 }
 
-async function stopSelected() {
-  if (!selectedRow.value) {
+async function stopSelected(row?: JobInfo | null) {
+  const targets = row ? [row] : selectedRows.value;
+  if (!targets.length) {
     return;
   }
-  const response = await stopJob(selectedRow.value.id);
-  if (response.code !== 200) {
-    message.error(response.msg || '停止失败');
-    return;
+  for (const target of targets) {
+    if (target.triggerStatus === 0) {
+      continue;
+    }
+    const response = await stopJob(target.id);
+    if (response.code !== 200) {
+      message.error(response.msg || `任务 #${target.id} 停止失败`);
+      return;
+    }
   }
   message.success('停止成功');
   void loadData();
 }
 
-function runSelected() {
-  if (!selectedRow.value) {
+function runSelected(row?: JobInfo | null) {
+  const target = row || selectedRow.value;
+  if (!target) {
     return;
   }
-  triggerForm.executorParam = selectedRow.value.executorParam || '';
+  checkedRowKeys.value = [target.id];
+  triggerForm.executorParam = target.executorParam || '';
   triggerForm.addressList = '';
   triggerModalVisible.value = true;
 }
@@ -1117,52 +1179,56 @@ async function confirmTrigger() {
   }
 }
 
-function openCode() {
-  if (!selectedRow.value) {
+function openCode(row?: JobInfo | null) {
+  const target = row || selectedRow.value;
+  if (!target) {
     return;
   }
-  if (selectedRow.value.glueType === 'BEAN') {
+  if (target.glueType === 'BEAN') {
     message.warning('BEAN 模式任务没有 GLUE IDE');
     return;
   }
   router.push({
     name: 'job-code',
     query: {
-      jobId: String(selectedRow.value.id)
+      jobId: String(target.id)
     }
   });
 }
 
-function openLogs() {
-  if (!selectedRow.value) {
+function openLogs(row?: JobInfo | null) {
+  const target = row || selectedRow.value;
+  if (!target) {
     return;
   }
   router.push({
     name: 'logs',
     query: {
-      jobGroup: String(selectedRow.value.jobGroup),
-      jobId: String(selectedRow.value.id)
+      jobGroup: String(target.jobGroup),
+      jobId: String(target.id)
     }
   });
 }
 
-function showRegistry() {
-  if (!selectedRow.value) {
+function showRegistry(row?: JobInfo | null) {
+  const target = row || selectedRow.value;
+  if (!target) {
     return;
   }
-  const group = jobGroups.value.find((item) => item.id === selectedRow.value?.jobGroup);
+  const group = jobGroups.value.find((item) => item.id === target.jobGroup);
   activeRegistryList.value = group?.registryList || [];
   registryDrawerVisible.value = true;
 }
 
-async function showNextTime() {
-  if (!selectedRow.value) {
+async function showNextTime(row?: JobInfo | null) {
+  const target = row || selectedRow.value;
+  if (!target) {
     return;
   }
   try {
     const response = await fetchNextTriggerTime(
-      selectedRow.value.scheduleType,
-      selectedRow.value.scheduleConf
+      target.scheduleType,
+      target.scheduleConf
     );
     if (response.code !== 200) {
       throw new Error(response.msg || '下次执行时间计算失败');

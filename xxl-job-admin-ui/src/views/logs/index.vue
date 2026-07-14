@@ -60,14 +60,14 @@
               <div class="table-title">执行日志</div>
               <div class="table-subtitle">
                 <span>左侧负责任务定位，右侧保留时间范围和状态筛选。</span>
-                <span>滚动日志和终止操作仍保持原入口。</span>
+                <span>滚动日志保持原入口，终止操作仅对运行中日志可用。</span>
               </div>
             </div>
           </template>
           <template #header-extra>
             <div class="table-actions">
               <n-button :disabled="!selectedRow" @click="() => void openDetail()">滚动日志</n-button>
-              <n-button :disabled="!selectedRow" type="warning" @click="() => void killSelected()">终止运行</n-button>
+              <n-button :disabled="!selectedRowRunning" type="warning" @click="() => void killSelected()">终止运行</n-button>
             </div>
           </template>
 
@@ -258,6 +258,7 @@ const pagination = reactive<PaginationProps>({
 const selectedRow = computed(() =>
   rows.value.find((row) => row.id === checkedRowKeys.value[0]) || null
 );
+const selectedRowRunning = computed(() => isLogRunning(selectedRow.value));
 
 const logDrawerTitle = computed(() => detailMeta.value?.jobDesc || `日志 #${activeLogId.value || '-'}`);
 
@@ -340,7 +341,7 @@ const columns: DataTableColumns<JobLog> = [
           },
           { default: () => '详情' }
         ),
-        h(
+        isLogRunning(row) ? h(
           NButton,
           {
             size: 'small',
@@ -349,10 +350,14 @@ const columns: DataTableColumns<JobLog> = [
             onClick: () => killSelected(row)
           },
           { default: () => '终止' }
-        )
+        ) : null
       ])
   }
 ];
+
+function isLogRunning(row: JobLog | null | undefined) {
+  return Boolean(row && row.triggerCode === 200 && row.handleCode === 0);
+}
 
 function rowKey(row: JobLog) {
   return row.id;
@@ -740,6 +745,10 @@ async function openDetail(row?: JobLog | null) {
 async function killSelected(row?: JobLog | null) {
   const target = row || selectedRow.value;
   if (!target) {
+    return;
+  }
+  if (!isLogRunning(target)) {
+    message.warning('该日志已结束，不能终止');
     return;
   }
   dialog.warning({

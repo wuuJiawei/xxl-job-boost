@@ -187,11 +187,17 @@ public class JobLogController {
 	public Response<String> logKill(HttpServletRequest request, @RequestParam("id") long id){
 		// base check
 		XxlJobLog log = xxlJobLogMapper.load(id);
+		if (log == null) {
+			return Response.ofFail(I18nUtil.getString("joblog_kill_log_limit"));
+		}
 		XxlJobInfo jobInfo = xxlJobInfoMapper.loadById(log.getJobId());
 		if (jobInfo==null) {
 			return Response.ofFail(I18nUtil.getString("jobinfo_glue_jobid_invalid"));
 		}
 		if (XxlJobContext.HANDLE_CODE_SUCCESS != log.getTriggerCode()) {
+			return Response.ofFail( I18nUtil.getString("joblog_kill_log_limit"));
+		}
+		if (log.getHandleCode() != 0) {
 			return Response.ofFail( I18nUtil.getString("joblog_kill_log_limit"));
 		}
 
