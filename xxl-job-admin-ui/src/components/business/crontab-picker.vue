@@ -519,18 +519,17 @@ const CronWeekPanel = defineComponent({
               renderSelect(panelProps.weekday, weekOptions(), value => panelEmit('update:weekday', value))
             ])
           ),
-          h(NRadio, { value: 'appoint' }, () =>
-            h(NSpace, { align: 'center' }, () => [
-              '指定',
-              h(NSelect, {
-                value: panelProps.values,
-                multiple: true,
-                options: weekOptions(),
-                class: 'crontab-select',
-                'onUpdate:value': value => panelEmit('update:values', value)
-              })
-            ])
-          )
+          h('div', { class: 'crontab-appoint-block' }, [
+            h(NRadio, { value: 'appoint' }, () => '指定星期'),
+            panelProps.mode === 'appoint'
+              ? renderValueGrid(
+                  panelProps.values,
+                  weekOptions(),
+                  value => panelEmit('update:values', value),
+                  () => panelEmit('update:mode', 'appoint')
+                )
+              : null
+          ])
         ])
       );
   }
@@ -588,17 +587,80 @@ function renderStepRow(propsLike: any, emitLike: any) {
 }
 
 function renderAppointRow(propsLike: any, emitLike: any) {
-  return h(NRadio, { value: 'appoint' }, () =>
-    h(NSpace, { align: 'center' }, () => [
-      '指定',
-      h(NSelect, {
-        value: propsLike.values,
-        multiple: true,
-        options: numberOptions(propsLike.min, propsLike.max, propsLike.options),
-        class: 'crontab-select',
-        'onUpdate:value': value => emitLike('update:values', value)
-      })
-    ])
+  return h('div', { class: 'crontab-appoint-block' }, [
+    h(NRadio, { value: 'appoint' }, () => `指定${propsLike.label}`),
+    propsLike.mode === 'appoint'
+      ? renderValueGrid(
+          propsLike.values,
+          numberOptions(propsLike.min, propsLike.max, propsLike.options),
+          next => emitLike('update:values', next),
+          () => emitLike('update:mode', 'appoint')
+        )
+      : null
+  ]);
+}
+
+function renderValueGrid(
+  values: number[],
+  options: SelectOption[],
+  onUpdate: (value: number[]) => void,
+  onActivate?: () => void
+) {
+  const selectedValues = new Set(values);
+  const optionValues = options.map(item => Number(item.value));
+  const min = Math.min(...optionValues);
+  const max = Math.max(...optionValues);
+  const updateValues = (next: number[]) => {
+    onActivate?.();
+    onUpdate(normalizeValues(next, min, max));
+  };
+  return h(
+    'div',
+    { class: 'crontab-value-picker' },
+    [
+      h('div', { class: 'crontab-value-toolbar' }, [
+        renderValueAction('全选', () => updateValues(optionValues)),
+        renderValueAction('清空', () => updateValues([])),
+        renderValueAction('奇数', () => updateValues(optionValues.filter(item => item % 2 === 1))),
+        renderValueAction('偶数', () => updateValues(optionValues.filter(item => item % 2 === 0)))
+      ]),
+      h(
+        'div',
+        { class: 'crontab-value-grid' },
+        options.map(option => {
+          const value = Number(option.value);
+          const selected = selectedValues.has(value);
+          return h(
+            'button',
+            {
+              type: 'button',
+              class: ['crontab-value-button', selected && 'is-selected'],
+              onClick: (event: MouseEvent) => {
+                event.stopPropagation();
+                const next = selected ? values.filter(item => item !== value) : [...values, value];
+                updateValues(next);
+              }
+            },
+            () => String(option.label)
+          );
+        })
+      )
+    ]
+  );
+}
+
+function renderValueAction(label: string, onClick: () => void) {
+  return h(
+    'button',
+    {
+      type: 'button',
+      class: 'crontab-value-action',
+      onClick: (event: MouseEvent) => {
+        event.stopPropagation();
+        onClick();
+      }
+    },
+    () => label
   );
 }
 
@@ -633,6 +695,74 @@ function renderSelect(value: number, options: SelectOption[], onUpdate: (value: 
 
 .crontab-select {
   width: 260px;
+}
+
+.crontab-appoint-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.crontab-value-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-left: 32px;
+  padding: 12px;
+  border: 1px solid rgb(226 232 240);
+  border-radius: 8px;
+  background: rgb(248 250 252);
+}
+
+.crontab-value-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.crontab-value-action,
+.crontab-value-button {
+  border: 1px solid rgb(203 213 225);
+  border-radius: 6px;
+  background: rgb(255 255 255);
+  color: rgb(51 65 85);
+  cursor: pointer;
+  transition:
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease;
+}
+
+.crontab-value-action {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.crontab-value-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  gap: 8px;
+  max-height: 176px;
+  overflow-y: auto;
+}
+
+.crontab-value-button {
+  height: 32px;
+  padding: 0 6px;
+  font-size: 13px;
+}
+
+.crontab-value-action:hover,
+.crontab-value-button:hover {
+  border-color: rgb(99 102 241);
+  color: rgb(79 70 229);
+}
+
+.crontab-value-button.is-selected {
+  border-color: rgb(99 102 241);
+  background: rgb(99 102 241);
+  color: rgb(255 255 255);
 }
 
 .crontab-week-select {
