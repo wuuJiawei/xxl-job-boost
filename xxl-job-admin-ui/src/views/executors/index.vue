@@ -16,7 +16,7 @@
         <div class="table-actions">
           <n-button type="primary" @click="openCreate">新增执行器</n-button>
           <n-button :disabled="selectedRowCount !== 1" @click="() => openEdit()">编辑</n-button>
-          <n-button :disabled="!selectedRowCount" type="error" ghost @click="confirmDelete">删除</n-button>
+          <n-button :disabled="!selectedRowCount" type="error" ghost @click="() => void confirmDelete()">删除</n-button>
         </div>
       </template>
       <template #header-extra>
@@ -258,7 +258,7 @@ const columns: DataTableColumns<ExecutorGroup> = [
     title: '操作',
     key: 'actions',
     fixed: 'right',
-    width: 180,
+    width: 250,
     render: (row) =>
       h('div', { class: 'table-actions' }, [
         h(
@@ -278,6 +278,16 @@ const columns: DataTableColumns<ExecutorGroup> = [
             onClick: () => showRegistry(row)
           },
           { default: () => '节点' }
+        ),
+        h(
+          NButton,
+          {
+            size: 'small',
+            type: 'error',
+            ghost: true,
+            onClick: () => confirmDelete(row)
+          },
+          { default: () => '删除' }
         )
       ])
   }
@@ -360,8 +370,8 @@ async function submitForm() {
   }
 }
 
-async function confirmDelete() {
-  const targets = selectedRows.value;
+async function confirmDelete(row?: ExecutorGroup | null) {
+  const targets = row ? [row] : selectedRows.value;
   if (!targets.length) {
     message.warning('请先选择执行器数据');
     return;
@@ -378,9 +388,11 @@ async function confirmDelete() {
     onPositiveClick: async () => {
       loading.value = true;
       try {
-        const response = await deleteExecutorGroup(targets.map((item) => item.id));
-        if (response.code !== 200) {
-          throw new Error(response.msg || '删除失败');
+        for (const target of targets) {
+          const response = await deleteExecutorGroup(target.id);
+          if (response.code !== 200) {
+            throw new Error(response.msg || `执行器 ${target.title} 删除失败`);
+          }
         }
         message.success('删除成功');
         checkedRowKeys.value = [];
