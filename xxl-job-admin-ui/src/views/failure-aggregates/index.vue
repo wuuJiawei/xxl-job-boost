@@ -1,10 +1,5 @@
 <template>
   <div class="page-stack">
-    <div class="dashboard-hero">
-      <div class="section-kicker">Failure Aggregates</div>
-      <h2>{{ $t('page.xxlJob.failureAggregates.title') }}</h2>
-      <p>{{ $t('page.xxlJob.failureAggregates.description') }}</p>
-    </div>
 
     <n-card :bordered="false" class="filter-card">
       <div class="filter-grid logs-filter-grid">
@@ -29,10 +24,7 @@
 
     <n-card :bordered="false">
       <template #header>
-        <div class="table-header">
-          <div class="table-title">{{ $t('page.xxlJob.failureAggregates.title') }}</div>
-          <div class="table-subtitle">{{ $t('page.xxlJob.failureAggregates.subtitle') }}</div>
-        </div>
+
       </template>
 
       <n-data-table
@@ -42,12 +34,14 @@
         :loading="loading"
         :pagination="pagination"
         :row-key="rowKey"
+        :scroll-x="1500"
         :single-line="false"
       />
     </n-card>
 
-    <n-modal v-model:show="messageModalVisible" preset="card" :title="messageModalTitle" style="width: 720px;">
-      <pre class="message-preview">{{ messageModalContent || '空' }}</pre>
+    <n-modal v-model:show="messageModalVisible" preset="card" :title="messageModalTitle" style="width: 760px;">
+      <div v-if="messageModalHtml" class="message-preview rich-message-preview" v-html="messageModalHtml"></div>
+      <n-empty v-else description="空" />
     </n-modal>
   </div>
 </template>
@@ -60,6 +54,7 @@ import {
   NCard,
   NDataTable,
   NDatePicker,
+  NEmpty,
   NInput,
   NModal,
   NSelect,
@@ -72,6 +67,7 @@ import {
 import { $t } from '@/locales';
 import { fetchFailureAggregates, type JobFailureAggregate } from '@/api/failure-aggregates';
 import { fetchJobGroups, fetchJobsByGroup, type JobGroupOption, type JobOption } from '@/api/admin-next';
+import { sanitizeRichMessage } from '@/utils/rich-message';
 
 defineOptions({
   name: 'failure-aggregates'
@@ -86,6 +82,7 @@ const jobs = ref<JobOption[]>([]);
 const messageModalVisible = ref(false);
 const messageModalTitle = ref('');
 const messageModalContent = ref('');
+const messageModalHtml = computed(() => sanitizeRichMessage(messageModalContent.value));
 
 const filters = reactive<{
   jobGroup: number;
@@ -195,6 +192,7 @@ const columns: DataTableColumns<JobFailureAggregate> = [
   {
     title: '操作',
     key: 'actions',
+    fixed: 'right',
     width: 160,
     render: row =>
       h('div', { class: 'table-actions' }, [

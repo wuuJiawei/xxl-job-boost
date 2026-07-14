@@ -13,17 +13,14 @@
 
     <n-card :bordered="false">
       <template #header>
-        <div class="table-header">
-          <div class="table-title">执行器管理</div>
-          <div class="table-subtitle">支持新增、编辑、删除以及在线节点查看。</div>
+        <div class="table-actions">
+          <n-button type="primary" @click="openCreate">新增执行器</n-button>
+          <n-button :disabled="selectedRowCount !== 1" @click="() => openEdit()">编辑</n-button>
+          <n-button :disabled="!selectedRowCount" type="error" ghost @click="confirmDelete">删除</n-button>
         </div>
       </template>
       <template #header-extra>
-        <div class="table-actions">
-          <n-button type="primary" @click="openCreate">新增执行器</n-button>
-          <n-button :disabled="!selectedRow" @click="() => openEdit()">编辑</n-button>
-          <n-button :disabled="!selectedRow" type="error" ghost @click="confirmDelete">删除</n-button>
-        </div>
+
       </template>
 
       <n-data-table
@@ -33,6 +30,7 @@
         :loading="loading"
         :pagination="pagination"
         :row-key="rowKey"
+        :scroll-x="1100"
         :single-line="false"
         @update:checked-row-keys="handleCheckedRowKeys"
       />
@@ -102,6 +100,7 @@ import {
   NRadioGroup,
   NSpace,
   NTag,
+  useDialog,
   useMessage,
   type DataTableColumns,
   type FormInst,
@@ -121,6 +120,7 @@ defineOptions({
 });
 
 const message = useMessage();
+const dialog = useDialog();
 const loading = ref(false);
 const rows = ref<ExecutorGroup[]>([]);
 const checkedRowKeys = ref<number[]>([]);
@@ -200,11 +200,18 @@ const pagination = reactive<PaginationProps>({
 const selectedRow = computed(() =>
   rows.value.find((row) => row.id === checkedRowKeys.value[0]) || null
 );
+const selectedRows = computed(() =>
+  checkedRowKeys.value
+    .map((key) => rows.value.find((row) => row.id === key))
+    .filter((row): row is ExecutorGroup => Boolean(row))
+);
+const selectedRowCount = computed(() => selectedRows.value.length);
 
 const columns: DataTableColumns<ExecutorGroup> = [
   {
     type: 'selection',
-    multiple: false
+    fixed: 'left',
+    width: 54
   },
   {
     title: 'AppName',
@@ -250,6 +257,7 @@ const columns: DataTableColumns<ExecutorGroup> = [
   {
     title: '操作',
     key: 'actions',
+    fixed: 'right',
     width: 180,
     render: (row) =>
       h('div', { class: 'table-actions' }, [
@@ -353,26 +361,38 @@ async function submitForm() {
 }
 
 async function confirmDelete() {
-  if (!selectedRow.value) {
-    message.warning('请先选择一条执行器数据');
+  const targets = selectedRows.value;
+  if (!targets.length) {
+    message.warning('请先选择执行器数据');
     return;
   }
 
-  loading.value = true;
-  try {
-    const response = await deleteExecutorGroup(selectedRow.value.id);
-    if (response.code !== 200) {
-      throw new Error(response.msg || '删除失败');
+  dialog.warning({
+    title: '删除执行器',
+    content:
+      targets.length === 1
+        ? `确认删除执行器 ${targets[0].title} 吗？`
+        : `确认删除选中的 ${targets.length} 个执行器吗？`,
+    positiveText: '确认',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      loading.value = true;
+      try {
+        const response = await deleteExecutorGroup(targets.map((item) => item.id));
+        if (response.code !== 200) {
+          throw new Error(response.msg || '删除失败');
+        }
+        message.success('删除成功');
+        checkedRowKeys.value = [];
+        void loadData();
+      } catch (error) {
+        const err = error as Error;
+        message.error(err.message || '删除失败');
+      } finally {
+        loading.value = false;
+      }
     }
-    message.success('删除成功');
-    checkedRowKeys.value = [];
-    void loadData();
-  } catch (error) {
-    const err = error as Error;
-    message.error(err.message || '删除失败');
-  } finally {
-    loading.value = false;
-  }
+  });
 }
 
 async function loadData() {

@@ -72,9 +72,12 @@ export async function updateExecutorGroup(payload: ExecutorGroupPayload) {
   return data;
 }
 
-export async function deleteExecutorGroup(id: number) {
+export async function deleteExecutorGroup(ids: number | number[]) {
   const form = new URLSearchParams();
-  form.append('ids[]', String(id));
+  const values = Array.isArray(ids) ? ids : [ids];
+  values.forEach((id) => {
+    form.append('ids[]', String(id));
+  });
   const { data } = await http.post<ApiResponse<string>>('/jobgroup/delete', form, {
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded'

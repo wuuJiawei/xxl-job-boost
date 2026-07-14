@@ -13,17 +13,14 @@
 
     <n-card :bordered="false">
       <template #header>
-        <div class="table-header">
-          <div class="table-title">用户管理</div>
-          <div class="table-subtitle">沿用原有权限模型，集中管理账号与执行器授权范围。</div>
+        <div class="table-actions">
+          <n-button type="primary" @click="openCreate">新增用户</n-button>
+          <n-button :disabled="selectedRowCount !== 1" @click="() => void openEdit()">编辑</n-button>
+          <n-button :disabled="selectedRowCount !== 1" type="error" ghost @click="() => void deleteSelected()">删除</n-button>
         </div>
       </template>
       <template #header-extra>
-        <div class="table-actions">
-          <n-button type="primary" @click="openCreate">新增用户</n-button>
-          <n-button :disabled="!selectedRow" @click="() => void openEdit()">编辑</n-button>
-          <n-button :disabled="!selectedRow" type="error" ghost @click="() => void deleteSelected()">删除</n-button>
-        </div>
+
       </template>
 
       <n-data-table
@@ -33,6 +30,7 @@
         :loading="loading"
         :pagination="pagination"
         :row-key="rowKey"
+        :scroll-x="900"
         @update:checked-row-keys="handleCheckedRowKeys"
       />
     </n-card>
@@ -200,9 +198,15 @@ const pagination = reactive<PaginationProps>({
 const selectedRow = computed(() =>
   rows.value.find((row) => row.id === checkedRowKeys.value[0]) || null
 );
+const selectedRows = computed(() =>
+  checkedRowKeys.value
+    .map((key) => rows.value.find((row) => row.id === key))
+    .filter((row): row is UserInfo => Boolean(row))
+);
+const selectedRowCount = computed(() => selectedRows.value.length);
 
 const columns: DataTableColumns<UserInfo> = [
-  { type: 'selection', multiple: false },
+  { type: 'selection', fixed: 'left', width: 54 },
   {
     title: '用户名',
     key: 'username',

@@ -28,10 +28,10 @@
       <template #header-extra>
         <div class="table-actions">
           <n-button v-if="authStore.userInfo.isAdmin" type="primary" @click="openChannelCreate">新增渠道</n-button>
-          <n-button v-if="authStore.userInfo.isAdmin" :disabled="!selectedChannel" @click="() => void openChannelEdit()">编辑</n-button>
+          <n-button v-if="authStore.userInfo.isAdmin" :disabled="selectedChannelCount !== 1" @click="() => void openChannelEdit()">编辑</n-button>
           <n-button
             v-if="authStore.userInfo.isAdmin"
-            :disabled="!selectedChannel"
+            :disabled="selectedChannelCount !== 1"
             type="error"
             ghost
             @click="() => void removeChannel()"
@@ -48,6 +48,7 @@
         :loading="channelLoading"
         :pagination="channelPagination"
         :row-key="channelRowKey"
+        :scroll-x="1000"
         :single-line="false"
         @update:checked-row-keys="handleChannelChecked"
       />
@@ -76,10 +77,10 @@
       <template #header-extra>
         <div class="table-actions">
           <n-button v-if="authStore.userInfo.isAdmin" type="primary" @click="openRuleCreate">新增规则</n-button>
-          <n-button v-if="authStore.userInfo.isAdmin" :disabled="!selectedRule" @click="() => void openRuleEdit()">编辑</n-button>
+          <n-button v-if="authStore.userInfo.isAdmin" :disabled="selectedRuleCount !== 1" @click="() => void openRuleEdit()">编辑</n-button>
           <n-button
             v-if="authStore.userInfo.isAdmin"
-            :disabled="!selectedRule"
+            :disabled="selectedRuleCount !== 1"
             type="error"
             ghost
             @click="() => void removeRule()"
@@ -96,6 +97,7 @@
         :loading="ruleLoading"
         :pagination="rulePagination"
         :row-key="ruleRowKey"
+        :scroll-x="1300"
         :single-line="false"
         @update:checked-row-keys="handleRuleChecked"
       />
@@ -468,7 +470,19 @@ const recordPagination = reactive<PaginationProps>({
 });
 
 const selectedChannel = computed(() => channelRows.value.find(item => item.id === checkedChannelKeys.value[0]) || null);
+const selectedChannelRows = computed(() =>
+  checkedChannelKeys.value
+    .map(key => channelRows.value.find(item => item.id === key))
+    .filter((item): item is AlarmChannel => Boolean(item))
+);
+const selectedChannelCount = computed(() => selectedChannelRows.value.length);
 const selectedRule = computed(() => ruleRows.value.find(item => item.id === checkedRuleKeys.value[0]) || null);
+const selectedRuleRows = computed(() =>
+  checkedRuleKeys.value
+    .map(key => ruleRows.value.find(item => item.id === key))
+    .filter((item): item is AlarmRule => Boolean(item))
+);
+const selectedRuleCount = computed(() => selectedRuleRows.value.length);
 
 const channelRules: FormRules = {
   name: [{ required: true, message: '请输入渠道名称', trigger: ['blur', 'input'] }],
@@ -528,7 +542,7 @@ const ruleRules: FormRules = {
 };
 
 const channelColumns: DataTableColumns<AlarmChannel> = [
-  { type: 'selection', multiple: false },
+  { type: 'selection', fixed: 'left', width: 54 },
   { title: '名称', key: 'name', minWidth: 180 },
   { title: '类型', key: 'type', width: 120 },
   {
@@ -547,7 +561,7 @@ const channelColumns: DataTableColumns<AlarmChannel> = [
 ];
 
 const ruleColumns: DataTableColumns<AlarmRule> = [
-  { type: 'selection', multiple: false },
+  { type: 'selection', fixed: 'left', width: 54 },
   { title: '名称', key: 'name', minWidth: 180 },
   {
     title: '执行器',

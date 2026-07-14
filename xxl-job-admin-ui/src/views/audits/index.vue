@@ -1,10 +1,6 @@
 <template>
   <div class="page-stack">
-    <div class="dashboard-hero">
-      <div class="section-kicker">Audit Logs</div>
-      <h2>{{ $t('page.xxlJob.audits.title') }}</h2>
-      <p>{{ $t('page.xxlJob.audits.description') }}</p>
-    </div>
+
 
     <n-card :bordered="false" class="filter-card">
       <div class="filter-grid alerts-record-filter-grid">
@@ -21,10 +17,7 @@
 
     <n-card :bordered="false">
       <template #header>
-        <div class="table-header">
-          <div class="table-title">{{ $t('page.xxlJob.audits.title') }}</div>
-          <div class="table-subtitle">{{ $t('page.xxlJob.audits.subtitle') }}</div>
-        </div>
+
       </template>
 
       <n-data-table
@@ -34,6 +27,7 @@
         :loading="loading"
         :pagination="pagination"
         :row-key="rowKey"
+        :scroll-x="1550"
         :single-line="false"
       />
     </n-card>
@@ -181,6 +175,7 @@ const columns: DataTableColumns<AuditLog> = [
   {
     title: '详情',
     key: 'detailJson',
+    fixed: 'right',
     width: 100,
     render: row =>
       h(

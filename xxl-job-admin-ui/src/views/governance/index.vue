@@ -32,6 +32,7 @@
             :loading="loading"
             :pagination="false"
             :row-key="failureRowKey"
+            :scroll-x="1000"
             :single-line="false"
           />
         </n-card>
@@ -51,6 +52,7 @@
             :loading="loading"
             :pagination="false"
             :row-key="slowRowKey"
+            :scroll-x="1050"
           />
         </n-card>
       </n-gi>
@@ -69,6 +71,7 @@
         :loading="loading"
         :pagination="false"
         :row-key="auditRowKey"
+        :scroll-x="1200"
         :single-line="false"
       />
     </n-card>
@@ -222,6 +225,7 @@ const failureColumns: DataTableColumns<GovernanceFailureAggregate> = [
   {
     title: '操作',
     key: 'actions',
+    fixed: 'right',
     width: 180,
     render: row =>
       h('div', { class: 'table-actions' }, [
@@ -294,6 +298,7 @@ const slowColumns: DataTableColumns<GovernanceSlowAggregate> = [
   {
     title: '操作',
     key: 'actions',
+    fixed: 'right',
     width: 180,
     render: row =>
       h('div', { class: 'table-actions' }, [
@@ -351,6 +356,7 @@ const auditColumns: DataTableColumns<GovernanceAuditLog> = [
   {
     title: '详情',
     key: 'detail',
+    fixed: 'right',
     width: 100,
     render: row =>
       h(

@@ -3,13 +3,7 @@
     <div class="page-split">
       <n-card :bordered="false" class="tree-panel-card">
         <template #header>
-          <div class="table-header">
-            <div class="table-title">日志树</div>
-            <div class="table-subtitle">
-              <span>按执行器展开任务。</span>
-              <span>点任务后右侧直接切到对应日志。</span>
-            </div>
-          </div>
+
         </template>
         <template #header-extra>
           <div class="table-actions">
@@ -56,19 +50,13 @@
 
         <n-card :bordered="false">
           <template #header>
-            <div class="table-header">
-              <div class="table-title">执行日志</div>
-              <div class="table-subtitle">
-                <span>左侧负责任务定位，右侧保留时间范围和状态筛选。</span>
-                <span>滚动日志保持原入口，终止操作仅对运行中日志可用。</span>
-              </div>
+            <div class="table-actions">
+              <n-button :disabled="selectedRowCount !== 1" @click="() => void openDetail()">滚动日志</n-button>
+              <n-button :disabled="!selectedRunningRows.length" type="warning" @click="() => void killSelected()">终止运行</n-button>
             </div>
           </template>
           <template #header-extra>
-            <div class="table-actions">
-              <n-button :disabled="!selectedRow" @click="() => void openDetail()">滚动日志</n-button>
-              <n-button :disabled="!selectedRowRunning" type="warning" @click="() => void killSelected()">终止运行</n-button>
-            </div>
+
           </template>
 
           <n-data-table
@@ -78,6 +66,7 @@
             :loading="loading"
             :pagination="pagination"
             :row-key="rowKey"
+            :scroll-x="1500"
             :single-line="false"
             @update:checked-row-keys="handleCheckedRowKeys"
           />
@@ -85,8 +74,9 @@
       </div>
     </div>
 
-    <n-modal v-model:show="messageModalVisible" preset="card" :title="messageModalTitle" style="width: 720px;">
-      <pre class="message-preview">{{ messageModalContent || '空' }}</pre>
+    <n-modal v-model:show="messageModalVisible" preset="card" :title="messageModalTitle" style="width: 760px;">
+      <div v-if="messageModalHtml" class="message-preview rich-message-preview" v-html="messageModalHtml"></div>
+      <n-empty v-else description="空" />
     </n-modal>
 
     <n-drawer v-model:show="logDrawerVisible" :width="920" placement="right">
@@ -151,6 +141,7 @@ import {
   type LogDetailMeta
 } from '@/api/admin-next';
 import { fetchLogChunk, fetchLogs, killLog, type JobLog } from '@/api/logs';
+import { sanitizeRichMessage } from '@/utils/rich-message';
 
 defineOptions({
   name: 'logs'
@@ -167,6 +158,7 @@ const jobsByGroup = ref<Record<number, JobOption[]>>({});
 const messageModalVisible = ref(false);
 const messageModalTitle = ref('');
 const messageModalContent = ref('');
+const messageModalHtml = computed(() => sanitizeRichMessage(messageModalContent.value));
 const expandedTreeKeys = ref<Array<string | number>>([]);
 const selectedTreeKeys = ref<Array<string | number>>([]);
 const logDrawerVisible = ref(false);
@@ -258,7 +250,13 @@ const pagination = reactive<PaginationProps>({
 const selectedRow = computed(() =>
   rows.value.find((row) => row.id === checkedRowKeys.value[0]) || null
 );
-const selectedRowRunning = computed(() => isLogRunning(selectedRow.value));
+const selectedRows = computed(() =>
+  checkedRowKeys.value
+    .map((key) => rows.value.find((row) => row.id === key))
+    .filter((row): row is JobLog => Boolean(row))
+);
+const selectedRowCount = computed(() => selectedRows.value.length);
+const selectedRunningRows = computed(() => selectedRows.value.filter((row) => isLogRunning(row)));
 
 const logDrawerTitle = computed(() => detailMeta.value?.jobDesc || `日志 #${activeLogId.value || '-'}`);
 
@@ -282,7 +280,7 @@ const detailStatusText = computed(() => {
 });
 
 const columns: DataTableColumns<JobLog> = [
-  { type: 'selection', multiple: false },
+  { type: 'selection', fixed: 'left', width: 54 },
   { title: 'ID', key: 'id', width: 90 },
   {
     title: '任务',
@@ -329,6 +327,7 @@ const columns: DataTableColumns<JobLog> = [
   {
     title: '操作',
     key: 'actions',
+    fixed: 'right',
     width: 170,
     render: (row) =>
       h('div', { class: 'table-actions' }, [
@@ -743,24 +742,30 @@ async function openDetail(row?: JobLog | null) {
 }
 
 async function killSelected(row?: JobLog | null) {
-  const target = row || selectedRow.value;
-  if (!target) {
+  const targets = row ? [row] : selectedRunningRows.value;
+  if (!targets.length) {
+    message.warning(row ? '该日志已结束，不能终止' : '请选择运行中的日志');
     return;
   }
-  if (!isLogRunning(target)) {
+  if (targets.some((target) => !isLogRunning(target))) {
     message.warning('该日志已结束，不能终止');
     return;
   }
   dialog.warning({
     title: '终止运行',
-    content: `确认终止日志 #${target.id} 对应的执行实例吗？`,
+    content:
+      targets.length === 1
+        ? `确认终止日志 #${targets[0].id} 对应的执行实例吗？`
+        : `确认终止选中的 ${targets.length} 个执行实例吗？`,
     positiveText: '确认',
     negativeText: '取消',
     onPositiveClick: async () => {
-      const response = await killLog(target.id);
-      if (response.code !== 200) {
-        message.error(response.msg || '终止失败');
-        return;
+      for (const target of targets) {
+        const response = await killLog(target.id);
+        if (response.code !== 200) {
+          message.error(response.msg || `日志 #${target.id} 终止失败`);
+          return;
+        }
       }
       message.success('终止成功');
       await loadData();

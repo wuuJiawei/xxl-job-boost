@@ -3,13 +3,6 @@
     <div class="page-split">
       <n-card :bordered="false" class="tree-panel-card">
         <template #header>
-          <div class="table-header">
-            <div class="table-title">任务树</div>
-            <div class="table-subtitle">
-              <span>按执行器定位任务。</span>
-              <span>点击任务节点可直接聚焦单个任务。</span>
-            </div>
-          </div>
         </template>
         <template #header-extra>
           <div class="table-actions">
@@ -52,31 +45,32 @@
 
         <n-card :bordered="false">
           <template #header>
-            <div class="table-header">
-              <div class="table-title">任务管理</div>
-              <div class="table-subtitle">
-                <span>左侧按执行器或任务定位，右侧保留筛选和批量操作。</span>
-                <span>单任务视图下可直接聚焦编辑、执行和日志跳转。</span>
-              </div>
-            </div>
-          </template>
-          <template #header-extra>
-            <div class="table-actions">
+            <div class="table-actions job-table-toolbar">
               <n-button type="primary" @click="openCreate">新增任务</n-button>
+              <span class="table-selection-count">已选 {{ selectedRowCount }} 项</span>
+              <span class="toolbar-separator"></span>
               <n-button :disabled="selectedRowCount !== 1" @click="() => void openEdit()">编辑</n-button>
               <n-button :disabled="selectedRowCount !== 1" @click="() => void copySelected()">复制</n-button>
               <n-button :disabled="!selectedRowCount" type="error" ghost @click="() => void deleteSelected()">删除</n-button>
-              <n-button :disabled="selectedRowCount !== 1" @click="() => runSelected()">执行一次</n-button>
-              <n-button :disabled="selectedRowCount !== 1" @click="() => openLogs()">日志</n-button>
-              <n-button :disabled="selectedRowCount !== 1" @click="() => openCode()">代码</n-button>
-              <n-button :disabled="selectedRowCount !== 1" @click="() => showRegistry()">注册节点</n-button>
-              <n-button :disabled="selectedRowCount !== 1" @click="() => void showNextTime()">下次执行</n-button>
+              <span class="toolbar-separator"></span>
               <n-button :disabled="!selectedRowCount" type="primary" @click="() => void startSelected()">
                 启动
               </n-button>
               <n-button :disabled="!selectedRowCount" type="warning" @click="() => void stopSelected()">
                 停止
               </n-button>
+              <n-button
+                :disabled="!selectedRowCount"
+                :loading="batchTriggering"
+                @click="() => void triggerSelectedFromToolbar()"
+              >
+                执行一次
+              </n-button>
+              <span class="toolbar-separator"></span>
+              <n-button :disabled="selectedRowCount !== 1" @click="() => openLogs()">日志</n-button>
+              <n-button :disabled="selectedRowCount !== 1" @click="() => openCode()">代码</n-button>
+              <n-button :disabled="selectedRowCount !== 1" @click="() => showRegistry()">注册节点</n-button>
+              <n-button :disabled="selectedRowCount !== 1" @click="() => void showNextTime()">下次执行</n-button>
             </div>
           </template>
 
@@ -95,139 +89,145 @@
       </div>
     </div>
 
-    <n-modal
+    <n-drawer
       v-model:show="formModalVisible"
-      preset="card"
-      :title="formMode === 'create' ? '新增任务' : formMode === 'edit' ? '编辑任务' : '复制任务'"
-      style="width: 920px;"
+      placement="right"
+      width="min(1040px, calc(100vw - 24px))"
     >
-      <n-alert v-if="formValue.glueType !== 'BEAN'" type="warning" :show-icon="false" style="margin-bottom: 16px;">
-        当前只在新控制台内完整支持 BEAN 任务。GLUE 类任务请先回到旧版控制台处理。
-      </n-alert>
-      <n-form ref="formRef" :model="formValue" :rules="rules" label-placement="left" label-width="120">
-        <div class="table-header">
-          <div class="table-title">基础信息</div>
-        </div>
-        <n-grid :cols="2" :x-gap="16">
-          <n-form-item-gi path="jobGroup" label="执行器">
-            <n-select v-model:value="formValue.jobGroup" :options="jobGroupOptions" placeholder="请选择执行器" />
-          </n-form-item-gi>
-          <n-form-item-gi path="jobDesc" label="任务描述">
-            <n-input v-model:value="formValue.jobDesc" placeholder="请输入任务描述" />
-          </n-form-item-gi>
-          <n-form-item-gi path="author" label="负责人">
-            <n-input v-model:value="formValue.author" placeholder="请输入负责人" />
-          </n-form-item-gi>
-          <n-form-item-gi path="jobTag" label="任务标签">
-            <n-input v-model:value="formValue.jobTag" placeholder="多个标签用逗号分隔，可选" />
-          </n-form-item-gi>
-          <n-form-item-gi path="alarmEmail" label="报警邮件">
-            <n-input v-model:value="formValue.alarmEmail" placeholder="多个邮箱用逗号分隔，可选" />
-          </n-form-item-gi>
-          <n-form-item-gi path="alarmChannelIds" label="告警渠道">
-            <n-select
-              v-model:value="formValue.alarmChannelIds"
-              multiple
-              :options="alarmChannelOptions"
-              placeholder="选择失败告警渠道，可选"
-            />
-          </n-form-item-gi>
-          <n-form-item-gi path="alarmEventTypes" label="告警事件">
-            <n-select
-              v-model:value="formValue.alarmEventTypes"
-              multiple
-              :options="alarmEventOptions"
-              placeholder="选择需要触发告警的事件，留空表示全部失败事件"
-            />
-          </n-form-item-gi>
-        </n-grid>
+      <n-drawer-content
+        :title="formMode === 'create' ? '新增任务' : formMode === 'edit' ? '编辑任务' : '复制任务'"
+        closable
+        body-class="job-form-drawer-body"
+        body-content-class="job-form-drawer-content"
+      >
+        <n-alert v-if="formValue.glueType !== 'BEAN'" type="warning" :show-icon="false" style="margin-bottom: 16px;">
+          当前只在新控制台内完整支持 BEAN 任务。GLUE 类任务请先回到旧版控制台处理。
+        </n-alert>
+        <n-form ref="formRef" :model="formValue" :rules="rules" label-placement="left" label-width="120">
+          <div class="table-header">
+            <div class="table-title">基础信息</div>
+          </div>
+          <n-grid cols="1 m:2" responsive="screen" :x-gap="16">
+            <n-form-item-gi path="jobGroup" label="执行器">
+              <n-select v-model:value="formValue.jobGroup" :options="jobGroupOptions" placeholder="请选择执行器" />
+            </n-form-item-gi>
+            <n-form-item-gi path="jobDesc" label="任务描述">
+              <n-input v-model:value="formValue.jobDesc" placeholder="请输入任务描述" />
+            </n-form-item-gi>
+            <n-form-item-gi path="author" label="负责人">
+              <n-input v-model:value="formValue.author" placeholder="请输入负责人" />
+            </n-form-item-gi>
+            <n-form-item-gi path="jobTag" label="任务标签">
+              <n-input v-model:value="formValue.jobTag" placeholder="多个标签用逗号分隔，可选" />
+            </n-form-item-gi>
+            <n-form-item-gi path="alarmEmail" label="报警邮件">
+              <n-input v-model:value="formValue.alarmEmail" placeholder="多个邮箱用逗号分隔，可选" />
+            </n-form-item-gi>
+            <n-form-item-gi path="alarmChannelIds" label="告警渠道">
+              <n-select
+                v-model:value="formValue.alarmChannelIds"
+                multiple
+                :options="alarmChannelOptions"
+                placeholder="选择失败告警渠道，可选"
+              />
+            </n-form-item-gi>
+            <n-form-item-gi path="alarmEventTypes" label="告警事件">
+              <n-select
+                v-model:value="formValue.alarmEventTypes"
+                multiple
+                :options="alarmEventOptions"
+                placeholder="选择需要触发告警的事件，留空表示全部失败事件"
+              />
+            </n-form-item-gi>
+          </n-grid>
 
-        <div class="table-header">
-          <div class="table-title">调度配置</div>
-        </div>
-        <n-grid :cols="2" :x-gap="16">
-          <n-form-item-gi path="scheduleType" label="调度类型">
-            <n-select v-model:value="formValue.scheduleType" :options="scheduleTypeOptions" placeholder="请选择调度类型" />
-          </n-form-item-gi>
-          <n-form-item-gi v-if="formValue.scheduleType !== 'NONE'" path="scheduleConf" :label="scheduleConfLabel">
-            <n-input-group v-if="formValue.scheduleType === 'CRON'">
-              <n-input v-model:value="formValue.scheduleConf" :placeholder="scheduleConfPlaceholder" />
-              <n-button @click="openCrontabPicker">可视化配置</n-button>
-            </n-input-group>
-            <n-input v-else v-model:value="formValue.scheduleConf" :placeholder="scheduleConfPlaceholder" />
-          </n-form-item-gi>
-        </n-grid>
+          <div class="table-header">
+            <div class="table-title">调度配置</div>
+          </div>
+          <n-grid cols="1 m:2" responsive="screen" :x-gap="16">
+            <n-form-item-gi path="scheduleType" label="调度类型">
+              <n-select v-model:value="formValue.scheduleType" :options="scheduleTypeOptions" placeholder="请选择调度类型" />
+            </n-form-item-gi>
+            <n-form-item-gi v-if="formValue.scheduleType !== 'NONE'" path="scheduleConf" :label="scheduleConfLabel">
+              <n-input-group v-if="formValue.scheduleType === 'CRON'">
+                <n-input v-model:value="formValue.scheduleConf" :placeholder="scheduleConfPlaceholder" />
+                <n-button @click="openCrontabPicker">可视化配置</n-button>
+              </n-input-group>
+              <n-input v-else v-model:value="formValue.scheduleConf" :placeholder="scheduleConfPlaceholder" />
+            </n-form-item-gi>
+          </n-grid>
 
-        <div class="table-header">
-          <div class="table-title">任务配置</div>
-        </div>
-        <n-grid :cols="2" :x-gap="16">
-          <n-form-item-gi path="glueType" label="运行模式">
-            <n-select
-              v-model:value="formValue.glueType"
-              :options="glueTypeOptions"
-              placeholder="请选择运行模式"
-              :disabled="formMode === 'edit'"
+          <div class="table-header">
+            <div class="table-title">任务配置</div>
+          </div>
+          <n-grid cols="1 m:2" responsive="screen" :x-gap="16">
+            <n-form-item-gi path="glueType" label="运行模式">
+              <n-select
+                v-model:value="formValue.glueType"
+                :options="glueTypeOptions"
+                placeholder="请选择运行模式"
+                :disabled="formMode === 'edit'"
+              />
+            </n-form-item-gi>
+            <n-form-item-gi path="executorHandler" label="JobHandler">
+              <n-input v-model:value="formValue.executorHandler" placeholder="请输入 JobHandler" />
+            </n-form-item-gi>
+          </n-grid>
+          <n-form-item path="executorParam" label="任务参数">
+            <n-input
+              v-model:value="formValue.executorParam"
+              type="textarea"
+              :autosize="{ minRows: 4, maxRows: 6 }"
+              placeholder="请输入任务参数，可选"
             />
-          </n-form-item-gi>
-          <n-form-item-gi path="executorHandler" label="JobHandler">
-            <n-input v-model:value="formValue.executorHandler" placeholder="请输入 JobHandler" />
-          </n-form-item-gi>
-        </n-grid>
-        <n-form-item path="executorParam" label="任务参数">
-          <n-input
-            v-model:value="formValue.executorParam"
-            type="textarea"
-            :autosize="{ minRows: 4, maxRows: 6 }"
-            placeholder="请输入任务参数，可选"
-          />
-        </n-form-item>
+          </n-form-item>
 
-        <div class="table-header">
-          <div class="table-title">高级配置</div>
-        </div>
-        <n-grid :cols="2" :x-gap="16">
-          <n-form-item-gi path="executorRouteStrategy" label="路由策略">
-            <n-select v-model:value="formValue.executorRouteStrategy" :options="routeStrategyOptions" placeholder="请选择路由策略" />
-          </n-form-item-gi>
-          <n-form-item-gi path="childJobId" label="子任务 ID">
-            <n-input v-model:value="formValue.childJobId" placeholder="多个 ID 用逗号分隔，可选" />
-          </n-form-item-gi>
-          <n-form-item-gi path="misfireStrategy" label="调度过期策略">
-            <n-select v-model:value="formValue.misfireStrategy" :options="misfireStrategyOptions" placeholder="请选择策略" />
-          </n-form-item-gi>
-          <n-form-item-gi path="executorBlockStrategy" label="阻塞处理策略">
-            <n-select v-model:value="formValue.executorBlockStrategy" :options="blockStrategyOptions" placeholder="请选择策略" />
-          </n-form-item-gi>
-          <n-form-item-gi path="executorTimeout" label="超时时间">
-            <n-input v-model:value="formValue.executorTimeout" placeholder="秒，留空按 0 处理" />
-          </n-form-item-gi>
-          <n-form-item-gi path="executorFailRetryCount" label="失败重试次数">
-            <n-input v-model:value="formValue.executorFailRetryCount" placeholder="留空按 0 处理" />
-          </n-form-item-gi>
-        </n-grid>
-      </n-form>
-      <template #action>
-        <div class="table-actions">
-          <n-button @click="formModalVisible = false">取消</n-button>
-          <n-button
-            :disabled="formValue.glueType !== 'BEAN'"
-            type="primary"
-            :loading="submitting"
-            @click="submitForm"
-          >
-            保存
-          </n-button>
-          <n-button
-            v-if="formValue.glueType !== 'BEAN'"
-            quaternary
-            @click="openLegacyForCurrentForm"
-          >
-            去旧版控制台处理
-          </n-button>
-        </div>
-      </template>
-    </n-modal>
+          <div class="table-header">
+            <div class="table-title">高级配置</div>
+          </div>
+          <n-grid cols="1 m:2" responsive="screen" :x-gap="16">
+            <n-form-item-gi path="executorRouteStrategy" label="路由策略">
+              <n-select v-model:value="formValue.executorRouteStrategy" :options="routeStrategyOptions" placeholder="请选择路由策略" />
+            </n-form-item-gi>
+            <n-form-item-gi path="childJobId" label="子任务 ID">
+              <n-input v-model:value="formValue.childJobId" placeholder="多个 ID 用逗号分隔，可选" />
+            </n-form-item-gi>
+            <n-form-item-gi path="misfireStrategy" label="调度过期策略">
+              <n-select v-model:value="formValue.misfireStrategy" :options="misfireStrategyOptions" placeholder="请选择策略" />
+            </n-form-item-gi>
+            <n-form-item-gi path="executorBlockStrategy" label="阻塞处理策略">
+              <n-select v-model:value="formValue.executorBlockStrategy" :options="blockStrategyOptions" placeholder="请选择策略" />
+            </n-form-item-gi>
+            <n-form-item-gi path="executorTimeout" label="超时时间">
+              <n-input v-model:value="formValue.executorTimeout" placeholder="秒，留空按 0 处理" />
+            </n-form-item-gi>
+            <n-form-item-gi path="executorFailRetryCount" label="失败重试次数">
+              <n-input v-model:value="formValue.executorFailRetryCount" placeholder="留空按 0 处理" />
+            </n-form-item-gi>
+          </n-grid>
+        </n-form>
+        <template #footer>
+          <div class="table-actions job-form-drawer-footer">
+            <n-button @click="formModalVisible = false">取消</n-button>
+            <n-button
+              :disabled="formValue.glueType !== 'BEAN'"
+              type="primary"
+              :loading="submitting"
+              @click="submitForm"
+            >
+              保存
+            </n-button>
+            <n-button
+              v-if="formValue.glueType !== 'BEAN'"
+              quaternary
+              @click="openLegacyForCurrentForm"
+            >
+              去旧版控制台处理
+            </n-button>
+          </div>
+        </template>
+      </n-drawer-content>
+    </n-drawer>
 
     <n-modal v-model:show="triggerModalVisible" preset="card" title="执行一次" style="width: 680px;">
       <n-form :model="triggerForm" label-placement="left" label-width="110">
@@ -362,6 +362,7 @@ const triggerModalVisible = ref(false);
 const formModalVisible = ref(false);
 const crontabModalVisible = ref(false);
 const triggering = ref(false);
+const batchTriggering = ref(false);
 const submitting = ref(false);
 const formRef = ref<FormInst | null>(null);
 const activeRegistryList = ref<string[]>([]);
@@ -1153,6 +1154,39 @@ function runSelected(row?: JobInfo | null) {
   triggerForm.executorParam = target.executorParam || '';
   triggerForm.addressList = '';
   triggerModalVisible.value = true;
+}
+
+async function triggerSelectedFromToolbar() {
+  const targets = selectedRows.value;
+  if (!targets.length) {
+    return;
+  }
+  if (targets.length === 1) {
+    runSelected(targets[0]);
+    return;
+  }
+
+  dialog.warning({
+    title: '批量执行一次',
+    content: `确认立即执行选中的 ${targets.length} 个任务吗？将使用各任务当前配置的执行参数。`,
+    positiveText: '执行',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      batchTriggering.value = true;
+      try {
+        for (const target of targets) {
+          const response = await triggerJob(target.id, target.executorParam || '', '');
+          if (response.code !== 200) {
+            message.error(response.msg || `任务 #${target.id} 执行失败`);
+            return;
+          }
+        }
+        message.success(`已触发 ${targets.length} 个任务`);
+      } finally {
+        batchTriggering.value = false;
+      }
+    }
+  });
 }
 
 async function confirmTrigger() {

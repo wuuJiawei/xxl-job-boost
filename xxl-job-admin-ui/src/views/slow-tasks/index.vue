@@ -1,10 +1,6 @@
 <template>
   <div class="page-stack">
-    <div class="dashboard-hero">
-      <div class="section-kicker">Slow Tasks</div>
-      <h2>{{ $t('page.xxlJob.slowTasks.title') }}</h2>
-      <p>{{ $t('page.xxlJob.slowTasks.description') }}</p>
-    </div>
+
 
     <n-card :bordered="false" class="filter-card">
       <div class="filter-grid logs-filter-grid">
@@ -30,10 +26,7 @@
 
     <n-card :bordered="false">
       <template #header>
-        <div class="table-header">
-          <div class="table-title">{{ $t('page.xxlJob.slowTasks.title') }}</div>
-          <div class="table-subtitle">{{ $t('page.xxlJob.slowTasks.subtitle') }}</div>
-        </div>
+
       </template>
 
       <n-data-table
@@ -43,6 +36,7 @@
         :loading="loading"
         :pagination="pagination"
         :row-key="rowKey"
+        :scroll-x="1500"
       />
     </n-card>
   </div>
@@ -192,6 +186,7 @@ const columns: DataTableColumns<JobSlowAggregate> = [
   {
     title: '操作',
     key: 'actions',
+    fixed: 'right',
     width: 160,
     render: row =>
       h('div', { class: 'table-actions' }, [

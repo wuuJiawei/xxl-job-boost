@@ -172,6 +172,40 @@ body {
   justify-content: flex-start;
 }
 
+.job-table-toolbar {
+  gap: 8px;
+}
+
+.table-selection-count {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 6px;
+  background: rgb(248 250 252);
+  color: rgb(71 85 105);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.toolbar-separator {
+  width: 1px;
+  height: 22px;
+  background: rgb(226 232 240);
+}
+
+.job-form-drawer-body {
+  padding-bottom: 8px;
+}
+
+.job-form-drawer-content {
+  min-height: 100%;
+}
+
+.job-form-drawer-footer {
+  justify-content: flex-end;
+}
+
 .table-header {
   display: flex;
   flex-direction: column;
@@ -191,6 +225,31 @@ body {
   font-size: 13px;
   line-height: 1.6;
   color: rgb(100 116 139);
+}
+
+.n-data-table :where(.n-button) {
+  min-width: 52px;
+  border-radius: 6px;
+  background: rgb(248 250 252);
+  box-shadow: inset 0 0 0 1px rgb(203 213 225);
+  transition:
+    background-color 0.16s ease,
+    box-shadow 0.16s ease,
+    color 0.16s ease;
+}
+
+.n-data-table :where(.n-button:hover) {
+  background: rgb(238 242 255);
+  box-shadow: inset 0 0 0 1px rgb(129 140 248);
+}
+
+.n-data-table :where(.n-button:active) {
+  background: rgb(224 231 255);
+}
+
+.n-data-table :where(.n-button--disabled) {
+  background: rgb(248 250 252);
+  box-shadow: inset 0 0 0 1px rgb(226 232 240);
 }
 
 .registry-drawer {
@@ -213,6 +272,23 @@ body {
   word-break: break-word;
 }
 
+.rich-message-preview {
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    'Liberation Mono',
+    monospace;
+}
+
+.rich-message-preview :where(code) {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgb(226 232 240);
+}
+
 .muted-text {
   color: rgb(100 116 139);
 }
@@ -226,10 +302,19 @@ body {
 
 .log-drawer-header {
   display: flex;
-  gap: 16px;
-  align-items: flex-start;
+  gap: 24px;
+  align-items: center;
   justify-content: space-between;
   width: 100%;
+  padding-right: 44px;
+}
+
+.log-drawer-header .table-header {
+  min-width: 0;
+}
+
+.log-drawer-header .table-actions {
+  flex-shrink: 0;
 }
 
 .log-stream {
