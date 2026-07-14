@@ -10,6 +10,7 @@ export type HelpInfo = {
   productName: string;
   githubUrl: string;
   documentUrl: string;
+  boostGithubUrl: string;
 };
 
 export async function fetchHelpInfo() {

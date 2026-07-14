@@ -546,9 +546,10 @@ public class AdminNextApiController {
     @XxlSso
     public Response<Map<String, Object>> helpInfo() {
         Map<String, Object> data = new HashMap<>();
-        data.put("productName", "XXL-JOB");
+        data.put("productName", "XXL-JOB Boost");
         data.put("githubUrl", "https://github.com/xuxueli/xxl-job");
         data.put("documentUrl", "https://www.xuxueli.com/xxl-job/");
+        data.put("boostGithubUrl", "https://github.com/wuuJiawei/xxl-job-boost");
         return Response.ofSuccess(data);
     }
 

@@ -45,7 +45,10 @@ export const generatedRoutes: GeneratedRoute[] = [
     component: 'layout.base$view.alerts',
     meta: {
       title: 'alerts',
-      i18nKey: 'route.alerts'
+      i18nKey: 'route.alerts',
+      icon: 'mdi:bell-alert-outline',
+      order: 4.5,
+      roles: ['R_SUPER']
     }
   },
   {
@@ -90,7 +93,7 @@ export const generatedRoutes: GeneratedRoute[] = [
       title: 'governance',
       i18nKey: 'route.governance',
       icon: 'mdi:view-dashboard-outline',
-      order: 6.5,
+      order: 1.5,
       roles: ['R_SUPER']
     }
   },

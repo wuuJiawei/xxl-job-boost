@@ -4,11 +4,18 @@
       <div class="help-stack">
         <div class="table-header">
           <div class="table-title">{{ helpInfo?.productName || 'XXL-JOB' }}</div>
-          <div class="table-subtitle">官方资源入口</div>
+          <div class="table-subtitle">文档与项目资源入口</div>
         </div>
         <div class="help-links">
-          <a class="help-link" :href="helpInfo?.githubUrl" target="_blank" rel="noreferrer">Github</a>
-          <a class="help-link" :href="helpInfo?.documentUrl" target="_blank" rel="noreferrer">官方文档</a>
+          <a class="help-link" :href="helpInfo?.documentUrl" target="_blank" rel="noopener noreferrer">
+            XXL-JOB 官方文档
+          </a>
+          <a class="help-link" :href="helpInfo?.githubUrl" target="_blank" rel="noopener noreferrer">
+            XXL-JOB 官方仓库
+          </a>
+          <a class="help-link" :href="helpInfo?.boostGithubUrl" target="_blank" rel="noopener noreferrer">
+            XXL-JOB Boost GitHub 仓库
+          </a>
         </div>
       </div>
     </n-card>

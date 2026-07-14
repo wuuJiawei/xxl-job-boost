@@ -1,14 +1,14 @@
 import type { RouteRecordRaw } from 'vue-router';
 
 const route: RouteRecordRaw = {
-  name: 'alerts',
-  path: '/alerts',
+  name: 'governance',
+  path: '/governance',
   component: () => import('./index.vue'),
   meta: {
-    title: 'alerts',
-    i18nKey: 'route.alerts',
-    icon: 'mdi:bell-alert-outline',
-    order: 4.5,
+    title: 'governance',
+    i18nKey: 'route.governance',
+    icon: 'mdi:view-dashboard-outline',
+    order: 1.5,
     roles: ['R_SUPER']
   }
 };
