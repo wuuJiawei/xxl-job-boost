@@ -113,6 +113,7 @@
 <script setup lang="ts">
 import { computed, defineComponent, h, reactive, ref, watch } from 'vue';
 import {
+  NButton,
   NForm,
   NInputNumber,
   NRadio,
@@ -635,9 +636,11 @@ function renderValueGrid(
           const value = Number(option.value);
           const selected = selectedValues.has(value);
           return h(
-            'button',
+            NButton,
             {
-              type: 'button',
+              size: 'small',
+              secondary: !selected,
+              type: selected ? 'primary' : 'default',
               class: ['crontab-value-button', selected && 'is-selected'],
               onClick: (event: MouseEvent) => {
                 event.stopPropagation();
@@ -645,7 +648,7 @@ function renderValueGrid(
                 updateValues(next);
               }
             },
-            String(option.label)
+            { default: () => String(option.label) }
           );
         })
       )
@@ -655,16 +658,17 @@ function renderValueGrid(
 
 function renderValueAction(label: string, onClick: () => void) {
   return h(
-    'button',
+    NButton,
     {
-      type: 'button',
+      size: 'tiny',
+      tertiary: true,
       class: 'crontab-value-action',
       onClick: (event: MouseEvent) => {
         event.stopPropagation();
         onClick();
       }
     },
-    label
+    { default: () => label }
   );
 }
 
@@ -701,24 +705,24 @@ function renderSelect(value: number, options: SelectOption[], onUpdate: (value: 
   width: 260px;
 }
 
-.crontab-appoint-block {
+:global(.crontab-appoint-block) {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.crontab-appoint-radio {
+:global(.crontab-appoint-radio) {
   align-items: flex-start;
 }
 
-:deep(.crontab-appoint-radio .n-radio__label) {
+:global(.crontab-appoint-radio .n-radio__label) {
   width: min(760px, calc(100vw - 220px));
 }
 
-.crontab-value-picker {
+:global(.crontab-value-picker) {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   margin-left: 32px;
   padding: 12px;
   border: 1px solid rgb(226 232 240);
@@ -726,55 +730,22 @@ function renderSelect(value: number, options: SelectOption[], onUpdate: (value: 
   background: rgb(248 250 252);
 }
 
-.crontab-value-toolbar {
+:global(.crontab-value-toolbar) {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.crontab-value-action,
-.crontab-value-button {
-  border: 1px solid rgb(203 213 225);
-  border-radius: 6px;
-  background: rgb(255 255 255);
-  color: rgb(51 65 85);
-  cursor: pointer;
-  transition:
-    background-color 0.16s ease,
-    border-color 0.16s ease,
-    color 0.16s ease;
-}
-
-.crontab-value-action {
-  height: 28px;
-  padding: 0 10px;
-  font-size: 12px;
-}
-
-.crontab-value-grid {
+:global(.crontab-value-grid) {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
   gap: 8px;
   max-height: 176px;
   overflow-y: auto;
 }
 
-.crontab-value-button {
-  height: 32px;
-  padding: 0 6px;
-  font-size: 13px;
-}
-
-.crontab-value-action:hover,
-.crontab-value-button:hover {
-  border-color: rgb(99 102 241);
-  color: rgb(79 70 229);
-}
-
-.crontab-value-button.is-selected {
-  border-color: rgb(99 102 241);
-  background: rgb(99 102 241);
-  color: rgb(255 255 255);
+:global(.crontab-value-button) {
+  width: 100%;
 }
 
 .crontab-week-select {
