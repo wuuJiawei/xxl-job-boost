@@ -519,17 +519,19 @@ const CronWeekPanel = defineComponent({
               renderSelect(panelProps.weekday, weekOptions(), value => panelEmit('update:weekday', value))
             ])
           ),
-          h('div', { class: 'crontab-appoint-block' }, [
-            h(NRadio, { value: 'appoint' }, () => '指定星期'),
-            panelProps.mode === 'appoint'
-              ? renderValueGrid(
-                  panelProps.values,
-                  weekOptions(),
-                  value => panelEmit('update:values', value),
-                  () => panelEmit('update:mode', 'appoint')
-                )
-              : null
-          ])
+          h(NRadio, { value: 'appoint', class: 'crontab-appoint-radio' }, () =>
+            h('div', { class: 'crontab-appoint-block' }, [
+              '指定星期',
+              panelProps.mode === 'appoint'
+                ? renderValueGrid(
+                    panelProps.values,
+                    weekOptions(),
+                    value => panelEmit('update:values', value),
+                    () => panelEmit('update:mode', 'appoint')
+                  )
+                : null
+            ])
+          )
         ])
       );
   }
@@ -587,17 +589,19 @@ function renderStepRow(propsLike: any, emitLike: any) {
 }
 
 function renderAppointRow(propsLike: any, emitLike: any) {
-  return h('div', { class: 'crontab-appoint-block' }, [
-    h(NRadio, { value: 'appoint' }, () => `指定${propsLike.label}`),
-    propsLike.mode === 'appoint'
-      ? renderValueGrid(
-          propsLike.values,
-          numberOptions(propsLike.min, propsLike.max, propsLike.options),
-          next => emitLike('update:values', next),
-          () => emitLike('update:mode', 'appoint')
-        )
-      : null
-  ]);
+  return h(NRadio, { value: 'appoint', class: 'crontab-appoint-radio' }, () =>
+    h('div', { class: 'crontab-appoint-block' }, [
+      `指定${propsLike.label}`,
+      propsLike.mode === 'appoint'
+        ? renderValueGrid(
+            propsLike.values,
+            numberOptions(propsLike.min, propsLike.max, propsLike.options),
+            next => emitLike('update:values', next),
+            () => emitLike('update:mode', 'appoint')
+          )
+        : null
+    ])
+  );
 }
 
 function renderValueGrid(
@@ -701,6 +705,14 @@ function renderSelect(value: number, options: SelectOption[], onUpdate: (value: 
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.crontab-appoint-radio {
+  align-items: flex-start;
+}
+
+:deep(.crontab-appoint-radio .n-radio__label) {
+  width: min(760px, calc(100vw - 220px));
 }
 
 .crontab-value-picker {
