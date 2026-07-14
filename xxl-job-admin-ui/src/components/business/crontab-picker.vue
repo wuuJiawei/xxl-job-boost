@@ -645,7 +645,7 @@ function renderValueGrid(
                 updateValues(next);
               }
             },
-            () => String(option.label)
+            String(option.label)
           );
         })
       )
@@ -664,7 +664,7 @@ function renderValueAction(label: string, onClick: () => void) {
         onClick();
       }
     },
-    () => label
+    label
   );
 }
 
