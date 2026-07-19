@@ -381,16 +381,54 @@ body {
   transform: translateY(-1px);
 }
 
-.job-code-layout {
-  display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
-  gap: 20px;
-  align-items: start;
+.job-code-page {
+  padding-bottom: 48px;
 }
 
-.job-code-sidebar,
 .job-code-editor-card {
-  min-height: 100%;
+  min-height: calc(100vh - 148px);
+}
+
+.job-code-editor-card > .n-card-header {
+  padding: 14px 18px;
+}
+
+.job-code-editor-card > .n-card__content {
+  padding: 0 18px 16px;
+}
+
+.job-code-page-header {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.job-code-identity {
+  min-width: 0;
+}
+
+.job-code-title {
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.job-code-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 4px;
+  color: rgb(100 116 139);
+  font-size: 12px;
+}
+
+.job-code-page-actions {
+  flex: 0 0 auto;
 }
 
 .job-code-version-list {
@@ -406,7 +444,7 @@ body {
   width: 100%;
   padding: 14px 16px;
   border: 1px solid rgb(226 232 240);
-  border-radius: 16px;
+  border-radius: 6px;
   background: rgb(248 250 252);
   text-align: left;
   transition:
@@ -433,39 +471,54 @@ body {
   color: rgb(100 116 139);
 }
 
-.job-code-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 14px;
-}
-
 .job-code-editor {
   width: 100%;
-  min-height: 520px;
-  padding: 18px;
   border: 1px solid rgb(203 213 225);
-  border-radius: 18px;
-  outline: none;
+  border-radius: 8px;
+  overflow: hidden;
   background: rgb(15 23 42);
-  color: rgb(226 232 240);
+}
+
+.job-code-editor:focus-within {
+  border-color: rgb(99 102 241);
+  box-shadow: 0 0 0 2px rgb(99 102 241 / 0.16);
+}
+
+.job-code-editor .CodeMirror {
+  height: clamp(320px, calc(100vh - 320px), 900px);
   font:
-    13px/1.7 ui-monospace,
+    13px/1.65 ui-monospace,
     SFMono-Regular,
     Menlo,
     Monaco,
     Consolas,
-    Liberation Mono,
+    'Liberation Mono',
     monospace;
-  resize: vertical;
+}
+
+.job-code-editor .CodeMirror-gutters {
+  border-right-color: rgb(71 85 105);
+}
+
+.job-code-editor .CodeMirror-selected {
+  background: rgb(71 85 105) !important;
 }
 
 .job-code-footer {
   display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-top: 16px;
+  gap: 12px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.job-code-footer > .n-input {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.job-code-footer > .table-actions {
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
 }
 
 @media (width <= 1200px) {
@@ -476,8 +529,7 @@ body {
   .alerts-filter-grid,
   .alerts-record-filter-grid,
   .alerts-rule-filter-grid,
-  .filter-grid,
-  .job-code-layout {
+  .filter-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -494,6 +546,16 @@ body {
 
   .dashboard-hero h2 {
     font-size: 22px;
+  }
+
+  .job-code-page-header,
+  .job-code-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .job-code-page-actions {
+    justify-content: flex-start;
   }
 
   .log-detail-header {

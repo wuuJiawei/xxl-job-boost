@@ -211,7 +211,7 @@ public class AdminNextApiController {
         JobGroupPermissionUtil.validJobGroupPermission(request, jobInfo.getJobGroup());
 
         GlueTypeEnum glueType = GlueTypeEnum.match(jobInfo.getGlueType());
-        if (GlueTypeEnum.BEAN == glueType) {
+        if (glueType == null || GlueTypeEnum.BEAN == glueType) {
             return Response.ofFail(I18nUtil.getString("jobinfo_glue_gluetype_invalid"));
         }
 
@@ -257,8 +257,12 @@ public class AdminNextApiController {
         }
 
         GlueTypeEnum glueType = GlueTypeEnum.match(existsJobInfo.getGlueType());
-        if (GlueTypeEnum.BEAN == glueType) {
+        if (glueType == null || GlueTypeEnum.BEAN == glueType) {
             return Response.ofFail(I18nUtil.getString("jobinfo_glue_gluetype_invalid"));
+        }
+
+        if (GlueTypeEnum.GLUE_SHELL == glueType) {
+            glueSource = glueSource.replace("\r", "");
         }
 
         LoginInfo loginInfo = JobGroupPermissionUtil.validJobGroupPermission(request, existsJobInfo.getJobGroup());

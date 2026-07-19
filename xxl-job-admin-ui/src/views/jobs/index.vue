@@ -100,9 +100,6 @@
         body-class="job-form-drawer-body"
         body-content-class="job-form-drawer-content"
       >
-        <n-alert v-if="formValue.glueType !== 'BEAN'" type="warning" :show-icon="false" style="margin-bottom: 16px;">
-          当前只在新控制台内完整支持 BEAN 任务。GLUE 类任务请先回到旧版控制台处理。
-        </n-alert>
         <n-form ref="formRef" :model="formValue" :rules="rules" label-placement="left" label-width="120">
           <div class="table-header">
             <div class="table-title">基础信息</div>
@@ -167,10 +164,15 @@
                 :options="glueTypeOptions"
                 placeholder="请选择运行模式"
                 :disabled="formMode === 'edit'"
+                @update:value="handleGlueTypeChange"
               />
             </n-form-item-gi>
             <n-form-item-gi path="executorHandler" label="JobHandler">
-              <n-input v-model:value="formValue.executorHandler" placeholder="请输入 JobHandler" />
+              <n-input
+                v-model:value="formValue.executorHandler"
+                :disabled="formValue.glueType !== 'BEAN'"
+                :placeholder="formValue.glueType === 'BEAN' ? '请输入 JobHandler' : 'GLUE 模式无需配置'"
+              />
             </n-form-item-gi>
           </n-grid>
           <n-form-item path="executorParam" label="任务参数">
@@ -210,19 +212,11 @@
           <div class="table-actions job-form-drawer-footer">
             <n-button @click="formModalVisible = false">取消</n-button>
             <n-button
-              :disabled="formValue.glueType !== 'BEAN'"
               type="primary"
               :loading="submitting"
               @click="submitForm"
             >
               保存
-            </n-button>
-            <n-button
-              v-if="formValue.glueType !== 'BEAN'"
-              quaternary
-              @click="openLegacyForCurrentForm"
-            >
-              去旧版控制台处理
             </n-button>
           </div>
         </template>
@@ -292,7 +286,6 @@
 import { computed, h, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import {
-  NAlert,
   NButton,
   NCard,
   NDataTable,
@@ -342,6 +335,7 @@ import {
   type JobInfo
 } from '@/api/jobs';
 import CrontabPicker from '@/components/business/crontab-picker.vue';
+import { GLUE_INIT_REMARK, getGlueTemplate, isGlueType } from '@/constants/job-glue';
 
 defineOptions({
   name: 'jobs'
@@ -406,7 +400,9 @@ const formValue = reactive({
   misfireStrategy: 'DO_NOTHING',
   executorBlockStrategy: '',
   executorTimeout: '0',
-  executorFailRetryCount: '0'
+  executorFailRetryCount: '0',
+  glueSource: '',
+  glueRemark: ''
 });
 
 const statusOptions: SelectOption[] = [
@@ -726,6 +722,16 @@ function resetFormValue() {
   formValue.executorBlockStrategy = metadata.value?.blockStrategies[0]?.value || '';
   formValue.executorTimeout = '0';
   formValue.executorFailRetryCount = '0';
+  formValue.glueSource = '';
+  formValue.glueRemark = '';
+}
+
+function handleGlueTypeChange(glueType: string) {
+  if (glueType !== 'BEAN') {
+    formValue.executorHandler = '';
+  }
+  formValue.glueSource = getGlueTemplate(glueType);
+  formValue.glueRemark = isGlueType(glueType) ? GLUE_INIT_REMARK : '';
 }
 
 function normalizeCronValue(value: string) {
@@ -777,6 +783,8 @@ function hydrateForm(job: JobInfo) {
   formValue.executorBlockStrategy = job.executorBlockStrategy || metadata.value?.blockStrategies[0]?.value || '';
   formValue.executorTimeout = String(job.executorTimeout ?? 0);
   formValue.executorFailRetryCount = String(job.executorFailRetryCount ?? 0);
+  formValue.glueSource = job.glueSource || '';
+  formValue.glueRemark = job.glueRemark || '';
 }
 
 function buildPayload() {
@@ -801,13 +809,13 @@ function buildPayload() {
     executorFailRetryCount: normalizeNumberField(formValue.executorFailRetryCount)
   };
 
-  if (formMode.value !== 'create') {
+  if (formMode.value === 'edit') {
     payload.id = String(formValue.id);
   }
 
   if (formMode.value === 'create' || formMode.value === 'copy') {
-    payload.glueRemark = 'Admin Next init';
-    payload.glueSource = '';
+    payload.glueRemark = formValue.glueRemark || GLUE_INIT_REMARK;
+    payload.glueSource = formValue.glueSource || getGlueTemplate(formValue.glueType);
   }
 
   return payload;
@@ -824,29 +832,6 @@ function normalizeChildJobId(value: string) {
     .map((item) => item.trim())
     .filter(Boolean)
     .join(',');
-}
-
-function isBeanJob(job: JobInfo | null) {
-  return !job || job.glueType === 'BEAN';
-}
-
-function ensureBeanJob(job: JobInfo | null, actionText: string) {
-  if (!job) {
-    return false;
-  }
-  if (isBeanJob(job)) {
-    return true;
-  }
-  dialog.warning({
-    title: '暂不支持',
-    content: `${actionText} 目前仅支持 BEAN 任务，GLUE 类任务请先在旧版控制台处理。`,
-    positiveText: '打开旧版控制台',
-    negativeText: '取消',
-    onPositiveClick: () => {
-      window.open(`/xxl-job-admin/jobinfo?jobGroup=${job.jobGroup}`, '_blank');
-    }
-  });
-  return false;
 }
 
 async function loadJobGroups() {
@@ -1023,10 +1008,10 @@ function openCreate() {
 
 async function openEdit(row?: JobInfo | null) {
   const target = row || selectedRow.value;
-  if (!ensureBeanJob(target, '编辑任务')) {
+  if (!target) {
     return;
   }
-  const response = await fetchJobDetail(target!.id);
+  const response = await fetchJobDetail(target.id);
   if (response.code !== 200) {
     message.error(response.msg || '任务详情加载失败');
     return;
@@ -1038,10 +1023,10 @@ async function openEdit(row?: JobInfo | null) {
 
 async function copySelected(row?: JobInfo | null) {
   const target = row || selectedRow.value;
-  if (!ensureBeanJob(target, '复制任务')) {
+  if (!target) {
     return;
   }
-  const response = await fetchJobDetail(target!.id);
+  const response = await fetchJobDetail(target.id);
   if (response.code !== 200) {
     message.error(response.msg || '任务详情加载失败');
     return;
@@ -1054,9 +1039,6 @@ async function copySelected(row?: JobInfo | null) {
 
 async function submitForm() {
   await formRef.value?.validate();
-  if (formValue.glueType !== 'BEAN') {
-    return;
-  }
 
   submitting.value = true;
   try {
@@ -1068,7 +1050,14 @@ async function submitForm() {
     }
     message.success(formMode.value === 'edit' ? '更新成功' : '创建成功');
     formModalVisible.value = false;
+    await loadTreeJobs(true);
     await loadData();
+    if (formMode.value !== 'edit' && isGlueType(formValue.glueType)) {
+      const createdJobId = Number(response.data);
+      if (createdJobId > 0) {
+        await router.push({ name: 'job-code', query: { jobId: String(createdJobId) } });
+      }
+    }
   } catch (error) {
     const err = error as Error;
     message.error(err.message || '保存失败');
@@ -1100,11 +1089,6 @@ async function deleteSelected(row?: JobInfo | null) {
       await loadData();
     }
   });
-}
-
-function openLegacyForCurrentForm() {
-  const groupId = formValue.jobGroup > 0 ? formValue.jobGroup : filters.jobGroup;
-  window.open(`/xxl-job-admin/jobinfo?jobGroup=${groupId}`, '_blank');
 }
 
 async function startSelected(row?: JobInfo | null) {
