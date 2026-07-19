@@ -574,6 +574,42 @@ declare namespace App {
             logHint: string;
             executorHint: string;
           };
+          failureAggregates: {
+            title: string;
+            subtitle: string;
+            description: string;
+          };
+          slowTasks: {
+            title: string;
+            subtitle: string;
+            description: string;
+          };
+          governance: {
+            title: string;
+            subtitle: string;
+            description: string;
+            jobs: string;
+            ownedJobs: string;
+            taggedJobs: string;
+            auditEvents: string;
+            jobsHint: string;
+            ownedHint: string;
+            taggedHint: string;
+            auditHint: string;
+            quickActions: string;
+            quickActionsHint: string;
+            failureTitle: string;
+            failureSubtitle: string;
+            slowTitle: string;
+            slowSubtitle: string;
+            auditTitle: string;
+            auditSubtitle: string;
+          };
+          audits: {
+            title: string;
+            subtitle: string;
+            description: string;
+          };
         };
       };
       form: {

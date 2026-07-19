@@ -86,18 +86,6 @@ export const generatedRoutes: GeneratedRoute[] = [
     }
   },
   {
-    name: 'governance',
-    path: '/governance',
-    component: 'layout.base$view.governance',
-    meta: {
-      title: 'governance',
-      i18nKey: 'route.governance',
-      icon: 'mdi:view-dashboard-outline',
-      order: 1.5,
-      roles: ['R_SUPER']
-    }
-  },
-  {
     name: 'help',
     path: '/help',
     component: 'layout.base$view.help',
@@ -105,7 +93,7 @@ export const generatedRoutes: GeneratedRoute[] = [
       title: 'help',
       i18nKey: 'route.help',
       icon: 'mdi:help-circle-outline',
-      order: 8
+      order: 10
     }
   },
   {

@@ -230,7 +230,6 @@ const local: App.I18n.Schema = {
     alerts: '告警管理',
     executors: '执行器',
     'failure-aggregates': '失败聚合',
-    governance: '治理总览',
     'slow-tasks': '慢任务分析',
     jobs: '任务管理',
     logs: '执行日志',
@@ -342,7 +341,8 @@ const local: App.I18n.Schema = {
       slowTasks: {
         title: '慢任务分析',
         subtitle: '先把高耗时任务聚出来，再继续补更细的性能诊断视角。',
-        description: '按任务维度聚合慢执行次数、平均耗时、峰值耗时和最近一次慢执行，支持阈值、负责人、任务标签和时间窗口筛选。'
+        description:
+          '按任务维度聚合慢执行次数、平均耗时、峰值耗时和最近一次慢执行，支持阈值、负责人、任务标签和时间窗口筛选。'
       },
       governance: {
         title: '治理总览',

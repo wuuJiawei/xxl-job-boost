@@ -20,6 +20,7 @@ interface CardItem {
 
 const props = defineProps<{
   items: CardItem[];
+  title?: string;
 }>();
 
 interface GradientBgProps {
@@ -36,6 +37,14 @@ function getGradientColor(color: CardItem['color']) {
 
 <template>
   <NCard :bordered="false" size="small" class="card-wrapper">
+    <div
+      v-if="props.title || $slots.action"
+      class="mb-12px flex items-center justify-between gap-12px max-sm:flex-wrap"
+    >
+      <div v-if="props.title" class="text-16px font-600">{{ props.title }}</div>
+      <slot name="action" />
+    </div>
+
     <DefineGradientBg v-slot="{ $slots, gradientColor }">
       <div
         class="px-16px pb-10px pt-12px text-white"

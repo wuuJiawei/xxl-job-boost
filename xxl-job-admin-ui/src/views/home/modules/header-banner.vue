@@ -25,24 +25,18 @@ const gap = computed(() => (appStore.isMobile ? 0 : 16));
 
 <template>
   <NCard :bordered="false" class="card-wrapper">
-    <NGrid :x-gap="gap" :y-gap="16" responsive="screen" item-responsive>
-      <NGi span="24 s:24 m:18">
-        <div class="flex-y-center">
-          <div
-            class="flex-center size-72px shrink-0 rd-1/2 bg-linear-to-br from-#1d4ed8 to-#14b8a6 text-28px text-white font-700"
-          >
-            {{ authStore.userInfo.userName.slice(0, 1).toUpperCase() }}
-          </div>
-          <div class="pl-12px">
-            <h3 class="text-18px font-semibold">欢迎回来，{{ authStore.userInfo.userName }}</h3>
-            <p class="text-#64748b leading-30px">XXL-JOB Boost 现代化控制台已切换到 Soybean 骨架联调模式。</p>
-          </div>
+    <NGrid :x-gap="gap" :y-gap="20" responsive="screen" item-responsive>
+      <NGi span="24 m:6">
+        <div class="h-full flex-y-center">
+          <h3 class="text-18px font-semibold">欢迎回来，{{ authStore.userInfo.userName }}</h3>
         </div>
       </NGi>
-      <NGi span="24 s:24 m:6">
-        <NSpace :size="24" justify="end">
-          <NStatistic v-for="item in props.stats" :key="item.id" class="whitespace-nowrap" v-bind="item" />
-        </NSpace>
+      <NGi span="24 m:18">
+        <NGrid cols="2 m:4" responsive="screen" :x-gap="12" :y-gap="16">
+          <NGi v-for="item in props.stats" :key="item.id">
+            <NStatistic class="text-center" v-bind="item" />
+          </NGi>
+        </NGrid>
       </NGi>
     </NGrid>
   </NCard>

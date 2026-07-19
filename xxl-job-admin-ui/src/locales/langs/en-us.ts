@@ -234,7 +234,6 @@ const local: App.I18n.Schema = {
     alerts: 'Alerts',
     executors: 'Executors',
     'failure-aggregates': 'Failure Aggregates',
-    governance: 'Governance Overview',
     'slow-tasks': 'Slow Task Analysis',
     jobs: 'Jobs',
     logs: 'Logs',
@@ -342,12 +341,14 @@ const local: App.I18n.Schema = {
       failureAggregates: {
         title: 'Failure Aggregates',
         subtitle: 'Cluster hot failure tasks first, then move to richer diagnostics.',
-        description: 'Aggregate failure count, last failure time and latest failure detail by job, with filters for owner, tags and time range.'
+        description:
+          'Aggregate failure count, last failure time and latest failure detail by job, with filters for owner, tags and time range.'
       },
       slowTasks: {
         title: 'Slow Task Analysis',
         subtitle: 'Surface high-latency jobs first, then move to deeper performance diagnostics.',
-        description: 'Aggregate slow execution count, average duration, max duration and the latest slow run by job, with filters for threshold, owner, tags and time range.'
+        description:
+          'Aggregate slow execution count, average duration, max duration and the latest slow run by job, with filters for threshold, owner, tags and time range.'
       },
       governance: {
         title: 'Governance Overview',
@@ -374,7 +375,8 @@ const local: App.I18n.Schema = {
       audits: {
         title: 'Audit Logs',
         subtitle: 'Persist critical governance actions first, then expand to finer-grained behavior auditing.',
-        description: 'Track key management actions on jobs, executors, users and alarm channels, with filters for operator, action type, resource type and job group.'
+        description:
+          'Track key management actions on jobs, executors, users and alarm channels, with filters for operator, action type, resource type and job group.'
       }
     }
   },

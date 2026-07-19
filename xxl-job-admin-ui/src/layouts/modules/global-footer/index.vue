@@ -5,9 +5,15 @@ defineOptions({
 </script>
 
 <template>
-  <DarkModeContainer class="h-full flex-center">
-    <a href="https://github.com/soybeanjs/soybean-admin/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">
-      Copyright MIT © 2021 Soybean
+  <DarkModeContainer class="h-full flex-center gap-8px">
+    <span>Copyright MIT © 2026</span>
+    <a
+      class="text-primary hover:underline"
+      href="https://github.com/wuuJiawei/xxl-job-boost"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      xxl-job-boost
     </a>
   </DarkModeContainer>
 </template>
