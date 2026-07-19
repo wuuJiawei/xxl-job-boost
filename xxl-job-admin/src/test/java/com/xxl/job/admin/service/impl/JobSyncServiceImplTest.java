@@ -8,6 +8,7 @@ import com.xxl.job.admin.model.XxlJobGroup;
 import com.xxl.job.admin.model.XxlJobInfo;
 import com.xxl.job.admin.service.AuditLogService;
 import com.xxl.job.admin.util.I18nUtil;
+import com.xxl.job.core.constant.XxlJobStartPolicy;
 import com.xxl.job.core.openapi.model.JobSyncItem;
 import com.xxl.job.core.openapi.model.JobSyncRequest;
 import com.xxl.tool.response.Response;
@@ -27,6 +28,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
 class JobSyncServiceImplTest {
@@ -57,7 +59,7 @@ class JobSyncServiceImplTest {
     }
 
     @Test
-    void syncShouldStartUnchangedExistingJobWhenAutoStartEnabled() {
+    void syncShouldPreserveStoppedExistingJobWhenStartPolicyIsOnCreate() {
         XxlJobGroup group = new XxlJobGroup();
         group.setId(1);
         group.setAppname("xxl-job-executor-sample");
@@ -65,7 +67,57 @@ class JobSyncServiceImplTest {
 
         XxlJobInfo existing = buildExistingJob();
         JobSyncItem item = buildMatchingItem();
-        item.setAutoStart(true);
+        item.setStartPolicy(XxlJobStartPolicy.ON_CREATE.name());
+
+        when(xxlJobGroupMapper.loadByAppname(group.getAppname())).thenReturn(group);
+        when(xxlJobInfoMapper.loadByGroupAndHandler(group.getId(), item.getExecutorHandler())).thenReturn(existing);
+        when(alarmChannelService.normalizeChannelIdsToString(anyString())).thenReturn("");
+        when(alarmChannelService.normalizeEventTypesToString(anyString())).thenReturn("");
+
+        Response<String> response = jobSyncService.sync(buildRequest(group.getAppname(), item));
+
+        assertTrue(response.isSuccess());
+        verify(xxlJobInfoMapper, never()).update(any());
+        assertEquals(TriggerStatus.STOPPED.getValue(), existing.getTriggerStatus());
+        assertEquals(0, existing.getTriggerNextTime());
+    }
+
+    @Test
+    void syncShouldStartNewJobWhenStartPolicyIsOnCreate() {
+        XxlJobGroup group = new XxlJobGroup();
+        group.setId(1);
+        group.setAppname("xxl-job-executor-sample");
+        group.setTitle("sample");
+
+        JobSyncItem item = buildMatchingItem();
+        item.setStartPolicy(XxlJobStartPolicy.ON_CREATE.name());
+
+        when(xxlJobGroupMapper.loadByAppname(group.getAppname())).thenReturn(group);
+        when(xxlJobInfoMapper.loadByGroupAndHandler(group.getId(), item.getExecutorHandler())).thenReturn(null);
+        when(alarmChannelService.normalizeChannelIdsToString(anyString())).thenReturn("");
+        when(alarmChannelService.normalizeEventTypesToString(anyString())).thenReturn("");
+
+        Response<String> response = jobSyncService.sync(buildRequest(group.getAppname(), item));
+
+        assertTrue(response.isSuccess());
+        ArgumentCaptor<XxlJobInfo> captor = ArgumentCaptor.forClass(XxlJobInfo.class);
+        verify(xxlJobInfoMapper).save(captor.capture());
+        verify(xxlJobInfoMapper).update(captor.capture());
+        XxlJobInfo started = captor.getAllValues().get(1);
+        assertEquals(TriggerStatus.RUNNING.getValue(), started.getTriggerStatus());
+        assertTrue(started.getTriggerNextTime() > System.currentTimeMillis());
+    }
+
+    @Test
+    void syncShouldStartStoppedExistingJobWhenStartPolicyEnsuresRunning() {
+        XxlJobGroup group = new XxlJobGroup();
+        group.setId(1);
+        group.setAppname("xxl-job-executor-sample");
+        group.setTitle("sample");
+
+        XxlJobInfo existing = buildExistingJob();
+        JobSyncItem item = buildMatchingItem();
+        item.setStartPolicy(XxlJobStartPolicy.ENSURE_RUNNING.name());
 
         when(xxlJobGroupMapper.loadByAppname(group.getAppname())).thenReturn(group);
         when(xxlJobInfoMapper.loadByGroupAndHandler(group.getId(), item.getExecutorHandler())).thenReturn(existing);
@@ -84,7 +136,7 @@ class JobSyncServiceImplTest {
     }
 
     @Test
-    void syncShouldRefreshNextTriggerTimeWhenRunningJobScheduleChangedAndAutoStartEnabled() {
+    void syncShouldRefreshNextTriggerTimeWhenRunningJobScheduleChanged() {
         XxlJobGroup group = new XxlJobGroup();
         group.setId(1);
         group.setAppname("xxl-job-executor-sample");
@@ -92,11 +144,12 @@ class JobSyncServiceImplTest {
 
         XxlJobInfo existing = buildExistingJob();
         existing.setTriggerStatus(TriggerStatus.RUNNING.getValue());
+        existing.setTriggerLastTime(456L);
         existing.setTriggerNextTime(123L);
 
         JobSyncItem item = buildMatchingItem();
         item.setScheduleConf("*/10 * * * * ?");
-        item.setAutoStart(true);
+        item.setStartPolicy(XxlJobStartPolicy.ON_CREATE.name());
 
         when(xxlJobGroupMapper.loadByAppname(group.getAppname())).thenReturn(group);
         when(xxlJobInfoMapper.loadByGroupAndHandler(group.getId(), item.getExecutorHandler())).thenReturn(existing);
@@ -110,6 +163,7 @@ class JobSyncServiceImplTest {
         verify(xxlJobInfoMapper).update(captor.capture());
         XxlJobInfo updated = captor.getValue();
         assertEquals(TriggerStatus.RUNNING.getValue(), updated.getTriggerStatus());
+        assertEquals(456L, updated.getTriggerLastTime());
         assertTrue(updated.getTriggerNextTime() > System.currentTimeMillis());
     }
 

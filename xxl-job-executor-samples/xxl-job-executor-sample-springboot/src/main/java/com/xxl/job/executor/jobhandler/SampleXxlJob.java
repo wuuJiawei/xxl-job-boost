@@ -8,6 +8,7 @@ import com.xxl.job.core.handler.annotation.XxlJobBoost;
 import com.xxl.job.core.constant.XxlJobMisfireStrategy;
 import com.xxl.job.core.constant.XxlJobRouteStrategy;
 import com.xxl.job.core.constant.XxlJobScheduleType;
+import com.xxl.job.core.constant.XxlJobStartPolicy;
 import com.xxl.tool.core.StringTool;
 import com.xxl.tool.json.GsonTool;
 import com.xxl.tool.http.HttpTool;
@@ -59,7 +60,7 @@ public class SampleXxlJob {
      * - alarmEmail、alarmEventTypes 控制默认失败告警范围；
      * - scheduleType、scheduleConf 控制自动调度方式；
      * - routeStrategy、misfireStrategy、blockStrategy 对应控制台高级配置；
-     * - autoStart=false 表示只同步任务配置，不自动启动调度。
+     * - startPolicy=ON_CREATE 表示仅在首次创建任务时自动启动，后续同步保留控制台中的启停状态。
      */
     @XxlJobBoost(
             // JobHandler 名称；如果没有同时声明 @XxlJob，该值必填。
@@ -84,8 +85,8 @@ public class SampleXxlJob {
             misfireStrategy = XxlJobMisfireStrategy.DO_NOTHING,
             // SERIAL_EXECUTION 表示同一任务串行执行，避免并发重入。
             blockStrategy = ExecutorBlockStrategyEnum.SERIAL_EXECUTION,
-            // false 表示同步后保持停止状态，需要在控制台手动启动。
-            autoStart = true
+            // 仅首次创建后自动启动；已有任务即使被人工停止，执行器重启后也不会重新启动。
+            startPolicy = XxlJobStartPolicy.ON_CREATE
     )
     public void demoJobHandler() throws Exception {
         XxlJobHelper.log("XXL-JOB, Hello World.");
@@ -112,7 +113,7 @@ public class SampleXxlJob {
             routeStrategy = XxlJobRouteStrategy.SHARDING_BROADCAST,
             misfireStrategy = XxlJobMisfireStrategy.DO_NOTHING,
             blockStrategy = ExecutorBlockStrategyEnum.SERIAL_EXECUTION,
-            autoStart = false
+            startPolicy = XxlJobStartPolicy.MANUAL
     )
     public void shardingJobHandler() throws Exception {
 

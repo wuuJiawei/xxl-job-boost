@@ -172,7 +172,7 @@ xxl:
     blockStrategy = BlockStrategyEnum.SERIAL_EXECUTION,
     timeout = 60,
     retryCount = 3,
-    autoStart = false
+    startPolicy = XxlJobStartPolicy.MANUAL
 )
 public void closeTimeoutOrderJob() {
     // 任务逻辑

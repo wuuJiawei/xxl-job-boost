@@ -5,6 +5,7 @@ import com.xxl.job.core.constant.XxlJobAlarmEventType;
 import com.xxl.job.core.constant.XxlJobMisfireStrategy;
 import com.xxl.job.core.constant.XxlJobRouteStrategy;
 import com.xxl.job.core.constant.XxlJobScheduleType;
+import com.xxl.job.core.constant.XxlJobStartPolicy;
 import com.xxl.job.core.handler.annotation.XxlJobBoost;
 import com.xxl.job.core.openapi.model.JobSyncItem;
 import org.junit.Assert;
@@ -27,6 +28,7 @@ public class JobSyncHelperTest {
         Assert.assertEquals("FIRST", item.getExecutorRouteStrategy());
         Assert.assertEquals("DO_NOTHING", item.getMisfireStrategy());
         Assert.assertEquals("SERIAL_EXECUTION", item.getExecutorBlockStrategy());
+        Assert.assertEquals("ON_CREATE", item.getStartPolicy());
     }
 
     private static class TestJobBean {
@@ -38,7 +40,8 @@ public class JobSyncHelperTest {
                 scheduleType = XxlJobScheduleType.CRON,
                 routeStrategy = XxlJobRouteStrategy.FIRST,
                 misfireStrategy = XxlJobMisfireStrategy.DO_NOTHING,
-                blockStrategy = ExecutorBlockStrategyEnum.SERIAL_EXECUTION
+                blockStrategy = ExecutorBlockStrategyEnum.SERIAL_EXECUTION,
+                startPolicy = XxlJobStartPolicy.ON_CREATE
         )
         public void demoJobHandler() {
         }

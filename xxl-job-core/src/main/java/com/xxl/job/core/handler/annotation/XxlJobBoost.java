@@ -107,7 +107,7 @@ public @interface XxlJobBoost {
     int retryCount() default 0;
 
     /**
-     * 同步到 admin 后是否自动启动任务。
+     * 任务启动策略。默认由调度中心人工管理运行状态。
      */
-    boolean autoStart() default false;
+    XxlJobStartPolicy startPolicy() default XxlJobStartPolicy.MANUAL;
 }

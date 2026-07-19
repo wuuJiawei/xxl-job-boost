@@ -17,7 +17,7 @@ public class JobSyncItem {
     private String executorBlockStrategy;
     private int executorTimeout;
     private int executorFailRetryCount;
-    private boolean autoStart;
+    private String startPolicy;
 
     public String getExecutorHandler() {
         return executorHandler;
@@ -139,11 +139,11 @@ public class JobSyncItem {
         this.executorFailRetryCount = executorFailRetryCount;
     }
 
-    public boolean isAutoStart() {
-        return autoStart;
+    public String getStartPolicy() {
+        return startPolicy;
     }
 
-    public void setAutoStart(boolean autoStart) {
-        this.autoStart = autoStart;
+    public void setStartPolicy(String startPolicy) {
+        this.startPolicy = startPolicy;
     }
 }

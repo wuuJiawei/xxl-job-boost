@@ -12,6 +12,7 @@ import com.xxl.job.admin.scheduler.type.ScheduleTypeEnum;
 import com.xxl.job.admin.service.AuditLogService;
 import com.xxl.job.admin.service.JobSyncService;
 import com.xxl.job.core.constant.ExecutorBlockStrategyEnum;
+import com.xxl.job.core.constant.XxlJobStartPolicy;
 import com.xxl.job.core.glue.GlueTypeEnum;
 import com.xxl.job.core.openapi.model.JobSyncItem;
 import com.xxl.job.core.openapi.model.JobSyncRequest;
@@ -109,6 +110,7 @@ public class JobSyncServiceImpl implements JobSyncService {
             return;
         }
 
+        XxlJobStartPolicy startPolicy = XxlJobStartPolicy.match(item.getStartPolicy());
         XxlJobInfo exists = xxlJobInfoMapper.loadByGroupAndHandler(group.getId(), item.getExecutorHandler().trim());
         if (exists == null) {
             XxlJobInfo jobInfo = new XxlJobInfo();
@@ -124,8 +126,9 @@ public class JobSyncServiceImpl implements JobSyncService {
             jobInfo.setTriggerLastTime(0);
             jobInfo.setTriggerNextTime(0);
             xxlJobInfoMapper.save(jobInfo);
-            if (item.isAutoStart()) {
-                startJob(jobInfo);
+            if (startPolicy != XxlJobStartPolicy.MANUAL && prepareJobStart(jobInfo)) {
+                xxlJobInfoMapper.update(jobInfo);
+                summary.started++;
             }
             summary.created++;
             recordSyncAudit("job-sync-create", jobInfo, item, buildCreateDetail(group, item, jobInfo));
@@ -141,22 +144,36 @@ public class JobSyncServiceImpl implements JobSyncService {
 
         Map<String, Object> diff = buildDiff(exists, item);
         if (diff.isEmpty()) {
-            if (item.isAutoStart()) {
-                startJob(exists);
+            if (startPolicy == XxlJobStartPolicy.ENSURE_RUNNING
+                    && exists.getTriggerStatus() != TriggerStatus.RUNNING.getValue()
+                    && prepareJobStart(exists)) {
+                xxlJobInfoMapper.update(exists);
+                summary.started++;
+                recordSyncAudit("job-sync-start", exists, item, buildStartDetail(group, item, exists, startPolicy));
             }
             summary.unchanged++;
             return;
         }
 
+        boolean scheduleChanged = diff.containsKey("scheduleType") || diff.containsKey("scheduleConf");
+        boolean wasRunning = exists.getTriggerStatus() == TriggerStatus.RUNNING.getValue();
         fillJob(exists, group.getId(), item);
         exists.setUpdateTime(new Date());
-        if (item.isAutoStart()) {
-            startJob(exists);
-        } else {
-            xxlJobInfoMapper.update(exists);
+        boolean started = false;
+        if (startPolicy == XxlJobStartPolicy.ENSURE_RUNNING && !wasRunning) {
+            started = prepareJobStart(exists);
+        } else if (wasRunning && scheduleChanged) {
+            refreshNextTriggerTime(exists);
+        }
+        xxlJobInfoMapper.update(exists);
+        if (started) {
+            summary.started++;
         }
         summary.updated++;
         recordSyncAudit("job-sync-update", exists, item, buildUpdateDetail(group, item, exists, diff));
+        if (started) {
+            recordSyncAudit("job-sync-start", exists, item, buildStartDetail(group, item, exists, startPolicy));
+        }
         logger.info(">>>>>>>>>>> xxl-job boost sync update job success, appname:{}, handler:{}, jobId:{}",
                 group.getAppname(), item.getExecutorHandler(), exists.getId());
     }
@@ -232,7 +249,7 @@ public class JobSyncServiceImpl implements JobSyncService {
         detail.put("handler", item.getExecutorHandler().trim());
         detail.put("jobId", jobInfo.getId());
         detail.put("mode", "CREATE");
-        detail.put("autoStart", item.isAutoStart());
+        detail.put("startPolicy", XxlJobStartPolicy.match(item.getStartPolicy()).name());
         detail.put("snapshot", snapshot(jobInfo));
         return detail;
     }
@@ -244,8 +261,21 @@ public class JobSyncServiceImpl implements JobSyncService {
         detail.put("handler", item.getExecutorHandler().trim());
         detail.put("jobId", jobInfo.getId());
         detail.put("mode", "UPDATE");
-        detail.put("autoStart", item.isAutoStart());
+        detail.put("startPolicy", XxlJobStartPolicy.match(item.getStartPolicy()).name());
         detail.put("diff", diff);
+        return detail;
+    }
+
+    private Map<String, Object> buildStartDetail(XxlJobGroup group, JobSyncItem item, XxlJobInfo jobInfo,
+                                                  XxlJobStartPolicy startPolicy) {
+        Map<String, Object> detail = new LinkedHashMap<>();
+        detail.put("appname", group.getAppname());
+        detail.put("groupId", group.getId());
+        detail.put("handler", item.getExecutorHandler().trim());
+        detail.put("jobId", jobInfo.getId());
+        detail.put("startPolicy", startPolicy.name());
+        detail.put("triggerStatus", jobInfo.getTriggerStatus());
+        detail.put("triggerNextTime", jobInfo.getTriggerNextTime());
         return detail;
     }
 
@@ -284,25 +314,33 @@ public class JobSyncServiceImpl implements JobSyncService {
         );
     }
 
-    private void startJob(XxlJobInfo jobInfo) {
+    private boolean prepareJobStart(XxlJobInfo jobInfo) {
+        if (!refreshNextTriggerTime(jobInfo)) {
+            return false;
+        }
+        jobInfo.setTriggerStatus(TriggerStatus.RUNNING.getValue());
+        jobInfo.setTriggerLastTime(0);
+        return true;
+    }
+
+    private boolean refreshNextTriggerTime(XxlJobInfo jobInfo) {
         ScheduleTypeEnum scheduleTypeEnum = ScheduleTypeEnum.match(jobInfo.getScheduleType(), ScheduleTypeEnum.NONE);
         if (ScheduleTypeEnum.NONE == scheduleTypeEnum) {
-            return;
+            return false;
         }
         try {
             Date nextValidTime = scheduleTypeEnum.getScheduleType()
                     .generateNextTriggerTime(jobInfo, new Date(System.currentTimeMillis() + JobScheduleHelper.PRE_READ_MS));
             if (nextValidTime == null) {
-                return;
+                return false;
             }
-            jobInfo.setTriggerStatus(TriggerStatus.RUNNING.getValue());
-            jobInfo.setTriggerLastTime(0);
             jobInfo.setTriggerNextTime(nextValidTime.getTime());
             jobInfo.setUpdateTime(new Date());
-            xxlJobInfoMapper.update(jobInfo);
+            return true;
         } catch (Exception e) {
-            logger.warn(">>>>>>>>>>> xxl-job boost sync start job skipped, handler:{}, message:{}",
+            logger.warn(">>>>>>>>>>> xxl-job boost sync refresh next trigger time skipped, handler:{}, message:{}",
                     jobInfo.getExecutorHandler(), e.getMessage());
+            return false;
         }
     }
 
@@ -313,6 +351,7 @@ public class JobSyncServiceImpl implements JobSyncService {
         private int requested;
         private int created;
         private int updated;
+        private int started;
         private int unchanged;
         private int skipped;
         private boolean groupCreated;
@@ -320,8 +359,8 @@ public class JobSyncServiceImpl implements JobSyncService {
 
         private String toMessage() {
             return String.format(
-                    "appname=%s, groupId=%d, mode=%s, requested=%d, created=%d, updated=%d, unchanged=%d, skipped=%d, groupCreated=%s, groupUpdated=%s",
-                    appname, jobGroup, mode, requested, created, updated, unchanged, skipped, groupCreated, groupUpdated
+                    "appname=%s, groupId=%d, mode=%s, requested=%d, created=%d, updated=%d, started=%d, unchanged=%d, skipped=%d, groupCreated=%s, groupUpdated=%s",
+                    appname, jobGroup, mode, requested, created, updated, started, unchanged, skipped, groupCreated, groupUpdated
             );
         }
     }

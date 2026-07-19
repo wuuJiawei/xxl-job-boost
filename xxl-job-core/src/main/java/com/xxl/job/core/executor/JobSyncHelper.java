@@ -82,7 +82,7 @@ public class JobSyncHelper {
         item.setExecutorBlockStrategy(xxlJobBoost.blockStrategy().name());
         item.setExecutorTimeout(xxlJobBoost.timeout());
         item.setExecutorFailRetryCount(xxlJobBoost.retryCount());
-        item.setAutoStart(xxlJobBoost.autoStart());
+        item.setStartPolicy(xxlJobBoost.startPolicy().name());
         return item;
     }
 

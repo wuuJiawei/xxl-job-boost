@@ -44,7 +44,7 @@ XXL-JOB Boost 是 XXL-JOB 的增强发行版，不是重写版。
 - 阻塞策略：`blockStrategy`
 - 超时时间：`timeout`
 - 失败重试：`retryCount`
-- 自动启动：`autoStart`
+- 启动策略：`startPolicy`
 
 执行器启动时，`XxlJobSpringExecutor` 会扫描带 `@XxlJob` 或 `@XxlJobBoost` 的方法。
 
@@ -64,11 +64,17 @@ XXL-JOB Boost 是 XXL-JOB 的增强发行版，不是重写版。
 - `CREATE_ONLY`：只创建缺失任务，不覆盖已有配置。
 - `CREATE_UPDATE`：创建并更新任务，更新时计算字段 Diff。
 
+启动策略：
+
+- `MANUAL`：新任务创建后保持停止，已有任务保留调度中心中的运行状态。
+- `ON_CREATE`：新任务创建后自动启动，已有任务保留调度中心中的运行状态。
+- `ENSURE_RUNNING`：新任务创建后自动启动，并在后续同步时确保已有任务处于运行状态。
+
 自动同步还会：
 
 - 根据 `appname` 创建或更新执行器分组。
 - 将任务写入 `xxl_job_info`。
-- 可在 `autoStart=true` 且调度配置有效时启动任务。
+- 可按 `startPolicy` 在首次创建后启动任务，或显式确保任务持续处于运行状态。
 - 记录系统审计日志，来源为 `executor-sync`。
 
 ## 执行器传输抽象

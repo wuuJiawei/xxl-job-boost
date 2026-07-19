@@ -1,6 +1,7 @@
 package com.xxl.job.openapi;
 
 import com.xxl.job.core.constant.RegistType;
+import com.xxl.job.core.constant.XxlJobStartPolicy;
 import com.xxl.job.core.openapi.AdminBiz;
 import com.xxl.job.core.openapi.model.CallbackRequest;
 import com.xxl.job.core.openapi.model.JobSyncItem;
@@ -103,7 +104,7 @@ public class AdminBizTest {
         item.setExecutorBlockStrategy("SERIAL_EXECUTION");
         item.setExecutorTimeout(0);
         item.setExecutorFailRetryCount(0);
-        item.setAutoStart(false);
+        item.setStartPolicy(XxlJobStartPolicy.MANUAL.name());
 
         JobSyncRequest request = new JobSyncRequest();
         request.setAppname("xxl-job-executor-sample");

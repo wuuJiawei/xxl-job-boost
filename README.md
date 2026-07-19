@@ -37,13 +37,13 @@ Boost 增加了 `@XxlJobBoost`：
         author = "XXL",
         jobTag = "sample,demo",
         alarmEmail = "demo@example.com",
-        alarmEventTypes = "EXECUTOR_FAIL,TRIGGER_FAIL",
-        scheduleType = "CRON",
+        alarmEventTypes = {XxlJobAlarmEventType.EXECUTOR_FAIL, XxlJobAlarmEventType.TRIGGER_FAIL},
+        scheduleType = XxlJobScheduleType.CRON,
         scheduleConf = "0 0 0 * * ? *",
-        routeStrategy = "FIRST",
-        misfireStrategy = "DO_NOTHING",
-        blockStrategy = "SERIAL_EXECUTION",
-        autoStart = false
+        routeStrategy = XxlJobRouteStrategy.FIRST,
+        misfireStrategy = XxlJobMisfireStrategy.DO_NOTHING,
+        blockStrategy = ExecutorBlockStrategyEnum.SERIAL_EXECUTION,
+        startPolicy = XxlJobStartPolicy.ON_CREATE
 )
 public void demoJobHandler() {
     XxlJobHelper.log("XXL-JOB Boost, Hello World.");
@@ -57,6 +57,8 @@ public void demoJobHandler() {
 - 可按策略控制是否覆盖已有任务
 - 同步变更会记录审计日志和字段 Diff
 - 旧的 `@XxlJob` 和 `@XxlJob + @XxlJobBoost` 写法继续兼容
+
+`startPolicy=ON_CREATE` 只在任务首次创建后自动启动。任务已存在时，执行器重启和配置同步都会保留调度中心中的人工启停状态。
 
 ### 2. 可选 `SPRING_HTTP`，降低 Netty 强绑定
 
