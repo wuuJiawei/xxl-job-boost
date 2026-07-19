@@ -33,7 +33,7 @@ bash scripts/dev-start.sh
 这个脚本已经把本地联调所需动作封装好了：
 
 - 自动检查并启动 Docker MySQL 容器 `xxljob-mysql`
-- 自动按文件名顺序执行 `doc/db/migrations/*.sql` 幂等迁移
+- 仅为空数据库执行 `docs/db/install-xxl-job-boost.sql`；已有官方库需人工选择对应迁移 SQL
 - 首次缺少 jar 时自动执行 Maven 打包
 - 自动寻找 JDK 17
 - 自动启动调度中心 admin
@@ -337,7 +337,7 @@ Table 'xxl_job.xxl_job_alarm_channel' doesn't exist
 - `xxl_job_alarm_channel`
 - `xxl_job_alarm_record`
 
-为避免以后重复踩坑，启动脚本已经改成通用迁移逻辑：后续执行 `bash scripts/dev-start.sh` 时，会在保留现有数据的前提下按文件名顺序执行 `doc/db/migrations/*.sql`。
+启动脚本只负责空库初始化，不再自动升级已有数据库。官方旧库必须先阅读迁移指南，再从 `docs/db/` 选择与来源版本匹配的唯一迁移 SQL，避免把互斥脚本全部执行。
 
 ## 相关文件
 

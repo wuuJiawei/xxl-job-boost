@@ -114,13 +114,13 @@
 3. 增强执行器注册与元数据管理
 4. 增强任务治理、审计与观测能力
 
-## 后续增量升级
+## 数据库入口调整
 
-如果不是全新初始化数据库，而是基于旧库继续升级，请额外执行增量 SQL。
+数据库脚本已按来源版本重新整合。全新部署使用全量 SQL；官方旧库只能选择与来源版本匹配的一份迁移 SQL：
 
-- [告警规则表升级脚本](../doc/db/migrations/2026-06-13-add-alarm-rule-table.sql)
-- [审计日志 operator_user_id 升级脚本](../doc/db/migrations/2026-06-13-add-operator-user-id-to-audit-log.sql)
-- [1.0.0 完整升级脚本](../doc/db/migrations/2026-07-04-upgrade-to-xxl-job-boost-1.0.0.sql)
+- [从官方 3.4.2 迁移](./db/migrate-from-official-3.4.2.sql)
+- [从官方 2.4.x / 2.5.x 迁移](./db/migrate-from-official-2.4.x-2.5.x.sql)
+- [全新部署](./db/install-xxl-job-boost.sql)
 
 ## 相关文档
 

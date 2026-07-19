@@ -19,8 +19,7 @@ EXECUTOR_LOG_FILE="$RUN_ROOT/executor.out"
 
 ADMIN_JAR="$ROOT_DIR/xxl-job-admin/target/xxl-job-admin-${PROJECT_VERSION}.jar"
 EXECUTOR_JAR="$ROOT_DIR/xxl-job-executor-samples/xxl-job-executor-sample-springboot/target/xxl-job-executor-sample-springboot-${PROJECT_VERSION}.jar"
-SQL_FILE="$ROOT_DIR/doc/db/tables_xxl_job.sql"
-MIGRATION_DIR="$ROOT_DIR/doc/db/migrations"
+SQL_FILE="$ROOT_DIR/docs/db/install-xxl-job-boost.sql"
 
 mkdir -p "$LOG_ROOT/xxl-job" "$LOG_ROOT/jobhandler" "$RUN_ROOT"
 
@@ -110,21 +109,6 @@ start_mysql() {
     | grep -qx '1'; then
     docker exec "$MYSQL_CONTAINER" sh -lc "mysql -uroot -p$MYSQL_ROOT_PASSWORD < /dev/stdin" < "$SQL_FILE"
   fi
-}
-
-apply_migrations() {
-  require_cmd docker
-
-  if [[ ! -d "$MIGRATION_DIR" ]]; then
-    return
-  fi
-
-  local migration
-  for migration in "$MIGRATION_DIR"/*.sql; do
-    [[ -f "$migration" ]] || continue
-    echo "applying migration: $(basename "$migration")"
-    docker exec -i "$MYSQL_CONTAINER" mysql -uroot "-p$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE" < "$migration"
-  done
 }
 
 build_jars() {
@@ -236,7 +220,6 @@ refresh_pid_file() {
 }
 
 start_mysql
-apply_migrations
 resolve_java
 export LOG_HOME="$LOG_ROOT"
 build_jars

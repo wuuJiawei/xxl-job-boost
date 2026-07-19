@@ -68,29 +68,24 @@ docker push pub.lighting/xxl-job-boost-executor-sample-springboot:latest
 2. 从 `docker/.env.example` 复制生产环境变量，至少修改 `MYSQL_ROOT_PASSWORD` 和 `MYSQL_PATH`。
 3. `XXL_JOB_ADMIN_CONTEXT_PATH` 默认保持 `/xxl-job-admin`，兼容旧控制台和执行器配置。
 4. 只部署 `xxl-job-boost-admin`，除非需要演示，否则不启动样例执行器。
-5. 首次上线前在预发库跑完 `doc/db/migrations/*.sql` 并验证新旧控制台。
+5. 首次上线前根据来源版本选择 `docs/db/` 中唯一匹配的 SQL，在预发库演练并验证新旧控制台。
 
 ## 数据库升级
 
 全新数据库使用：
 
 ```text
-doc/db/tables_xxl_job.sql
+docs/db/install-xxl-job-boost.sql
 ```
 
-旧库升级按文件名顺序执行：
+官方旧库升级按来源版本二选一：
 
 ```text
-doc/db/migrations/*.sql
+docs/db/migrate-from-official-3.4.2.sql
+docs/db/migrate-from-official-2.4.x-2.5.x.sql
 ```
 
-当前 `1.0.0` 迁移链包括：
-
-- `2026-06-13-add-alarm-rule-table.sql`
-- `2026-06-13-add-operator-user-id-to-audit-log.sql`
-- `2026-07-04-upgrade-to-xxl-job-boost-1.0.0.sql`
-
-这些脚本按幂等方式编写，可重复执行。生产仍然需要先备份数据库，再在预发环境演练。
+迁移脚本按幂等方式编写，可在排除部分失败原因后重复执行，但不能交叉执行。生产仍然需要先备份数据库，再按[迁移指南](./migration-from-xxl-job.md)在预发环境演练。
 
 ## 上线验证
 

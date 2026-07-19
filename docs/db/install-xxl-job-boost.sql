@@ -1,6 +1,7 @@
 #
-# XXL-JOB
-# Copyright (c) 2015-present, xuxueli.
+# XXL-JOB Boost 1.0.0 - full installation schema
+# Based on the official XXL-JOB 3.4.2 schema.
+# Use only for a new deployment. Do not run against an existing database.
 
 CREATE database if NOT EXISTS `xxl_job` default character set utf8mb4 collate utf8mb4_unicode_ci;
 use `xxl_job`;

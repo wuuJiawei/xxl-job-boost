@@ -49,15 +49,14 @@
 
 全新数据库继续使用：
 
-- `doc/db/tables_xxl_job.sql`
+- `docs/db/install-xxl-job-boost.sql`
 
-从旧库升级按顺序执行：
+官方旧库按来源版本选择其中一份：
 
-- `doc/db/migrations/2026-06-13-add-alarm-rule-table.sql`
-- `doc/db/migrations/2026-06-13-add-operator-user-id-to-audit-log.sql`
-- `doc/db/migrations/2026-07-04-upgrade-to-xxl-job-boost-1.0.0.sql`
+- `docs/db/migrate-from-official-3.4.2.sql`
+- `docs/db/migrate-from-official-2.4.x-2.5.x.sql`
 
-本地启动脚本 `scripts/dev-start.sh` 会在 MySQL 可用后自动按文件名顺序执行 `doc/db/migrations/*.sql`。
+数据库脚本现已按来源版本合并为三个明确入口。本地启动脚本 `scripts/dev-start.sh` 只在空库执行全量安装 SQL；已有官方库按迁移指南人工选择一份迁移 SQL。
 
 ## 发布前检查
 

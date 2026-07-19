@@ -18,6 +18,8 @@
   <img src="https://img.shields.io/badge/license-GPL--3.0-lightgrey" alt="License GPL-3.0">
 </p>
 
+> **从官方 XXL-JOB 升级？请先阅读：[官方 XXL-JOB 迁移到 XXL-JOB Boost 完整指南](docs/migration-from-xxl-job.md)。** 迁移指南覆盖数据库、admin server、执行器、`NETTY_EMBED` / `SPRING_HTTP`、Docker、Docker Compose、验证和回滚。
+
 XXL-JOB Boost 是基于 [XXL-JOB](https://github.com/xuxueli/xxl-job) 的增强发行版。它不重写调度内核，而是在兼容原有任务模型、数据库结构和执行器接入方式的前提下，把 XXL-JOB 补成更适合现代团队使用的调度平台：代码声明任务、启动自动同步、可选去 Netty 化传输、现代 Web UI、告警编排、审计留痕和治理视图。
 
 如果你已经在用 XXL-JOB，Boost 的目标不是让你迁移到另一套调度系统，而是让原来的系统少一点手工配置、多一点工程化和治理能力。
@@ -177,7 +179,7 @@ bash scripts/dev-start.sh
 脚本会：
 
 - 拉起或复用 Docker MySQL 容器 `xxljob-mysql`
-- 对已有数据库按 `doc/db/migrations/*.sql` 顺序执行幂等迁移
+- 仅在空数据库中执行 `docs/db/install-xxl-job-boost.sql` 初始化；已有官方库需按迁移指南手工选择迁移 SQL
 - 首次缺少 jar 时自动执行 Maven 打包
 - 启动调度中心 `xxl-job-admin`
 - 启动 Spring Boot 样例执行器
@@ -272,7 +274,6 @@ xxl.job.executor.logretentiondays=30
 xxl-job-boost
 ├── xxl-job-admin                         # 调度中心后端、旧控制台、admin-next 静态资源与 JSON API
 ├── xxl-job-admin-ui                      # 新控制台源码，Vue 3 + TypeScript + Vite + Naive UI
-├── xxl-job-admin-ui-legacy               # 保留的旧前端工程
 ├── xxl-job-core                          # 核心执行器、handler、日志、回调、任务同步扫描
 ├── xxl-job-executor-transport            # 执行器传输聚合模块
 │   ├── xxl-job-transport-api             # 执行器传输抽象、HTTP 客户端、endpoint 解析
@@ -280,8 +281,7 @@ xxl-job-boost
 │   └── xxl-job-transport-spring-mvc      # Spring MVC HTTP 执行器传输实现
 ├── xxl-job-boost-spring-boot-starter     # 推荐 Spring Boot starter，聚合 core 与执行器传输
 ├── xxl-job-executor-samples              # frameless、Spring Boot、Spring AI 样例执行器
-├── doc                                   # 上游文档、初始化 SQL、数据库迁移脚本
-├── docs                                  # Boost 文档、路线图、迁移指南、运行手册
+├── docs                                  # 统一文档根：迁移指南、数据库 SQL、运行手册和上游资料镜像
 ├── scripts                               # 本地启动、停止、状态检查脚本
 ├── docker                                # Docker Compose 等容器配置
 └── launchd                               # macOS launchd 常驻配置
@@ -289,32 +289,29 @@ xxl-job-boost
 
 ## 数据库升级
 
-全新初始化使用：
+数据库脚本按来源版本三选一，不是按顺序全部执行：
 
-- [doc/db/tables_xxl_job.sql](doc/db/tables_xxl_job.sql)
+- [全新部署：install-xxl-job-boost.sql](docs/db/install-xxl-job-boost.sql)
+- [官方 3.4.2 迁移：migrate-from-official-3.4.2.sql](docs/db/migrate-from-official-3.4.2.sql)
+- [官方 2.4.x / 2.5.x 迁移：migrate-from-official-2.4.x-2.5.x.sql](docs/db/migrate-from-official-2.4.x-2.5.x.sql)
 
-从旧库升级时，除对齐初始化 SQL 外，还需要关注增量脚本：
-
-- [2026-06-13-add-alarm-rule-table.sql](doc/db/migrations/2026-06-13-add-alarm-rule-table.sql)
-- [2026-06-13-add-operator-user-id-to-audit-log.sql](doc/db/migrations/2026-06-13-add-operator-user-id-to-audit-log.sql)
-- [2026-07-04-upgrade-to-xxl-job-boost-1.0.0.sql](doc/db/migrations/2026-07-04-upgrade-to-xxl-job-boost-1.0.0.sql)
-
-迁移前请阅读 [从 XXL-JOB 迁移到 Boost](docs/migration-from-xxl-job.md)。
+执行前必须阅读[从官方 XXL-JOB 迁移到 Boost](docs/migration-from-xxl-job.md)，先备份并在预发演练。
 
 ## 文档
 
+- [文档索引](docs/README.md)：统一文档入口
+- [从官方 XXL-JOB 迁移到 Boost](docs/migration-from-xxl-job.md)：数据库、admin、执行器、传输和容器完整迁移步骤
 - [Boost Features](docs/boost-features.md)：当前代码已落地能力的完整说明
 - [1.0.0 测试用例](docs/test-plan-1.0.0.md)：发布前自测、预发验收和生产上线检查
 - [生产部署方案](docs/production-deployment.md)：生产 Docker 镜像发布与部署建议
 - [本地运行与排障记录](docs/local-dev-runbook.md)：本机启动方式、端口、常见故障
-- [从 XXL-JOB 迁移到 Boost](docs/migration-from-xxl-job.md)：迁移路径、版本边界、数据库升级
 - [功能路线图 / Roadmap](docs/feature-roadmap.md)：后续演进方向，不等同于已交付清单
 - [管理后台迁移计划](docs/admin-ui-migration-plan.md)：admin-next 的迁移思路
 - [源码增强策略](docs/upstream-extension-strategy.md)：为什么采用源码内渐进增强
 - [1.0.0 发布说明](docs/release-notes-1.0.0.md)：首个自有坐标发布准备说明
 - [项目版本说明](docs/release-notes-2026-06-10.md)：早期可用基线说明
-- [官方中文文档镜像](doc/XXL-JOB官方文档.md)
-- [Official English Documentation mirror](doc/XXL-JOB-English-Documentation.md)
+- [官方中文文档镜像](docs/upstream/XXL-JOB官方文档.md)
+- [Official English Documentation mirror](docs/upstream/XXL-JOB-English-Documentation.md)
 
 ## 兼容性原则
 

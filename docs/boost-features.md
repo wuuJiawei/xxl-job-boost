@@ -102,14 +102,14 @@ XXL-JOB Boost 是 XXL-JOB 的增强发行版，不是重写版。
 - `POST /kill`
 - `POST /log`
 
-客户端侧通过 `ExecutorBizClientTransportFactory` 解析执行器地址，可识别显式前缀：
+客户端侧通过 `ExecutorBizClientTransportFactory` 解析执行器地址。两种服务端模式都暴露兼容的 HTTP 端点，显式客户端前缀统一为 `HTTP::`：
 
 ```text
-SPRING_HTTP::http://127.0.0.1:8081/
-NETTY_EMBED::http://127.0.0.1:9999/
+HTTP::http://127.0.0.1:8081/
+http://127.0.0.1:9999/
 ```
 
-如果没有显式前缀，则按已注册 transport 的 `supports` 规则匹配。
+`SPRING_HTTP` / `NETTY_EMBED` 是执行器服务端启动模式，不是 admin 客户端地址前缀。如果没有显式 `HTTP::`，客户端会按 HTTP 地址规则匹配。
 
 ## Spring Boot Starter
 
@@ -276,9 +276,11 @@ NETTY_EMBED::http://127.0.0.1:9999/
 
 ## 数据库增强
 
-初始化 SQL：
+数据库入口 SQL：
 
-- [`doc/db/tables_xxl_job.sql`](../doc/db/tables_xxl_job.sql)
+- [全新部署](./db/install-xxl-job-boost.sql)
+- [从官方 3.4.2 迁移](./db/migrate-from-official-3.4.2.sql)
+- [从官方 2.4.x / 2.5.x 迁移](./db/migrate-from-official-2.4.x-2.5.x.sql)
 
 新增或增强的关键字段 / 表：
 
@@ -291,11 +293,7 @@ NETTY_EMBED::http://127.0.0.1:9999/
 - `xxl_job_audit_log`
 - `xxl_job_audit_log.operator_user_id`
 
-增量脚本：
-
-- [`2026-06-13-add-alarm-rule-table.sql`](../doc/db/migrations/2026-06-13-add-alarm-rule-table.sql)
-- [`2026-06-13-add-operator-user-id-to-audit-log.sql`](../doc/db/migrations/2026-06-13-add-operator-user-id-to-audit-log.sql)
-- [`2026-07-04-upgrade-to-xxl-job-boost-1.0.0.sql`](../doc/db/migrations/2026-07-04-upgrade-to-xxl-job-boost-1.0.0.sql)
+三份 SQL 是按来源版本选择的独立入口，不是连续执行的 migration 链。具体步骤见[完整迁移指南](./migration-from-xxl-job.md)。
 
 ## 样例执行器
 

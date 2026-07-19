@@ -85,7 +85,7 @@ flowchart TD
 | GA-004 | Docker 本地镜像构建 | `bash scripts/docker-build.sh` | `pub.lighting/xxl-job-boost-admin:local` 构建成功 | P0 |
 | GA-005 | Maven release profile | `JAVA_HOME=/path/to/jdk17 mvn -P release -DskipTests -Dgpg.skip=true verify` | 只构建 7 个库模块并成功生成 sources/javadocs | P0 |
 | GA-006 | 脚本语法检查 | `bash -n scripts/*.sh` | 无语法错误 | P0 |
-| GA-007 | 迁移 SQL 幂等性 | 在测试 MySQL 重复执行 `doc/db/migrations/*.sql` | 第 2 次执行仍成功 | P0 |
+| GA-007 | 迁移 SQL 幂等性 | 在匹配的官方测试库重复执行同一份 `docs/db/migrate-from-official-*.sql` | 第 2 次执行仍成功 | P0 |
 | GA-008 | 生产配置已替换默认值 | 检查 `.env`、数据库连接、`accessToken` | 不使用默认密码和本地路径 | P0 |
 | GA-009 | 回滚材料可用 | 旧镜像、旧 jar、数据库备份 | 可在发布窗口内回退 | P0 |
 
@@ -106,18 +106,17 @@ sequenceDiagram
     S->>M: start or reuse container
     M-->>S: mysqladmin ping ok
     S->>DB: import tables if first init
-    S->>DB: apply doc/db/migrations/*.sql
     S->>A: build jar if missing, start admin
     A-->>S: port 8080 listening
     S->>E: build jar if missing, start executor
-    E-->>S: ports 8081 and 9999 listening
+    E-->>S: port 8081 listening
     S-->>U: print access URLs
 ```
 
 | 编号 | 用例 | 前置条件 | 步骤 | 期望结果 | 优先级 |
 | --- | --- | --- | --- | --- | --- |
 | LR-001 | 一键启动本地环境 | Docker 可用，端口未被非项目进程占用 | 执行 `bash scripts/dev-start.sh` | MySQL、admin、sample executor 均启动成功 | P0 |
-| LR-002 | 重复启动幂等 | 已执行过 `dev-start.sh` | 再次执行 `bash scripts/dev-start.sh` | 不破坏现有数据；重复迁移成功；服务可用 | P0 |
+| LR-002 | 重复启动幂等 | 已执行过 `dev-start.sh` | 再次执行 `bash scripts/dev-start.sh` | 不重复初始化或修改现有数据；服务可用 | P0 |
 | LR-003 | 查看状态 | 本地环境已启动 | 执行 `bash scripts/dev-status.sh` | 显示 admin、executor、mysql running，端口 listening | P0 |
 | LR-004 | 停止环境 | 本地环境已启动 | 执行 `bash scripts/dev-stop.sh` | admin、executor、MySQL 容器停止或状态明确 | P0 |
 | LR-005 | 端口冲突保护 | 用非项目进程占用 `8080` | 执行 `bash scripts/dev-start.sh` | 脚本失败并提示非 XXL-JOB 进程占用，不误杀 | P0 |
@@ -304,7 +303,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     A["备份生产库"] --> B["恢复到预发库"]
-    B --> C["执行 doc/db/migrations/*.sql"]
+    B --> C["按来源版本执行唯一匹配的 docs/db 迁移 SQL"]
     C --> D["启动 Boost admin"]
     D --> E["验证历史任务、日志、用户、执行器"]
     E --> F{"验证通过"}
@@ -319,8 +318,8 @@ flowchart TD
 
 | 编号 | 用例 | 前置条件 | 步骤 | 期望结果 | 优先级 |
 | --- | --- | --- | --- | --- | --- |
-| DB-001 | 全新初始化 | 空 MySQL | 导入 `doc/db/tables_xxl_job.sql` | 所有基础表、Boost 表、默认用户创建成功 | P0 |
-| DB-002 | 初始化后跑迁移 | 已导入初始化 SQL | 按顺序执行 `doc/db/migrations/*.sql` 两次 | 两次都成功，无重复列或索引错误 | P0 |
+| DB-001 | 全新初始化 | 空 MySQL | 导入 `docs/db/install-xxl-job-boost.sql` | 所有基础表、Boost 表、默认用户创建成功 | P0 |
+| DB-002 | 官方库迁移幂等性 | 官方 3.4.2 或 2.4.x/2.5.x 测试库 | 对匹配来源版本的迁移 SQL 连续执行两次 | 两次都成功，无重复列或索引错误 | P0 |
 | DB-003 | 旧库补齐 Boost 字段 | 模拟旧库 `xxl_job_info` 缺少 Boost 字段 | 执行迁移 | `job_tag`、`alarm_channel_ids`、`alarm_event_types` 存在 | P0 |
 | DB-004 | 创建告警表 | 旧库缺少告警表 | 执行迁移 | `xxl_job_alarm_channel/rule/record` 存在 | P0 |
 | DB-005 | 创建审计表 | 旧库缺少审计表 | 执行迁移 | `xxl_job_audit_log` 和 `operator_user_id` 存在 | P0 |
@@ -383,7 +382,7 @@ flowchart TD
 | --- | --- | --- | --- | --- | --- |
 | CP-001 | 旧 Netty 执行器兼容 | 使用 `NETTY_EMBED` 执行器 | 启动并触发任务 | 注册、触发、回调、日志正常 | P0 |
 | CP-002 | Spring HTTP 执行器 | 使用 Boost starter 默认配置 | 启动并触发任务 | 复用 `server.port`，无额外 Netty 端口依赖 | P0 |
-| CP-003 | 无显式 transport 前缀地址 | 执行器地址不带 `SPRING_HTTP::` | 调度触发 | transport factory 可正确匹配 | P1 |
+| CP-003 | 无显式客户端前缀地址 | 执行器地址使用普通 `http://host:port/`，不带 `HTTP::` | 调度触发 | transport factory 可正确匹配 | P1 |
 | CP-004 | 旧控制台任务操作 | 旧控制台新增或编辑任务 | 新控制台查看 | 数据一致 | P0 |
 | CP-005 | 新控制台任务操作 | 新控制台新增或编辑任务 | 旧控制台查看 | 数据一致 | P0 |
 | CP-006 | 官方旧库升级 | 官方 3.x 库副本 | 执行迁移并部署 Boost | 历史任务和执行器可用 | P0 |
