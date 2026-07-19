@@ -6,6 +6,7 @@ import com.xxl.job.admin.model.XxlJobLog;
 import com.xxl.job.admin.scheduler.alarm.JobAlarm;
 import com.xxl.tool.core.StringTool;
 import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -13,6 +14,9 @@ public class ChannelJobAlarm implements JobAlarm {
 
     @Resource
     private AlarmChannelService alarmChannelService;
+
+    @Value("${xxl.job.mail.enabled:false}")
+    private boolean mailEnabled;
 
     @Override
     public boolean doAlarm(XxlJobInfo info, XxlJobLog jobLog) {
@@ -22,8 +26,9 @@ public class ChannelJobAlarm implements JobAlarm {
         boolean boundResult = true;
         if (StringTool.isNotBlank(info.getAlarmChannelIds())) {
             boundResult = alarmChannelService.sendBoundChannels(info, jobLog);
+        } else if (!mailEnabled || StringTool.isBlank(info.getAlarmEmail())) {
+            boundResult = alarmChannelService.sendExecutorDefaults(info, jobLog);
         }
-        boolean ruleResult = alarmChannelService.sendMatchedRules(info, jobLog);
-        return boundResult && ruleResult;
+        return boundResult;
     }
 }

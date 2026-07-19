@@ -31,11 +31,15 @@
         SELECT <include refid="Base_Column_List" />
         FROM xxl_job_alarm_rule t
         <trim prefix="WHERE" prefixOverrides="AND | OR">
+            AND (t.job_id IS NULL OR t.job_id = 0)
+            <if test="jobGroupIds != null and jobGroupIds.size() > 0">
+                AND t.job_group IN
+                <foreach collection="jobGroupIds" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
             <if test="jobGroup gt 0">
                 AND t.job_group = #{jobGroup}
-            </if>
-            <if test="jobId gt 0">
-                AND t.job_id = #{jobId}
             </if>
             <if test="alarmEvent != null and alarmEvent != ''">
                 AND t.alarm_event = #{alarmEvent}
@@ -52,11 +56,15 @@
         SELECT count(1)
         FROM xxl_job_alarm_rule t
         <trim prefix="WHERE" prefixOverrides="AND | OR">
+            AND (t.job_id IS NULL OR t.job_id = 0)
+            <if test="jobGroupIds != null and jobGroupIds.size() > 0">
+                AND t.job_group IN
+                <foreach collection="jobGroupIds" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
             <if test="jobGroup gt 0">
                 AND t.job_group = #{jobGroup}
-            </if>
-            <if test="jobId gt 0">
-                AND t.job_id = #{jobId}
             </if>
             <if test="alarmEvent != null and alarmEvent != ''">
                 AND t.alarm_event = #{alarmEvent}
@@ -114,14 +122,33 @@
         WHERE t.id = #{id}
     </select>
 
-    <select id="findMatched" resultMap="XxlJobAlarmRule">
+    <select id="findExecutorDefaults" resultMap="XxlJobAlarmRule">
+        SELECT <include refid="Base_Column_List" />
+        FROM xxl_job_alarm_rule t
+        WHERE t.job_group = #{jobGroup}
+          AND (t.job_id IS NULL OR t.job_id = 0)
+        ORDER BY t.id ASC
+    </select>
+
+    <select id="findEnabledExecutorDefaults" resultMap="XxlJobAlarmRule">
         SELECT <include refid="Base_Column_List" />
         FROM xxl_job_alarm_rule t
         WHERE t.enabled = 1
           AND t.job_group = #{jobGroup}
           AND t.alarm_event = #{alarmEvent}
-          AND (t.job_id IS NULL OR t.job_id = 0 OR t.job_id = #{jobId})
-        ORDER BY CASE WHEN t.job_id = #{jobId} THEN 0 ELSE 1 END, t.id DESC
+          AND (t.job_id IS NULL OR t.job_id = 0)
+        ORDER BY t.id DESC
     </select>
+
+    <delete id="removeExecutorDefaults">
+        DELETE FROM xxl_job_alarm_rule
+        WHERE job_group = #{jobGroup}
+          AND (job_id IS NULL OR job_id = 0)
+    </delete>
+
+    <delete id="removeByJobGroup">
+        DELETE FROM xxl_job_alarm_rule
+        WHERE job_group = #{jobGroup}
+    </delete>
 
 </mapper>

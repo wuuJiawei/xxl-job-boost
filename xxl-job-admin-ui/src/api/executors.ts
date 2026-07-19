@@ -1,4 +1,5 @@
 import { http } from './http';
+import type { AlarmRule } from './alerts';
 
 type ApiResponse<T> = {
   code: number;
@@ -79,6 +80,34 @@ export async function deleteExecutorGroup(ids: number | number[]) {
     form.append('ids[]', String(id));
   });
   const { data } = await http.post<ApiResponse<string>>('/jobgroup/delete', form, {
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+  });
+  return data;
+}
+
+export async function fetchExecutorAlarmPolicy(jobGroup: number) {
+  const { data } = await http.get<ApiResponse<AlarmRule[]>>('/alarmrule/executorPolicy', {
+    params: { jobGroup }
+  });
+  return data;
+}
+
+export type ExecutorAlarmPolicyPayload = {
+  jobGroup: number;
+  executorFailChannelIds: number[];
+  executorTimeoutChannelIds: number[];
+  triggerFailChannelIds: number[];
+};
+
+export async function updateExecutorAlarmPolicy(payload: ExecutorAlarmPolicyPayload) {
+  const form = new URLSearchParams();
+  form.set('jobGroup', String(payload.jobGroup));
+  form.set('executorFailChannelIds', payload.executorFailChannelIds.join(','));
+  form.set('executorTimeoutChannelIds', payload.executorTimeoutChannelIds.join(','));
+  form.set('triggerFailChannelIds', payload.triggerFailChannelIds.join(','));
+  const { data } = await http.post<ApiResponse<string>>('/alarmrule/updateExecutorPolicy', form, {
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded'
     }

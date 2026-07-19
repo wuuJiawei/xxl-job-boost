@@ -5,10 +5,8 @@ import com.xxl.job.admin.core.alarm.AlarmChannelService;
 import com.xxl.job.admin.core.alarm.AlarmEventType;
 import com.xxl.job.admin.mapper.XxlJobAlarmRuleMapper;
 import com.xxl.job.admin.mapper.XxlJobGroupMapper;
-import com.xxl.job.admin.mapper.XxlJobInfoMapper;
 import com.xxl.job.admin.model.XxlJobAlarmRule;
 import com.xxl.job.admin.model.XxlJobGroup;
-import com.xxl.job.admin.model.XxlJobInfo;
 import com.xxl.job.admin.service.AuditLogService;
 import com.xxl.job.admin.util.JobGroupPermissionUtil;
 import com.xxl.sso.core.annotation.XxlSso;
@@ -21,12 +19,15 @@ import com.xxl.tool.response.Response;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/alarmrule")
@@ -36,8 +37,6 @@ public class JobAlarmRuleController {
     private XxlJobAlarmRuleMapper xxlJobAlarmRuleMapper;
     @Resource
     private XxlJobGroupMapper xxlJobGroupMapper;
-    @Resource
-    private XxlJobInfoMapper xxlJobInfoMapper;
     @Resource
     private AlarmChannelService alarmChannelService;
     @Resource
@@ -57,8 +56,16 @@ public class JobAlarmRuleController {
         if (jobGroup > 0) {
             JobGroupPermissionUtil.validJobGroupPermission(request, jobGroup);
         }
-        List<XxlJobAlarmRule> list = xxlJobAlarmRuleMapper.pageList(offset, pagesize, jobGroup, jobId, alarmEvent, enabled);
-        int count = xxlJobAlarmRuleMapper.pageListCount(offset, pagesize, jobGroup, jobId, alarmEvent, enabled);
+        List<Integer> permittedGroupIds = JobGroupPermissionUtil.filterJobGroupByPermission(request, xxlJobGroupMapper.findAll())
+                .stream().map(XxlJobGroup::getId).toList();
+        if (permittedGroupIds.isEmpty()) {
+            PageModel<XxlJobAlarmRule> empty = new PageModel<>();
+            empty.setData(List.of());
+            empty.setTotal(0);
+            return Response.ofSuccess(empty);
+        }
+        List<XxlJobAlarmRule> list = xxlJobAlarmRuleMapper.pageList(offset, pagesize, permittedGroupIds, jobGroup, jobId, alarmEvent, enabled);
+        int count = xxlJobAlarmRuleMapper.pageListCount(offset, pagesize, permittedGroupIds, jobGroup, jobId, alarmEvent, enabled);
 
         PageModel<XxlJobAlarmRule> pageModel = new PageModel<>();
         pageModel.setData(list);
@@ -133,6 +140,72 @@ public class JobAlarmRuleController {
         return ret > 0 ? Response.ofSuccess() : Response.ofFail();
     }
 
+    @RequestMapping("/executorPolicy")
+    @ResponseBody
+    @XxlSso
+    public Response<List<XxlJobAlarmRule>> executorPolicy(HttpServletRequest request,
+                                                          @RequestParam("jobGroup") int jobGroup) {
+        JobGroupPermissionUtil.validJobGroupPermission(request, jobGroup);
+        if (xxlJobGroupMapper.load(jobGroup) == null) {
+            return Response.ofFail("执行器不存在");
+        }
+        return Response.ofSuccess(xxlJobAlarmRuleMapper.findExecutorDefaults(jobGroup));
+    }
+
+    @RequestMapping("/updateExecutorPolicy")
+    @ResponseBody
+    @XxlSso(role = Consts.ADMIN_ROLE)
+    @Transactional
+    public Response<String> updateExecutorPolicy(HttpServletRequest request,
+                                                 @RequestParam("jobGroup") int jobGroup,
+                                                 @RequestParam(value = "executorFailChannelIds", required = false, defaultValue = "") String executorFailChannelIds,
+                                                 @RequestParam(value = "executorTimeoutChannelIds", required = false, defaultValue = "") String executorTimeoutChannelIds,
+                                                 @RequestParam(value = "triggerFailChannelIds", required = false, defaultValue = "") String triggerFailChannelIds) {
+        LoginInfo loginInfo = JobGroupPermissionUtil.validJobGroupPermission(request, jobGroup);
+        XxlJobGroup group = xxlJobGroupMapper.load(jobGroup);
+        if (group == null) {
+            return Response.ofFail("执行器不存在");
+        }
+
+        Map<AlarmEventType, String> policy = new LinkedHashMap<>();
+        policy.put(AlarmEventType.EXECUTOR_FAIL, executorFailChannelIds);
+        policy.put(AlarmEventType.EXECUTOR_TIMEOUT, executorTimeoutChannelIds);
+        policy.put(AlarmEventType.TRIGGER_FAIL, triggerFailChannelIds);
+
+        Map<AlarmEventType, String> normalizedPolicy = new LinkedHashMap<>();
+        try {
+            for (Map.Entry<AlarmEventType, String> entry : policy.entrySet()) {
+                normalizedPolicy.put(entry.getKey(), alarmChannelService.normalizeChannelIdsToString(entry.getValue()));
+            }
+        } catch (IllegalArgumentException e) {
+            return Response.ofFail(e.getMessage());
+        }
+
+        xxlJobAlarmRuleMapper.removeExecutorDefaults(jobGroup);
+        Date now = new Date();
+        for (Map.Entry<AlarmEventType, String> entry : normalizedPolicy.entrySet()) {
+            if (StringTool.isBlank(entry.getValue())) {
+                continue;
+            }
+            XxlJobAlarmRule rule = new XxlJobAlarmRule();
+            rule.setName(entry.getKey().getTitle() + "默认告警");
+            rule.setJobGroup(jobGroup);
+            rule.setJobId(0);
+            rule.setAlarmEvent(entry.getKey().name());
+            rule.setChannelIds(entry.getValue());
+            rule.setEnabled(1);
+            rule.setRemark("执行器默认告警策略");
+            rule.setUpdateTime(now);
+            if (xxlJobAlarmRuleMapper.save(rule) < 1) {
+                throw new IllegalStateException("执行器默认告警策略保存失败");
+            }
+        }
+
+        auditLogService.record(loginInfo, request, "alarm-policy-update", "job-group",
+                String.valueOf(jobGroup), group.getTitle(), jobGroup, normalizedPolicy);
+        return Response.ofSuccess();
+    }
+
     private Response<String> validate(XxlJobAlarmRule rule) {
         if (StringTool.isBlank(rule.getName())) {
             return Response.ofFail("请输入规则名称");
@@ -148,13 +221,9 @@ public class JobAlarmRuleController {
             return Response.ofFail("执行器不存在");
         }
         if (rule.getJobId() != null && rule.getJobId() > 0) {
-            XxlJobInfo jobInfo = xxlJobInfoMapper.loadById(rule.getJobId());
-            if (jobInfo == null || jobInfo.getJobGroup() != rule.getJobGroup()) {
-                return Response.ofFail("任务不存在或不属于当前执行器");
-            }
-        } else {
-            rule.setJobId(0);
+            return Response.ofFail("任务级告警请在任务编辑页配置");
         }
+        rule.setJobId(0);
 
         AlarmEventType eventType = AlarmEventType.match(rule.getAlarmEvent());
         if (eventType == null) {

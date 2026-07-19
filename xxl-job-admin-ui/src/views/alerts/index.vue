@@ -1,11 +1,5 @@
 <template>
   <div class="page-stack">
-    <div class="dashboard-hero">
-      <div class="section-kicker">Alerts</div>
-      <h2>告警渠道、规则与投递记录</h2>
-      <p>第二阶段先把失败告警通道化，再补一层轻量规则绑定，支持按执行器、任务和事件类型配置独立告警出口。</p>
-    </div>
-
     <n-card :bordered="false" class="filter-card">
       <div class="filter-grid alerts-filter-grid">
         <n-input v-model:value="channelFilters.name" placeholder="按渠道名称查询" clearable />
@@ -55,9 +49,8 @@
     </n-card>
 
     <n-card :bordered="false" class="filter-card">
-      <div class="filter-grid alerts-rule-filter-grid">
+      <div class="filter-grid alerts-filter-grid">
         <n-select v-model:value="ruleFilters.jobGroup" :options="jobGroupOptions" placeholder="执行器" />
-        <n-select v-model:value="ruleFilters.jobId" :options="ruleJobOptions" placeholder="任务" />
         <n-select v-model:value="ruleFilters.alarmEvent" :options="alarmEventOptions" placeholder="告警事件" clearable />
         <n-select v-model:value="ruleFilters.enabled" :options="enabledOptions" placeholder="启用状态" />
         <div class="filter-actions">
@@ -70,23 +63,8 @@
     <n-card :bordered="false">
       <template #header>
         <div class="table-header">
-          <div class="table-title">告警规则</div>
-          <div class="table-subtitle">按执行器、任务和事件类型绑定渠道。任务为空时表示整个执行器统一生效。</div>
-        </div>
-      </template>
-      <template #header-extra>
-        <div class="table-actions">
-          <n-button v-if="authStore.userInfo.isAdmin" type="primary" @click="openRuleCreate">新增规则</n-button>
-          <n-button v-if="authStore.userInfo.isAdmin" :disabled="selectedRuleCount !== 1" @click="() => void openRuleEdit()">编辑</n-button>
-          <n-button
-            v-if="authStore.userInfo.isAdmin"
-            :disabled="selectedRuleCount !== 1"
-            type="error"
-            ghost
-            @click="() => void removeRule()"
-          >
-            删除
-          </n-button>
+          <div class="table-title">执行器默认告警策略总览</div>
+          <div class="table-subtitle">策略在执行器管理中维护；任务配置告警渠道后将覆盖这里的默认策略。</div>
         </div>
       </template>
 
@@ -97,9 +75,8 @@
         :loading="ruleLoading"
         :pagination="rulePagination"
         :row-key="ruleRowKey"
-        :scroll-x="1300"
+        :scroll-x="1000"
         :single-line="false"
-        @update:checked-row-keys="handleRuleChecked"
       />
     </n-card>
 
@@ -183,52 +160,11 @@
       </template>
     </n-modal>
 
-    <n-modal
-      v-model:show="ruleFormVisible"
-      preset="card"
-      :title="ruleFormMode === 'create' ? '新增告警规则' : '编辑告警规则'"
-      style="width: 760px;"
-    >
-      <n-form ref="ruleFormRef" :model="ruleFormValue" :rules="ruleRules" label-placement="left" label-width="120">
-        <n-form-item path="name" label="规则名称">
-          <n-input v-model:value="ruleFormValue.name" placeholder="请输入规则名称" />
-        </n-form-item>
-        <n-form-item path="jobGroup" label="执行器">
-          <n-select v-model:value="ruleFormValue.jobGroup" :options="jobGroupOptions.filter(item => item.value !== -1)" placeholder="请选择执行器" />
-        </n-form-item>
-        <n-form-item path="jobId" label="任务">
-          <n-select v-model:value="ruleFormValue.jobId" :options="ruleFormJobOptions" placeholder="留空表示执行器级规则" />
-        </n-form-item>
-        <n-form-item path="alarmEvent" label="告警事件">
-          <n-select v-model:value="ruleFormValue.alarmEvent" :options="alarmEventOptions.filter(item => item.value !== '')" placeholder="请选择告警事件" />
-        </n-form-item>
-        <n-form-item path="channelIds" label="绑定渠道">
-          <n-select v-model:value="ruleFormValue.channelIds" multiple :options="enabledChannelOptions" placeholder="请选择一个或多个渠道" />
-        </n-form-item>
-        <n-form-item path="enabled" label="启用状态">
-          <n-select v-model:value="ruleFormValue.enabled" :options="enabledOptions.filter(item => item.value !== -1)" />
-        </n-form-item>
-        <n-form-item path="remark" label="备注">
-          <n-input
-            v-model:value="ruleFormValue.remark"
-            type="textarea"
-            :autosize="{ minRows: 3, maxRows: 5 }"
-            placeholder="规则说明，可选"
-          />
-        </n-form-item>
-      </n-form>
-      <template #action>
-        <div class="table-actions">
-          <n-button @click="ruleFormVisible = false">取消</n-button>
-          <n-button type="primary" :loading="ruleSubmitting" @click="submitRuleForm">保存</n-button>
-        </div>
-      </template>
-    </n-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, h, onMounted, reactive, ref, watch } from 'vue';
+import { computed, h, onMounted, reactive, ref } from 'vue';
 import {
   NButton,
   NCard,
@@ -250,27 +186,21 @@ import {
 import { useAuthStore } from '@/store/modules/auth';
 import {
   createAlarmChannel,
-  createAlarmRule,
   deleteAlarmChannel,
-  deleteAlarmRule,
   fetchAlarmChannels,
   fetchAlarmRules,
   type AlarmChannel,
   type AlarmRecord,
   type AlarmRule,
-  updateAlarmChannel,
-  updateAlarmRule
+  updateAlarmChannel
 } from '@/api/alerts';
 import {
   fetchAlarmChannelDetail,
   fetchAlarmRecords,
-  fetchAlarmRuleDetail,
   fetchJobGroups,
-  fetchJobsByGroup,
   fetchJobMetadata,
   type JobGroupOption,
-  type JobMetadata,
-  type JobOption
+  type JobMetadata
 } from '@/api/admin-next';
 
 defineOptions({
@@ -283,18 +213,12 @@ const message = useMessage();
 
 const metadata = ref<JobMetadata | null>(null);
 const jobGroups = ref<JobGroupOption[]>([]);
-const jobsByGroup = ref<Record<number, JobOption[]>>({});
 
 const channelFormRef = ref<FormInst | null>(null);
-const ruleFormRef = ref<FormInst | null>(null);
 
 const channelFormVisible = ref(false);
 const channelFormMode = ref<'create' | 'edit'>('create');
 const channelSubmitting = ref(false);
-
-const ruleFormVisible = ref(false);
-const ruleFormMode = ref<'create' | 'edit'>('create');
-const ruleSubmitting = ref(false);
 
 const channelLoading = ref(false);
 const channelRows = ref<AlarmChannel[]>([]);
@@ -302,7 +226,6 @@ const checkedChannelKeys = ref<number[]>([]);
 
 const ruleLoading = ref(false);
 const ruleRows = ref<AlarmRule[]>([]);
-const checkedRuleKeys = ref<number[]>([]);
 
 const recordLoading = ref(false);
 const recordRows = ref<AlarmRecord[]>([]);
@@ -315,7 +238,6 @@ const channelFilters = reactive({
 
 const ruleFilters = reactive({
   jobGroup: -1,
-  jobId: 0,
   alarmEvent: '',
   enabled: -1
 });
@@ -333,17 +255,6 @@ const channelFormValue = reactive({
   endpoint: '',
   recipients: '',
   headersJson: '',
-  enabled: 1,
-  remark: ''
-});
-
-const ruleFormValue = reactive({
-  id: 0,
-  name: '',
-  jobGroup: 0,
-  jobId: 0,
-  alarmEvent: '',
-  channelIds: [] as Array<number>,
   enabled: 1,
   remark: ''
 });
@@ -380,43 +291,6 @@ const jobGroupOptions = computed<SelectOption[]>(() => [
   { label: '全部执行器', value: -1 },
   ...jobGroups.value.map(item => ({ label: item.title, value: item.id }))
 ]);
-
-const enabledChannelOptions = computed<SelectOption[]>(() =>
-  channelRows.value
-    .filter(item => item.enabled === 1)
-    .map(item => ({
-      label: `${item.name} [${item.type}]`,
-      value: item.id
-    }))
-);
-
-const ruleJobOptions = computed<SelectOption[]>(() => {
-  const jobGroup = ruleFilters.jobGroup;
-  if (jobGroup < 1) {
-    return [{ label: '全部任务', value: 0 }];
-  }
-  return [
-    { label: '全部任务', value: 0 },
-    ...(jobsByGroup.value[jobGroup] || []).map(item => ({
-      label: item.jobDesc || `任务 #${item.id}`,
-      value: item.id
-    }))
-  ];
-});
-
-const ruleFormJobOptions = computed<SelectOption[]>(() => {
-  const jobGroup = ruleFormValue.jobGroup;
-  if (jobGroup < 1) {
-    return [{ label: '留空表示执行器级规则', value: 0 }];
-  }
-  return [
-    { label: '留空表示执行器级规则', value: 0 },
-    ...(jobsByGroup.value[jobGroup] || []).map(item => ({
-      label: item.jobDesc || `任务 #${item.id}`,
-      value: item.id
-    }))
-  ];
-});
 
 const channelPagination = reactive<PaginationProps>({
   page: 1,
@@ -476,14 +350,6 @@ const selectedChannelRows = computed(() =>
     .filter((item): item is AlarmChannel => Boolean(item))
 );
 const selectedChannelCount = computed(() => selectedChannelRows.value.length);
-const selectedRule = computed(() => ruleRows.value.find(item => item.id === checkedRuleKeys.value[0]) || null);
-const selectedRuleRows = computed(() =>
-  checkedRuleKeys.value
-    .map(key => ruleRows.value.find(item => item.id === key))
-    .filter((item): item is AlarmRule => Boolean(item))
-);
-const selectedRuleCount = computed(() => selectedRuleRows.value.length);
-
 const channelRules: FormRules = {
   name: [{ required: true, message: '请输入渠道名称', trigger: ['blur', 'input'] }],
   type: [{ required: true, message: '请选择渠道类型', trigger: ['change', 'blur'] }],
@@ -527,20 +393,6 @@ const channelRules: FormRules = {
   ]
 };
 
-const ruleRules: FormRules = {
-  name: [{ required: true, message: '请输入规则名称', trigger: ['blur', 'input'] }],
-  jobGroup: [{ required: true, type: 'number', message: '请选择执行器', trigger: ['change', 'blur'] }],
-  alarmEvent: [{ required: true, message: '请选择告警事件', trigger: ['change', 'blur'] }],
-  channelIds: [
-    {
-      validator: () => {
-        return ruleFormValue.channelIds.length > 0 ? true : new Error('请至少绑定一个告警渠道');
-      },
-      trigger: ['change', 'blur']
-    }
-  ]
-};
-
 const channelColumns: DataTableColumns<AlarmChannel> = [
   { type: 'selection', fixed: 'left', width: 54 },
   { title: '名称', key: 'name', minWidth: 180 },
@@ -561,25 +413,12 @@ const channelColumns: DataTableColumns<AlarmChannel> = [
 ];
 
 const ruleColumns: DataTableColumns<AlarmRule> = [
-  { type: 'selection', fixed: 'left', width: 54 },
   { title: '名称', key: 'name', minWidth: 180 },
   {
     title: '执行器',
     key: 'jobGroup',
     minWidth: 160,
     render: row => jobGroups.value.find(item => item.id === row.jobGroup)?.title || `执行器 #${row.jobGroup}`
-  },
-  {
-    title: '任务',
-    key: 'jobId',
-    minWidth: 200,
-    render: row => {
-      if (!row.jobId) {
-        return '执行器级';
-      }
-      const jobs = jobsByGroup.value[row.jobGroup] || [];
-      return jobs.find(item => item.id === row.jobId)?.jobDesc || `任务 #${row.jobId}`;
-    }
   },
   {
     title: '事件',
@@ -594,7 +433,7 @@ const ruleColumns: DataTableColumns<AlarmRule> = [
     render: row => row.channelIds
       .split(',')
       .map(item => Number(item))
-      .map(id => channelRows.value.find(channel => channel.id === id)?.name || `渠道 #${id}`)
+      .map(id => metadata.value?.alarmChannels.find(channel => channel.id === id)?.name || channelRows.value.find(channel => channel.id === id)?.name || `渠道 #${id}`)
       .join(', ')
   },
   {
@@ -622,26 +461,6 @@ const recordColumns: DataTableColumns<AlarmRecord> = [
   { title: '错误信息', key: 'errorMsg', minWidth: 220 }
 ];
 
-watch(
-  () => ruleFilters.jobGroup,
-  async value => {
-    ruleFilters.jobId = 0;
-    if (value > 0) {
-      await ensureJobsLoaded(value);
-    }
-  }
-);
-
-watch(
-  () => ruleFormValue.jobGroup,
-  async value => {
-    ruleFormValue.jobId = 0;
-    if (value > 0) {
-      await ensureJobsLoaded(value);
-    }
-  }
-);
-
 function channelRowKey(row: AlarmChannel) {
   return row.id;
 }
@@ -658,10 +477,6 @@ function handleChannelChecked(keys: Array<string | number>) {
   checkedChannelKeys.value = keys.map(item => Number(item));
 }
 
-function handleRuleChecked(keys: Array<string | number>) {
-  checkedRuleKeys.value = keys.map(item => Number(item));
-}
-
 function resetChannelForm() {
   channelFormValue.id = 0;
   channelFormValue.name = '';
@@ -671,17 +486,6 @@ function resetChannelForm() {
   channelFormValue.headersJson = '';
   channelFormValue.enabled = 1;
   channelFormValue.remark = '';
-}
-
-function resetRuleForm() {
-  ruleFormValue.id = 0;
-  ruleFormValue.name = '';
-  ruleFormValue.jobGroup = 0;
-  ruleFormValue.jobId = 0;
-  ruleFormValue.alarmEvent = '';
-  ruleFormValue.channelIds = [];
-  ruleFormValue.enabled = 1;
-  ruleFormValue.remark = '';
 }
 
 function buildChannelPayload() {
@@ -694,19 +498,6 @@ function buildChannelPayload() {
     headersJson: channelFormValue.headersJson.trim(),
     enabled: String(channelFormValue.enabled),
     remark: channelFormValue.remark.trim()
-  };
-}
-
-function buildRulePayload() {
-  return {
-    id: String(ruleFormValue.id),
-    name: ruleFormValue.name.trim(),
-    jobGroup: String(ruleFormValue.jobGroup),
-    jobId: String(ruleFormValue.jobId || 0),
-    alarmEvent: ruleFormValue.alarmEvent,
-    channelIds: ruleFormValue.channelIds.join(','),
-    enabled: String(ruleFormValue.enabled),
-    remark: ruleFormValue.remark.trim()
   };
 }
 
@@ -724,20 +515,6 @@ async function loadJobGroups() {
     throw new Error(response.msg || '执行器数据加载失败');
   }
   jobGroups.value = response.data;
-}
-
-async function ensureJobsLoaded(jobGroup: number) {
-  if (jobGroup < 1 || jobsByGroup.value[jobGroup]) {
-    return;
-  }
-  const response = await fetchJobsByGroup(jobGroup);
-  if (response.code !== 200) {
-    throw new Error(response.msg || '任务列表加载失败');
-  }
-  jobsByGroup.value = {
-    ...jobsByGroup.value,
-    [jobGroup]: response.data
-  };
 }
 
 async function loadChannels() {
@@ -767,14 +544,10 @@ async function loadChannels() {
 async function loadRules() {
   ruleLoading.value = true;
   try {
-    if (ruleFilters.jobGroup > 0) {
-      await ensureJobsLoaded(ruleFilters.jobGroup);
-    }
     const response = await fetchAlarmRules({
       offset: ((rulePagination.page as number) - 1) * (rulePagination.pageSize as number),
       pagesize: rulePagination.pageSize as number,
       jobGroup: ruleFilters.jobGroup,
-      jobId: ruleFilters.jobId,
       alarmEvent: ruleFilters.alarmEvent,
       enabled: ruleFilters.enabled
     });
@@ -783,12 +556,6 @@ async function loadRules() {
     }
     ruleRows.value = response.data.data;
     rulePagination.itemCount = response.data.total;
-    checkedRuleKeys.value = [];
-    for (const row of ruleRows.value) {
-      if (row.jobGroup > 0) {
-        await ensureJobsLoaded(row.jobGroup);
-      }
-    }
   } catch (error) {
     const err = error as Error;
     message.error(err.message || '告警规则加载失败');
@@ -840,7 +607,6 @@ function searchRules() {
 
 function resetRules() {
   ruleFilters.jobGroup = -1;
-  ruleFilters.jobId = 0;
   ruleFilters.alarmEvent = '';
   ruleFilters.enabled = -1;
   rulePagination.page = 1;
@@ -888,38 +654,6 @@ async function openChannelEdit() {
   channelFormVisible.value = true;
 }
 
-function openRuleCreate() {
-  ruleFormMode.value = 'create';
-  resetRuleForm();
-  ruleFormVisible.value = true;
-}
-
-async function openRuleEdit() {
-  if (!selectedRule.value) {
-    return;
-  }
-  const response = await fetchAlarmRuleDetail(selectedRule.value.id);
-  if (response.code !== 200) {
-    message.error(response.msg || '告警规则详情加载失败');
-    return;
-  }
-  const rule = response.data;
-  await ensureJobsLoaded(rule.jobGroup);
-  ruleFormMode.value = 'edit';
-  ruleFormValue.id = rule.id;
-  ruleFormValue.name = rule.name;
-  ruleFormValue.jobGroup = rule.jobGroup;
-  ruleFormValue.jobId = rule.jobId || 0;
-  ruleFormValue.alarmEvent = rule.alarmEvent;
-  ruleFormValue.channelIds = (rule.channelIds || '')
-    .split(',')
-    .map(item => Number(item))
-    .filter(item => item > 0);
-  ruleFormValue.enabled = rule.enabled;
-  ruleFormValue.remark = rule.remark || '';
-  ruleFormVisible.value = true;
-}
-
 async function submitChannelForm() {
   await channelFormRef.value?.validate();
   channelSubmitting.value = true;
@@ -941,26 +675,6 @@ async function submitChannelForm() {
   }
 }
 
-async function submitRuleForm() {
-  await ruleFormRef.value?.validate();
-  ruleSubmitting.value = true;
-  try {
-    const payload = buildRulePayload();
-    const response = ruleFormMode.value === 'edit' ? await updateAlarmRule(payload) : await createAlarmRule(payload);
-    if (response.code !== 200) {
-      throw new Error(response.msg || '保存失败');
-    }
-    message.success(ruleFormMode.value === 'edit' ? '更新成功' : '创建成功');
-    ruleFormVisible.value = false;
-    await loadRules();
-  } catch (error) {
-    const err = error as Error;
-    message.error(err.message || '保存失败');
-  } finally {
-    ruleSubmitting.value = false;
-  }
-}
-
 async function removeChannel() {
   if (!selectedChannel.value) {
     return;
@@ -978,27 +692,6 @@ async function removeChannel() {
       }
       message.success('删除成功');
       await loadChannels();
-      await loadRules();
-    }
-  });
-}
-
-async function removeRule() {
-  if (!selectedRule.value) {
-    return;
-  }
-  dialog.warning({
-    title: '删除告警规则',
-    content: `确认删除规则 ${selectedRule.value.name} 吗？`,
-    positiveText: '确认',
-    negativeText: '取消',
-    onPositiveClick: async () => {
-      const response = await deleteAlarmRule(selectedRule.value!.id);
-      if (response.code !== 200) {
-        message.error(response.msg || '删除失败');
-        return;
-      }
-      message.success('删除成功');
       await loadRules();
     }
   });

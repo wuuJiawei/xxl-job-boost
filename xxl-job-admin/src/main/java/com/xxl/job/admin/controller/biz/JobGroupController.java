@@ -8,6 +8,7 @@ import com.xxl.job.admin.util.I18nUtil;
 import com.xxl.job.admin.service.AuditLogService;
 import com.xxl.job.admin.mapper.XxlJobGroupMapper;
 import com.xxl.job.admin.mapper.XxlJobInfoMapper;
+import com.xxl.job.admin.mapper.XxlJobAlarmRuleMapper;
 import com.xxl.job.admin.mapper.XxlJobRegistryMapper;
 import com.xxl.job.core.constant.Const;
 import com.xxl.job.core.constant.RegistType;
@@ -21,6 +22,7 @@ import com.xxl.tool.response.PageModel;
 import com.xxl.tool.response.Response;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -41,6 +43,8 @@ public class JobGroupController {
 	public XxlJobInfoMapper xxlJobInfoMapper;
 	@Resource
 	public XxlJobGroupMapper xxlJobGroupMapper;
+	@Resource
+	private XxlJobAlarmRuleMapper xxlJobAlarmRuleMapper;
 	@Resource
 	private XxlJobRegistryMapper xxlJobRegistryMapper;
 	@Resource
@@ -195,6 +199,7 @@ public class JobGroupController {
 	@RequestMapping("/delete")
 	@ResponseBody
 	@XxlSso(role = Consts.ADMIN_ROLE)
+	@Transactional
 	public Response<String> delete(HttpServletRequest request, @RequestParam("ids[]") List<Integer> ids){
 
 		// parse id
@@ -224,6 +229,9 @@ public class JobGroupController {
 		Response<LoginInfo> loginInfoResponse = XxlSsoHelper.loginCheckWithAttr(request);
         // remove group
 		int ret = xxlJobGroupMapper.remove(id);
+		if (ret > 0) {
+			xxlJobAlarmRuleMapper.removeByJobGroup(id);
+		}
         // remove registry-data
         xxlJobRegistryMapper.removeByRegistryGroupAndKey(RegistType.EXECUTOR.name(), xxlJobGroup.getAppname());
 		if (ret > 0) {

@@ -128,7 +128,7 @@
                 v-model:value="formValue.alarmChannelIds"
                 multiple
                 :options="alarmChannelOptions"
-                placeholder="选择失败告警渠道，可选"
+                placeholder="未选择则继承执行器默认告警策略"
               />
             </n-form-item-gi>
             <n-form-item-gi path="alarmEventTypes" label="告警事件">
@@ -136,7 +136,7 @@
                 v-model:value="formValue.alarmEventTypes"
                 multiple
                 :options="alarmEventOptions"
-                placeholder="选择需要触发告警的事件，留空表示全部失败事件"
+                placeholder="任务渠道生效时，留空表示全部失败事件"
               />
             </n-form-item-gi>
           </n-grid>

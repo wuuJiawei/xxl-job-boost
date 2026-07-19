@@ -70,6 +70,48 @@
       </template>
     </n-modal>
 
+    <n-modal
+      v-model:show="policyModalVisible"
+      preset="card"
+      :title="`${activePolicyGroup?.title || '执行器'} · 默认告警策略`"
+      style="width: 720px;"
+    >
+      <n-spin :show="policyLoading">
+        <n-form label-placement="left" label-width="120">
+          <n-form-item label="执行失败">
+            <n-select
+              v-model:value="policyValue.executorFailChannelIds"
+              multiple
+              :options="alarmChannelOptions"
+              placeholder="选择默认告警渠道"
+            />
+          </n-form-item>
+          <n-form-item label="执行超时">
+            <n-select
+              v-model:value="policyValue.executorTimeoutChannelIds"
+              multiple
+              :options="alarmChannelOptions"
+              placeholder="选择默认告警渠道"
+            />
+          </n-form-item>
+          <n-form-item label="触发失败">
+            <n-select
+              v-model:value="policyValue.triggerFailChannelIds"
+              multiple
+              :options="alarmChannelOptions"
+              placeholder="选择默认告警渠道"
+            />
+          </n-form-item>
+        </n-form>
+      </n-spin>
+      <template #action>
+        <div class="table-actions">
+          <n-button @click="policyModalVisible = false">取消</n-button>
+          <n-button type="primary" :loading="policySubmitting" @click="submitPolicy">保存</n-button>
+        </div>
+      </template>
+    </n-modal>
+
     <n-drawer v-model:show="registryDrawerVisible" :width="560">
       <n-drawer-content title="在线节点">
         <n-empty v-if="!activeRegistryList.length" description="当前没有可展示的在线节点" />
@@ -98,7 +140,9 @@ import {
   NModal,
   NRadio,
   NRadioGroup,
+  NSelect,
   NSpace,
+  NSpin,
   NTag,
   useDialog,
   useMessage,
@@ -110,10 +154,13 @@ import {
 import {
   createExecutorGroup,
   deleteExecutorGroup,
+  fetchExecutorAlarmPolicy,
   fetchExecutorGroups,
+  updateExecutorAlarmPolicy,
   updateExecutorGroup,
   type ExecutorGroup
 } from '@/api/executors';
+import { fetchJobMetadata, type JobMetadata } from '@/api/admin-next';
 
 defineOptions({
   name: 'executors'
@@ -128,8 +175,13 @@ const formRef = ref<FormInst | null>(null);
 const formModalVisible = ref(false);
 const registryDrawerVisible = ref(false);
 const submitting = ref(false);
+const policyLoading = ref(false);
+const policySubmitting = ref(false);
+const policyModalVisible = ref(false);
 const formMode = ref<'create' | 'edit'>('create');
 const activeRegistryList = ref<string[]>([]);
+const activePolicyGroup = ref<ExecutorGroup | null>(null);
+const metadata = ref<JobMetadata | null>(null);
 
 const filters = reactive({
   appname: '',
@@ -143,6 +195,19 @@ const formValue = reactive({
   addressType: 0,
   addressList: ''
 });
+
+const policyValue = reactive({
+  executorFailChannelIds: [] as number[],
+  executorTimeoutChannelIds: [] as number[],
+  triggerFailChannelIds: [] as number[]
+});
+
+const alarmChannelOptions = computed(() =>
+  (metadata.value?.alarmChannels || []).map(item => ({
+    label: `${item.name} [${item.type}]`,
+    value: item.id
+  }))
+);
 
 const rules: FormRules = {
   appname: [
@@ -258,7 +323,7 @@ const columns: DataTableColumns<ExecutorGroup> = [
     title: '操作',
     key: 'actions',
     fixed: 'right',
-    width: 250,
+    width: 330,
     render: (row) =>
       h('div', { class: 'table-actions' }, [
         h(
@@ -278,6 +343,15 @@ const columns: DataTableColumns<ExecutorGroup> = [
             onClick: () => showRegistry(row)
           },
           { default: () => '节点' }
+        ),
+        h(
+          NButton,
+          {
+            size: 'small',
+            quaternary: true,
+            onClick: () => void openPolicy(row)
+          },
+          { default: () => '告警策略' }
         ),
         h(
           NButton,
@@ -333,6 +407,73 @@ function openEdit(row?: ExecutorGroup | null) {
 function showRegistry(row: ExecutorGroup) {
   activeRegistryList.value = row.registryList?.length ? row.registryList : row.addressList?.split(',').filter(Boolean) || [];
   registryDrawerVisible.value = true;
+}
+
+async function openPolicy(row: ExecutorGroup) {
+  activePolicyGroup.value = row;
+  policyValue.executorFailChannelIds = [];
+  policyValue.executorTimeoutChannelIds = [];
+  policyValue.triggerFailChannelIds = [];
+  policyModalVisible.value = true;
+  policyLoading.value = true;
+  try {
+    if (!metadata.value) {
+      const metadataResponse = await fetchJobMetadata();
+      if (metadataResponse.code !== 200) {
+        throw new Error(metadataResponse.msg || '告警渠道加载失败');
+      }
+      metadata.value = metadataResponse.data;
+    }
+    const response = await fetchExecutorAlarmPolicy(row.id);
+    if (response.code !== 200) {
+      throw new Error(response.msg || '默认告警策略加载失败');
+    }
+    for (const rule of response.data.filter(item => item.enabled === 1)) {
+      const channelIds = (rule.channelIds || '')
+        .split(',')
+        .map(item => Number(item))
+        .filter(item => item > 0);
+      if (rule.alarmEvent === 'EXECUTOR_FAIL') {
+        policyValue.executorFailChannelIds = Array.from(new Set([...policyValue.executorFailChannelIds, ...channelIds]));
+      } else if (rule.alarmEvent === 'EXECUTOR_TIMEOUT') {
+        policyValue.executorTimeoutChannelIds = Array.from(new Set([...policyValue.executorTimeoutChannelIds, ...channelIds]));
+      } else if (rule.alarmEvent === 'TRIGGER_FAIL') {
+        policyValue.triggerFailChannelIds = Array.from(new Set([...policyValue.triggerFailChannelIds, ...channelIds]));
+      }
+    }
+  } catch (error) {
+    const err = error as Error;
+    message.error(err.message || '默认告警策略加载失败');
+    policyModalVisible.value = false;
+    activePolicyGroup.value = null;
+  } finally {
+    policyLoading.value = false;
+  }
+}
+
+async function submitPolicy() {
+  if (!activePolicyGroup.value) {
+    return;
+  }
+  policySubmitting.value = true;
+  try {
+    const response = await updateExecutorAlarmPolicy({
+      jobGroup: activePolicyGroup.value.id,
+      executorFailChannelIds: policyValue.executorFailChannelIds,
+      executorTimeoutChannelIds: policyValue.executorTimeoutChannelIds,
+      triggerFailChannelIds: policyValue.triggerFailChannelIds
+    });
+    if (response.code !== 200) {
+      throw new Error(response.msg || '默认告警策略保存失败');
+    }
+    message.success('默认告警策略已更新');
+    policyModalVisible.value = false;
+  } catch (error) {
+    const err = error as Error;
+    message.error(err.message || '默认告警策略保存失败');
+  } finally {
+    policySubmitting.value = false;
+  }
 }
 
 async function submitForm() {

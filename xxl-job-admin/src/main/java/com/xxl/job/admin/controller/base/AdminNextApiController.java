@@ -372,8 +372,16 @@ public class AdminNextApiController {
         if (jobGroup > 0) {
             JobGroupPermissionUtil.validJobGroupPermission(request, jobGroup);
         }
-        List<XxlJobAlarmRule> list = xxlJobAlarmRuleMapper.pageList(offset, pagesize, jobGroup, jobId, alarmEvent, enabled);
-        int count = xxlJobAlarmRuleMapper.pageListCount(offset, pagesize, jobGroup, jobId, alarmEvent, enabled);
+        List<Integer> permittedGroupIds = JobGroupPermissionUtil.filterJobGroupByPermission(request, xxlJobGroupMapper.findAll())
+                .stream().map(XxlJobGroup::getId).toList();
+        if (permittedGroupIds.isEmpty()) {
+            Map<String, Object> empty = new HashMap<>();
+            empty.put("data", new ArrayList<>());
+            empty.put("total", 0);
+            return Response.ofSuccess(empty);
+        }
+        List<XxlJobAlarmRule> list = xxlJobAlarmRuleMapper.pageList(offset, pagesize, permittedGroupIds, jobGroup, jobId, alarmEvent, enabled);
+        int count = xxlJobAlarmRuleMapper.pageListCount(offset, pagesize, permittedGroupIds, jobGroup, jobId, alarmEvent, enabled);
         Map<String, Object> data = new HashMap<>();
         data.put("data", list);
         data.put("total", count);

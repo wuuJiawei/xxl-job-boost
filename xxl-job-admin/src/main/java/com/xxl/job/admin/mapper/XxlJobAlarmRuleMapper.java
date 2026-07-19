@@ -11,6 +11,7 @@ public interface XxlJobAlarmRuleMapper {
 
     List<XxlJobAlarmRule> pageList(@Param("offset") int offset,
                                    @Param("pagesize") int pagesize,
+                                   @Param("jobGroupIds") List<Integer> jobGroupIds,
                                    @Param("jobGroup") int jobGroup,
                                    @Param("jobId") int jobId,
                                    @Param("alarmEvent") String alarmEvent,
@@ -18,6 +19,7 @@ public interface XxlJobAlarmRuleMapper {
 
     int pageListCount(@Param("offset") int offset,
                       @Param("pagesize") int pagesize,
+                      @Param("jobGroupIds") List<Integer> jobGroupIds,
                       @Param("jobGroup") int jobGroup,
                       @Param("jobId") int jobId,
                       @Param("alarmEvent") String alarmEvent,
@@ -31,7 +33,12 @@ public interface XxlJobAlarmRuleMapper {
 
     XxlJobAlarmRule load(@Param("id") int id);
 
-    List<XxlJobAlarmRule> findMatched(@Param("jobGroup") int jobGroup,
-                                      @Param("jobId") int jobId,
-                                      @Param("alarmEvent") String alarmEvent);
+    List<XxlJobAlarmRule> findExecutorDefaults(@Param("jobGroup") int jobGroup);
+
+    List<XxlJobAlarmRule> findEnabledExecutorDefaults(@Param("jobGroup") int jobGroup,
+                                                       @Param("alarmEvent") String alarmEvent);
+
+    int removeExecutorDefaults(@Param("jobGroup") int jobGroup);
+
+    int removeByJobGroup(@Param("jobGroup") int jobGroup);
 }

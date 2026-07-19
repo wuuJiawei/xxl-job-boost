@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -156,18 +157,19 @@ public class AlarmChannelService {
         return success;
     }
 
-    public boolean sendMatchedRules(XxlJobInfo info, XxlJobLog jobLog) {
+    public boolean sendExecutorDefaults(XxlJobInfo info, XxlJobLog jobLog) {
         AlarmEventType alarmEvent = currentEvent(jobLog);
         if (alarmEvent == null || info == null) {
             return true;
         }
 
-        List<XxlJobAlarmRule> rules = xxlJobAlarmRuleMapper.findMatched(info.getJobGroup(), info.getId(), alarmEvent.name());
+        List<XxlJobAlarmRule> rules = xxlJobAlarmRuleMapper.findEnabledExecutorDefaults(info.getJobGroup(), alarmEvent.name());
         if (rules == null || rules.isEmpty()) {
             return true;
         }
 
         boolean success = true;
+        Set<Integer> matchedChannelIds = new LinkedHashSet<>();
         for (XxlJobAlarmRule rule : rules) {
             List<Integer> ids;
             try {
@@ -181,24 +183,28 @@ public class AlarmChannelService {
             if (ids.isEmpty()) {
                 continue;
             }
+            matchedChannelIds.addAll(ids);
+        }
 
-            List<XxlJobAlarmChannel> channels = xxlJobAlarmChannelMapper.findByIds(ids);
-            Map<Integer, XxlJobAlarmChannel> channelMap = channels.stream()
-                    .collect(Collectors.toMap(XxlJobAlarmChannel::getId, item -> item));
+        if (matchedChannelIds.isEmpty()) {
+            return success;
+        }
+        List<XxlJobAlarmChannel> channels = xxlJobAlarmChannelMapper.findByIds(new ArrayList<>(matchedChannelIds));
+        Map<Integer, XxlJobAlarmChannel> channelMap = channels.stream()
+                .collect(Collectors.toMap(XxlJobAlarmChannel::getId, item -> item));
+        for (Integer channelId : matchedChannelIds) {
+            XxlJobAlarmChannel channel = channelMap.get(channelId);
+            if (channel == null || channel.getEnabled() != 1) {
+                persistRecord(info, jobLog, channel, String.valueOf(channelId), AlarmContentHelper.buildTitle(info),
+                        AlarmContentHelper.buildHtmlContent(info, jobLog), alarmEvent,
+                        AlarmDeliveryResult.fail(null, null, channel == null ? "默认策略渠道不存在" : "默认策略渠道已停用"));
+                success = false;
+                continue;
+            }
 
-            for (Integer channelId : ids) {
-                XxlJobAlarmChannel channel = channelMap.get(channelId);
-                if (channel == null || channel.getEnabled() != 1) {
-                    persistRuleRecord(info, jobLog, rule, channel, alarmEvent,
-                            AlarmDeliveryResult.fail(null, null, channel == null ? "规则渠道不存在" : "规则渠道已停用"));
-                    success = false;
-                    continue;
-                }
-
-                AlarmDeliveryResult result = sendByChannel(channel, info, jobLog, alarmEvent);
-                if (!result.isSuccess()) {
-                    success = false;
-                }
+            AlarmDeliveryResult result = sendByChannel(channel, info, jobLog, alarmEvent);
+            if (!result.isSuccess()) {
+                success = false;
             }
         }
         return success;
