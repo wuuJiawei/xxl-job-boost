@@ -187,7 +187,7 @@ const filters = reactive<{
   jobGroup: -1,
   jobId: 0,
   logStatus: -1,
-  timeRange: createDefaultRange()
+  timeRange: null
 });
 
 const jobTreeData = computed<TreeOption[]>(() =>
@@ -364,12 +364,6 @@ function rowKey(row: JobLog) {
 
 function handleCheckedRowKeys(keys: Array<string | number>) {
   checkedRowKeys.value = keys.map((item) => Number(item));
-}
-
-function createDefaultRange(): [number, number] {
-  const end = new Date();
-  const start = new Date(end.getTime() - 7 * 24 * 60 * 60 * 1000);
-  return [start.getTime(), end.getTime()];
 }
 
 function formatDateTime(value: string | number | null | undefined) {
@@ -668,7 +662,7 @@ async function search() {
 
 async function reset() {
   filters.logStatus = -1;
-  filters.timeRange = createDefaultRange();
+  filters.timeRange = null;
   pagination.page = 1;
   await loadData();
 }
