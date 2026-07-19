@@ -3,15 +3,15 @@ package com.xxl.job.admin.scheduler.alarm.impl;
 import com.xxl.job.admin.core.alarm.AlarmChannelService;
 import com.xxl.job.admin.core.alarm.AlarmContentHelper;
 import com.xxl.job.admin.core.alarm.AlarmDeliveryResult;
+import com.xxl.job.admin.core.alarm.SystemEmailService;
+import com.xxl.job.admin.model.EmailSettings;
 import com.xxl.job.admin.model.XxlJobInfo;
 import com.xxl.job.admin.model.XxlJobLog;
 import com.xxl.job.admin.scheduler.alarm.JobAlarm;
-import com.xxl.job.admin.scheduler.config.XxlJobAdminBootstrap;
+import com.xxl.job.admin.service.SystemConfigService;
 import jakarta.annotation.Resource;
-import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -29,6 +29,10 @@ public class EmailJobAlarm implements JobAlarm {
 
     @Resource
     private AlarmChannelService alarmChannelService;
+    @Resource
+    private SystemConfigService systemConfigService;
+    @Resource
+    private SystemEmailService systemEmailService;
 
     /**
      * fail alarm
@@ -41,6 +45,10 @@ public class EmailJobAlarm implements JobAlarm {
 
         // send monitor email
         if (info!=null && info.getAlarmEmail()!=null && !info.getAlarmEmail().trim().isEmpty()) {
+            EmailSettings emailSettings = systemConfigService.getEmailSettings();
+            if (!emailSettings.isEnabled()) {
+                return true;
+            }
             String personal = com.xxl.job.admin.util.I18nUtil.getString("admin_name_full");
             String title = AlarmContentHelper.buildTitle(info);
             String content = AlarmContentHelper.buildHtmlContent(info, jobLog);
@@ -54,15 +62,7 @@ public class EmailJobAlarm implements JobAlarm {
 
                 // make mail
                 try {
-                    MimeMessage mimeMessage = XxlJobAdminBootstrap.getInstance().getMailSender().createMimeMessage();
-
-                    MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
-                    helper.setFrom(XxlJobAdminBootstrap.getInstance().getEmailFrom(), personal);
-                    helper.setTo(target);
-                    helper.setSubject(title);
-                    helper.setText(content, true);
-
-                    XxlJobAdminBootstrap.getInstance().getMailSender().send(mimeMessage);
+                    systemEmailService.send(emailSettings, target, personal, title, content);
                     alarmChannelService.recordLegacyEmail(info, jobLog, target, title, content,
                             AlarmDeliveryResult.success(200, "OK"));
                 } catch (Exception e) {

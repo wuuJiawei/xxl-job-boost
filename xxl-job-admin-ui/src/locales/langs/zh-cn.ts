@@ -234,6 +234,7 @@ const local: App.I18n.Schema = {
     jobs: '任务管理',
     logs: '执行日志',
     users: '用户管理',
+    'system-settings': '系统设置',
     help: '帮助',
     'log-detail': '日志详情',
     'job-code': '任务代码'

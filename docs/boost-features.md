@@ -191,6 +191,7 @@ http://127.0.0.1:9999/
 - `slow-tasks`：慢任务分析。
 - `governance`：治理总览，聚合失败、慢任务和最近审计。
 - `audits`：审计日志。
+- `system-settings`：系统设置，当前提供 SMTP 邮箱配置。
 - `help`：帮助入口。
 
 生产构建配置：

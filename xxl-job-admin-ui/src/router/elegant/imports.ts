@@ -31,5 +31,6 @@ export const views: Record<LastLevelRouteKey, RouteComponent | (() => Promise<Ro
   "log-detail": () => import("@/views/log-detail/index.vue"),
   logs: () => import("@/views/logs/index.vue"),
   "slow-tasks": () => import("@/views/slow-tasks/index.vue"),
+  "system-settings": () => import("@/views/system-settings/index.vue"),
   users: () => import("@/views/users/index.vue"),
 };

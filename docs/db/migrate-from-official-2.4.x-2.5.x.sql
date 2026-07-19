@@ -295,6 +295,30 @@ PREPARE stmt FROM @ddl;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
+-- Boost system settings.
+CREATE TABLE IF NOT EXISTS `xxl_job_system_config`
+(
+    `id`           int(11)      NOT NULL AUTO_INCREMENT,
+    `config_key`   varchar(100) NOT NULL COMMENT '配置键',
+    `config_value` text         NOT NULL COMMENT '配置值',
+    `update_time`  datetime              DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `i_config_key` (`config_key`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
+
+INSERT IGNORE INTO `xxl_job_system_config` (`config_key`, `config_value`, `update_time`)
+VALUES ('mail.enabled', 'false', now()),
+       ('mail.host', 'smtp.qq.com', now()),
+       ('mail.port', '25', now()),
+       ('mail.username', '', now()),
+       ('mail.from', '', now()),
+       ('mail.password', '', now()),
+       ('mail.smtp.auth', 'true', now()),
+       ('mail.smtp.starttls.enable', 'true', now()),
+       ('mail.smtp.starttls.required', 'true', now()),
+       ('mail.smtp.ssl.enable', 'false', now());
+
 -- Boost audit trail.
 CREATE TABLE IF NOT EXISTS `xxl_job_audit_log`
 (

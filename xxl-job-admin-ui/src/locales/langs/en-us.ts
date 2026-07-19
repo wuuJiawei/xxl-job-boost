@@ -238,6 +238,7 @@ const local: App.I18n.Schema = {
     jobs: 'Jobs',
     logs: 'Logs',
     users: 'Users',
+    'system-settings': 'System Settings',
     help: 'Help',
     'log-detail': 'Log Detail',
     'job-code': 'Job Code'

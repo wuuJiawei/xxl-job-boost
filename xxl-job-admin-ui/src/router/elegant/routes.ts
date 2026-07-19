@@ -190,6 +190,18 @@ export const generatedRoutes: GeneratedRoute[] = [
     }
   },
   {
+    name: 'system-settings',
+    path: '/system-settings',
+    component: 'layout.base$view.system-settings',
+    meta: {
+      title: 'system-settings',
+      i18nKey: 'route.system-settings',
+      icon: 'mdi:cog-outline',
+      order: 8.5,
+      roles: ['R_SUPER']
+    }
+  },
+  {
     name: 'users',
     path: '/users',
     component: 'layout.base$view.users',

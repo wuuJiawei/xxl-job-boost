@@ -212,6 +212,19 @@ CREATE TABLE `xxl_job_audit_log`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
+## —————————————————————— system config ——————————————————
+
+CREATE TABLE `xxl_job_system_config`
+(
+    `id`           int(11)      NOT NULL AUTO_INCREMENT,
+    `config_key`   varchar(100) NOT NULL COMMENT '配置键',
+    `config_value` text         NOT NULL COMMENT '配置值',
+    `update_time`  datetime              DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `i_config_key` (`config_key`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
+
 ## —————————————————————— lock ——————————————————
 
 CREATE TABLE `xxl_job_lock`
@@ -277,6 +290,18 @@ VALUES (1, 1, '示例任务01', now(), now(), 'XXL', '', '', '', 'CRON', '0 0 0 
 
 INSERT INTO `xxl_job_user`(`id`, `username`, `password`, `role`, `permission`)
 VALUES (1, 'admin', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 1, NULL);
+
+INSERT INTO `xxl_job_system_config` (`config_key`, `config_value`, `update_time`)
+VALUES ('mail.enabled', 'false', now()),
+       ('mail.host', 'smtp.qq.com', now()),
+       ('mail.port', '25', now()),
+       ('mail.username', '', now()),
+       ('mail.from', '', now()),
+       ('mail.password', '', now()),
+       ('mail.smtp.auth', 'true', now()),
+       ('mail.smtp.starttls.enable', 'true', now()),
+       ('mail.smtp.starttls.required', 'true', now()),
+       ('mail.smtp.ssl.enable', 'false', now());
 
 INSERT INTO `xxl_job_lock` (`lock_name`)
 VALUES ('schedule_lock');

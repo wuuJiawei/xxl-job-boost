@@ -3,6 +3,8 @@ package com.xxl.job.admin.scheduler.alarm.impl;
 import com.xxl.job.admin.core.alarm.AlarmChannelService;
 import com.xxl.job.admin.model.XxlJobInfo;
 import com.xxl.job.admin.model.XxlJobLog;
+import com.xxl.job.admin.model.EmailSettings;
+import com.xxl.job.admin.service.SystemConfigService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +22,8 @@ class ChannelJobAlarmTest {
 
     @Mock
     private AlarmChannelService alarmChannelService;
+    @Mock
+    private SystemConfigService systemConfigService;
 
     private ChannelJobAlarm channelJobAlarm;
     private XxlJobLog jobLog;
@@ -28,6 +32,7 @@ class ChannelJobAlarmTest {
     void setUp() {
         channelJobAlarm = new ChannelJobAlarm();
         ReflectionTestUtils.setField(channelJobAlarm, "alarmChannelService", alarmChannelService);
+        ReflectionTestUtils.setField(channelJobAlarm, "systemConfigService", systemConfigService);
         jobLog = new XxlJobLog();
     }
 
@@ -45,7 +50,7 @@ class ChannelJobAlarmTest {
     @Test
     void enabledLegacyTaskEmailShouldOverrideExecutorDefaults() {
         XxlJobInfo info = jobInfo("", "ops@example.com");
-        ReflectionTestUtils.setField(channelJobAlarm, "mailEnabled", true);
+        when(systemConfigService.getEmailSettings()).thenReturn(emailSettings(true));
 
         assertTrue(channelJobAlarm.doAlarm(info, jobLog));
 
@@ -56,6 +61,7 @@ class ChannelJobAlarmTest {
     @Test
     void disabledLegacyTaskEmailShouldInheritExecutorDefaults() {
         XxlJobInfo info = jobInfo("", "ops@example.com");
+        when(systemConfigService.getEmailSettings()).thenReturn(emailSettings(false));
         when(alarmChannelService.sendExecutorDefaults(info, jobLog)).thenReturn(true);
 
         assertTrue(channelJobAlarm.doAlarm(info, jobLog));
@@ -67,6 +73,7 @@ class ChannelJobAlarmTest {
     @Test
     void taskWithoutAlarmConfigShouldInheritExecutorDefaults() {
         XxlJobInfo info = jobInfo("", "");
+        when(systemConfigService.getEmailSettings()).thenReturn(emailSettings(false));
         when(alarmChannelService.sendExecutorDefaults(info, jobLog)).thenReturn(true);
 
         assertTrue(channelJobAlarm.doAlarm(info, jobLog));
@@ -80,5 +87,11 @@ class ChannelJobAlarmTest {
         info.setAlarmChannelIds(channelIds);
         info.setAlarmEmail(alarmEmail);
         return info;
+    }
+
+    private EmailSettings emailSettings(boolean enabled) {
+        EmailSettings settings = new EmailSettings();
+        settings.setEnabled(enabled);
+        return settings;
     }
 }

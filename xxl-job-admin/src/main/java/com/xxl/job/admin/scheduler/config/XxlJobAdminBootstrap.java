@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -138,9 +137,6 @@ public class XxlJobAdminBootstrap implements InitializingBean, DisposableBean {
     @Value("${xxl.job.timeout}")
     private int timeout;
 
-    @Value("${spring.mail.from}")
-    private String emailFrom;
-
     @Value("${xxl.job.triggerpool.fast.max}")
     private int triggerPoolFastMax;
 
@@ -166,8 +162,6 @@ public class XxlJobAdminBootstrap implements InitializingBean, DisposableBean {
     private XxlJobLogReportMapper xxlJobLogReportMapper;
     @Resource
     private XxlJobLockMapper xxlJobLockMapper;
-    @Resource
-    private JavaMailSender mailSender;
     /*@Resource
     private DataSource dataSource;*/
     @Resource
@@ -193,10 +187,6 @@ public class XxlJobAdminBootstrap implements InitializingBean, DisposableBean {
 
     public int getTimeout() {
         return timeout;
-    }
-
-    public String getEmailFrom() {
-        return emailFrom;
     }
 
     public int getTriggerPoolFastMax() {
@@ -249,10 +239,6 @@ public class XxlJobAdminBootstrap implements InitializingBean, DisposableBean {
 
     public XxlJobLockMapper getXxlJobLockMapper() {
         return xxlJobLockMapper;
-    }
-
-    public JavaMailSender getMailSender() {
-        return mailSender;
     }
 
     /*public DataSource getDataSource() {
