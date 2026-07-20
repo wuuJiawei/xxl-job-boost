@@ -9,14 +9,14 @@
 - [本地运行与排障](./local-dev-runbook.md)
 - [生产部署方案](./production-deployment.md)
 - [Boost 已落地能力](./boost-features.md)
-- [1.0.0 测试计划](./test-plan-1.0.0.md)
+- [0.9.4 测试计划](./test-plan-0.9.4.md)
 
 ## 设计与发布
 
 - [功能路线图](./feature-roadmap.md)
 - [管理后台迁移计划](./admin-ui-migration-plan.md)
 - [源码增强策略](./upstream-extension-strategy.md)
-- [1.0.0 发布说明](./release-notes-1.0.0.md)
+- [0.9.4 发布说明](./release-notes-0.9.4.md)
 - [早期版本说明](./release-notes-2026-06-10.md)
 
 ## 需求记录

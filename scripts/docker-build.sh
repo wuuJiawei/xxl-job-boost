@@ -4,6 +4,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 JAVA_HOME_DEFAULT="/usr/local/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home"
+PROJECT_VERSION="${PROJECT_VERSION:-0.9.4}"
 
 require_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -74,6 +75,9 @@ resolve_java
 
 (
   cd "$ROOT_DIR"
-  mvn -P 'apps,!release' -pl xxl-job-admin,xxl-job-executor-samples/xxl-job-executor-sample-springboot -am -DskipTests package
-  docker compose -f docker/docker-compose.yml build xxl-job-admin xxl-job-executor-sample-springboot
+  mvn -P 'apps,!release' -pl xxl-job-admin,xxl-job-executor-samples/xxl-job-executor-sample-springboot -am -DskipTests clean package
+  PROJECT_VERSION="$PROJECT_VERSION" \
+    docker compose -f docker/docker-compose.yml build xxl-job-admin xxl-job-executor-sample-springboot
+  MYSQL_ROOT_PASSWORD=build-only MYSQL_PASSWORD=build-only \
+    PROJECT_VERSION="$PROJECT_VERSION" docker compose -f docker/docker-compose-all-in-one.yml build xxl-job-boost-all-in-one
 )

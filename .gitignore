@@ -7,3 +7,4 @@ target/
 .gitattributes
 node_modules/
 *.tsbuildinfo
+docker/.env

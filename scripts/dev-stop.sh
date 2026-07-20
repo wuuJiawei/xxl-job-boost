@@ -4,7 +4,7 @@ set -euo pipefail
 
 RUN_ROOT="${RUN_ROOT:-/tmp/xxl-job-boost-run}"
 MYSQL_CONTAINER="${MYSQL_CONTAINER:-xxljob-mysql}"
-PROJECT_VERSION="${PROJECT_VERSION:-1.0.0}"
+PROJECT_VERSION="${PROJECT_VERSION:-0.9.4}"
 
 ADMIN_PATTERN="${ADMIN_PATTERN:-xxl-job-admin/target/xxl-job-admin-${PROJECT_VERSION}.jar}"
 EXECUTOR_PATTERN="${EXECUTOR_PATTERN:-xxl-job-executor-samples/xxl-job-executor-sample-springboot/target/xxl-job-executor-sample-springboot-${PROJECT_VERSION}.jar}"

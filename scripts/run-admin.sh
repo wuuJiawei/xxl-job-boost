@@ -4,7 +4,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 JAVA_HOME_DEFAULT="/usr/local/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home"
-PROJECT_VERSION="${PROJECT_VERSION:-1.0.0}"
+PROJECT_VERSION="${PROJECT_VERSION:-0.9.4}"
 LOG_ROOT="${LOG_ROOT:-${LOG_HOME:-/tmp/xxl-job-runtime-logs}}"
 RUNTIME_ROOT="${RUNTIME_ROOT:-/tmp/xxl-job-boost-run/runtime}"
 SOURCE_JAR="$ROOT_DIR/xxl-job-admin/target/xxl-job-admin-${PROJECT_VERSION}.jar"

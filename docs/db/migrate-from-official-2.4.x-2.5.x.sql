@@ -1,4 +1,4 @@
--- XXL-JOB official 2.4.x / 2.5.x -> XXL-JOB Boost 1.0.0
+-- XXL-JOB official 2.4.x / 2.5.x -> XXL-JOB Boost 0.9.4
 --
 -- Scope:
 --   * Run against an existing official XXL-JOB 2.4.x or 2.5.x database.

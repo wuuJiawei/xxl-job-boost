@@ -27,11 +27,13 @@ services:
       - xxl-job-network
 
   xxl-job-admin:
-    # 4、本地构建使用 :local；生产发布时改用版本标签镜像，例如 pub.lighting/xxl-job-boost-admin:1.0.0。
-    image: pub.lighting/xxl-job-boost-admin:local
+    # 4、本地构建使用 :local；生产发布时改用固定版本标签，例如 javeyswuu/xxl-job-boost-admin:0.9.4。
+    image: javeyswuu/xxl-job-boost-admin:local
     build:
       context: ..
       dockerfile: docker/Dockerfile.admin
+      args:
+        PROJECT_VERSION: ${PROJECT_VERSION:-0.9.4}
     container_name: xxl-job-admin
     environment:
       # 5、数据库密码设置，需要与上文Mysql中保持一致：
@@ -50,10 +52,12 @@ services:
       - xxl-job-network
 
   xxl-job-executor-sample-springboot:
-    image: pub.lighting/xxl-job-boost-executor-sample-springboot:local
+    image: javeyswuu/xxl-job-boost-executor-sample-springboot:local
     build:
       context: ..
       dockerfile: docker/Dockerfile.executor-sample-springboot
+      args:
+        PROJECT_VERSION: ${PROJECT_VERSION:-0.9.4}
     container_name: xxl-job-executor-sample-springboot
     environment:
       PARAMS: >-

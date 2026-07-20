@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>pub.lighting</groupId>
 	<artifactId>xxl-job-boost</artifactId>
-	<version>1.0.0</version>
+	<version>0.9.4</version>
 	<packaging>pom</packaging>
 
 	<name>XXL-JOB Boost</name>
@@ -210,7 +210,7 @@
 		</license>
 	</licenses>
 	<scm>
-		<tag>v1.0.0</tag>
+		<tag>v0.9.4</tag>
 		<url>https://github.com/wuuJiawei/xxl-job-boost</url>
 		<connection>scm:git:https://github.com/wuuJiawei/xxl-job-boost.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/wuuJiawei/xxl-job-boost.git</developerConnection>

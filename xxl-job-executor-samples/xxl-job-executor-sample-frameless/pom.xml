@@ -6,7 +6,7 @@
     <parent>
         <groupId>pub.lighting</groupId>
         <artifactId>xxl-job-executor-samples</artifactId>
-        <version>1.0.0</version>
+        <version>0.9.4</version>
     </parent>
     <artifactId>xxl-job-executor-sample-frameless</artifactId>
     <packaging>jar</packaging>

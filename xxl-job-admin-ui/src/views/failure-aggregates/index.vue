@@ -64,7 +64,6 @@ import {
   type PaginationProps,
   type SelectOption
 } from 'naive-ui';
-import { $t } from '@/locales';
 import { fetchFailureAggregates, type JobFailureAggregate } from '@/api/failure-aggregates';
 import { fetchJobGroups, fetchJobsByGroup, type JobGroupOption, type JobOption } from '@/api/admin-next';
 import { sanitizeRichMessage } from '@/utils/rich-message';

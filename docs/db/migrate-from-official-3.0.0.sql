@@ -1,14 +1,16 @@
--- XXL-JOB official 3.4.2 -> XXL-JOB Boost 0.9.4
+-- XXL-JOB official 3.0.0 -> XXL-JOB Boost 0.9.4
 --
 -- Scope:
---   * Run against an existing official XXL-JOB 3.4.2 database.
+--   * Run against an existing official XXL-JOB 3.0.0 database.
 --   * Preserve all official tables and business data.
---   * Add only the fields and tables required by XXL-JOB Boost.
+--   * First align the official schema with 3.4.2, then add Boost fields/tables.
 --
 -- Before running:
 --   1. Stop every xxl-job-admin instance.
---   2. Back up the xxl_job database.
---   3. Verify that the selected database is the intended production copy.
+--   2. Stop every executor and clear xxl_job_registry; registry rows are ephemeral.
+--   3. Back up the xxl_job database.
+--   4. Verify that the selected database is the intended production copy.
+--   5. Prepare a new admin password. Legacy MD5 hashes cannot be converted to SHA-256.
 --
 -- This script is idempotent and can be rerun after a partial failure.
 
@@ -32,6 +34,135 @@ SET @ddl = IF(
 PREPARE stmt FROM @ddl;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
+
+-- Official 3.0.0 -> official 3.4.2 schema alignment.
+-- These MODIFY operations are repeatable but can lock large tables. Run in a maintenance window.
+ALTER TABLE `xxl_job_group`
+    MODIFY COLUMN `title` varchar(64) NOT NULL COMMENT '执行器名称';
+
+ALTER TABLE `xxl_job_registry`
+    MODIFY COLUMN `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `xxl_job_info`
+    MODIFY COLUMN `executor_param` text DEFAULT NULL COMMENT '任务参数';
+
+ALTER TABLE `xxl_job_log`
+    MODIFY COLUMN `executor_param` text DEFAULT NULL COMMENT '任务参数';
+
+ALTER TABLE `xxl_job_user`
+    MODIFY COLUMN `password` varchar(100) NOT NULL COMMENT '密码加密信息';
+
+SET @has_user_token = (
+    SELECT COUNT(1)
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = @db_name
+      AND TABLE_NAME = 'xxl_job_user'
+      AND COLUMN_NAME = 'token'
+);
+SET @ddl = IF(
+    @has_user_token = 0,
+    'ALTER TABLE `xxl_job_user` ADD COLUMN `token` varchar(100) DEFAULT NULL COMMENT ''登录token'' AFTER `password`',
+    'SELECT ''xxl_job_user.token already exists'''
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Official 3.x uses a unique registry key. This will fail if stale duplicate rows remain.
+-- Stop all components and TRUNCATE xxl_job_registry before migration, as documented.
+SET @has_registry_key_idx = (
+    SELECT COUNT(1)
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = @db_name
+      AND TABLE_NAME = 'xxl_job_registry'
+      AND INDEX_NAME = 'i_g_k_v'
+);
+SET @registry_key_non_unique = COALESCE((
+    SELECT MAX(NON_UNIQUE)
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = @db_name
+      AND TABLE_NAME = 'xxl_job_registry'
+      AND INDEX_NAME = 'i_g_k_v'
+), 0);
+SET @ddl = CASE
+    WHEN @has_registry_key_idx = 0 THEN
+        'ALTER TABLE `xxl_job_registry` ADD UNIQUE INDEX `i_g_k_v` (`registry_group`, `registry_key`, `registry_value`)'
+    WHEN @registry_key_non_unique = 1 THEN
+        'ALTER TABLE `xxl_job_registry` DROP INDEX `i_g_k_v`, ADD UNIQUE INDEX `i_g_k_v` (`registry_group`, `registry_key`, `registry_value`)'
+    ELSE
+        'SELECT ''xxl_job_registry.i_g_k_v is already unique'''
+END;
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_log_job_group_idx = (
+    SELECT COUNT(1)
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = @db_name
+      AND TABLE_NAME = 'xxl_job_log'
+      AND INDEX_NAME = 'I_jobgroup'
+);
+SET @ddl = IF(
+    @has_log_job_group_idx = 0,
+    'CREATE INDEX `I_jobgroup` ON `xxl_job_log` (`job_group`)',
+    'SELECT ''xxl_job_log.I_jobgroup already exists'''
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_log_job_id_idx = (
+    SELECT COUNT(1)
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = @db_name
+      AND TABLE_NAME = 'xxl_job_log'
+      AND INDEX_NAME = 'I_jobid'
+);
+SET @ddl = IF(
+    @has_log_job_id_idx = 0,
+    'CREATE INDEX `I_jobid` ON `xxl_job_log` (`job_id`)',
+    'SELECT ''xxl_job_log.I_jobid already exists'''
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_old_log_compound_idx = (
+    SELECT COUNT(1)
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = @db_name
+      AND TABLE_NAME = 'xxl_job_log'
+      AND INDEX_NAME = 'I_jobid_jobgroup'
+);
+SET @ddl = IF(
+    @has_old_log_compound_idx > 0,
+    'ALTER TABLE `xxl_job_log` DROP INDEX `I_jobid_jobgroup`',
+    'SELECT ''xxl_job_log.I_jobid_jobgroup is already absent'''
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_old_log_job_id_idx = (
+    SELECT COUNT(1)
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = @db_name
+      AND TABLE_NAME = 'xxl_job_log'
+      AND INDEX_NAME = 'I_job_id'
+);
+SET @ddl = IF(
+    @has_old_log_job_id_idx > 0,
+    'ALTER TABLE `xxl_job_log` DROP INDEX `I_job_id`',
+    'SELECT ''xxl_job_log.I_job_id is already absent'''
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SELECT COUNT(1) AS users_requiring_password_reset
+FROM `xxl_job_user`
+WHERE CHAR_LENGTH(`password`) = 32;
 
 -- Boost metadata on official job definitions.
 SET @has_job_tag = (
@@ -247,4 +378,4 @@ PREPARE stmt FROM @ddl;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
-SELECT 'XXL-JOB official 3.4.2 -> XXL-JOB Boost database migration completed' AS migration_result;
+SELECT 'XXL-JOB official 3.0.0 -> XXL-JOB Boost database migration completed' AS migration_result;

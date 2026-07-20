@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/xuxueli/xxl-job"><img src="https://img.shields.io/badge/upstream-XXL--JOB-blue" alt="Upstream XXL-JOB"></a>
-  <img src="https://img.shields.io/badge/version-1.0.0-orange" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.9.4-orange" alt="Version">
   <img src="https://img.shields.io/badge/JDK-17%2B-brightgreen" alt="JDK 17+">
   <img src="https://img.shields.io/badge/Spring%20Boot-4.x-6DB33F" alt="Spring Boot 4">
   <img src="https://img.shields.io/badge/Vue-3-42b883" alt="Vue 3">
@@ -197,10 +197,23 @@ bash scripts/dev-stop.sh
 
 ```bash
 bash scripts/docker-build.sh
+```
+
+构建完成后可选择两种运行方式。
+
+admin-only 镜像只包含调度中心，连接外部 MySQL，适合生产和已有数据库迁移：
+
+```bash
 docker compose -f docker/docker-compose.yml up -d
 ```
 
-`scripts/docker-build.sh` 会先构建 `xxl-job-admin-ui` 的生产产物，再用 JDK 17 打包 `xxl-job-admin` 和 Spring Boot 样例执行器，最后构建本地 Docker 镜像。这样镜像内的 `/admin-next/` 始终来自当前源码的最新版 Web 产物。
+all-in-one 镜像同时包含调度中心和 MySQL 8.4，适合全新单机试用：
+
+```bash
+docker compose -f docker/docker-compose-all-in-one.yml up -d
+```
+
+`scripts/docker-build.sh` 会先构建 `xxl-job-admin-ui` 的生产产物，再用 JDK 17 打包后端，最后生成 `javeyswuu/xxl-job-boost-admin:local`、`javeyswuu/xxl-job-boost-all-in-one:local` 和样例执行器镜像。all-in-one 只用于全新数据库，不会自动迁移官方旧库。
 
 ### 启动前端开发服务
 
@@ -236,7 +249,7 @@ Spring Boot 执行器只需要引入 starter：
 <dependency>
     <groupId>pub.lighting</groupId>
     <artifactId>xxl-job-boost-spring-boot-starter</artifactId>
-    <version>1.0.0</version>
+    <version>0.9.4</version>
 </dependency>
 ```
 
@@ -290,10 +303,11 @@ xxl-job-boost
 
 ## 数据库升级
 
-数据库脚本按来源版本三选一，不是按顺序全部执行：
+数据库脚本按来源版本四选一，不是按顺序全部执行：
 
 - [全新部署：install-xxl-job-boost.sql](docs/db/install-xxl-job-boost.sql)
 - [官方 3.4.2 迁移：migrate-from-official-3.4.2.sql](docs/db/migrate-from-official-3.4.2.sql)
+- [官方 3.0.0 迁移：migrate-from-official-3.0.0.sql](docs/db/migrate-from-official-3.0.0.sql)
 - [官方 2.4.x / 2.5.x 迁移：migrate-from-official-2.4.x-2.5.x.sql](docs/db/migrate-from-official-2.4.x-2.5.x.sql)
 
 执行前必须阅读[从官方 XXL-JOB 迁移到 Boost](docs/migration-from-xxl-job.md)，先备份并在预发演练。
@@ -303,13 +317,13 @@ xxl-job-boost
 - [文档索引](docs/README.md)：统一文档入口
 - [从官方 XXL-JOB 迁移到 Boost](docs/migration-from-xxl-job.md)：数据库、admin、执行器、传输和容器完整迁移步骤
 - [Boost Features](docs/boost-features.md)：当前代码已落地能力的完整说明
-- [1.0.0 测试用例](docs/test-plan-1.0.0.md)：发布前自测、预发验收和生产上线检查
+- [0.9.4 测试用例](docs/test-plan-0.9.4.md)：发布前自测、预发验收和生产上线检查
 - [生产部署方案](docs/production-deployment.md)：生产 Docker 镜像发布与部署建议
 - [本地运行与排障记录](docs/local-dev-runbook.md)：本机启动方式、端口、常见故障
 - [功能路线图 / Roadmap](docs/feature-roadmap.md)：后续演进方向，不等同于已交付清单
 - [管理后台迁移计划](docs/admin-ui-migration-plan.md)：admin-next 的迁移思路
 - [源码增强策略](docs/upstream-extension-strategy.md)：为什么采用源码内渐进增强
-- [1.0.0 发布说明](docs/release-notes-1.0.0.md)：首个自有坐标发布准备说明
+- [0.9.4 发布说明](docs/release-notes-0.9.4.md)：首个自有坐标发布准备说明
 - [项目版本说明](docs/release-notes-2026-06-10.md)：早期可用基线说明
 - [官方中文文档镜像](docs/upstream/XXL-JOB官方文档.md)
 - [Official English Documentation mirror](docs/upstream/XXL-JOB-English-Documentation.md)

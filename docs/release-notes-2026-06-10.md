@@ -119,6 +119,7 @@
 数据库脚本已按来源版本重新整合。全新部署使用全量 SQL；官方旧库只能选择与来源版本匹配的一份迁移 SQL：
 
 - [从官方 3.4.2 迁移](./db/migrate-from-official-3.4.2.sql)
+- [从官方 3.0.0 迁移](./db/migrate-from-official-3.0.0.sql)
 - [从官方 2.4.x / 2.5.x 迁移](./db/migrate-from-official-2.4.x-2.5.x.sql)
 - [全新部署](./db/install-xxl-job-boost.sql)
 

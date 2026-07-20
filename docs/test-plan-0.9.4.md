@@ -1,6 +1,6 @@
-# XXL-JOB Boost 1.0.0 测试用例
+# XXL-JOB Boost 0.9.4 测试用例
 
-本文档用于 `1.0.0` 发布前自测、预发验收和生产上线前复核。测试目标不是穷举所有上游 XXL-JOB 能力，而是覆盖 Boost 当前新增和改造过的高风险链路。
+本文档用于 `0.9.4` 发布前自测、预发验收和生产上线前复核。测试目标不是穷举所有上游 XXL-JOB 能力，而是覆盖 Boost 当前新增和改造过的高风险链路。
 
 ## 测试范围
 
@@ -81,8 +81,8 @@ flowchart TD
 | --- | --- | --- | --- | --- |
 | GA-001 | Git 工作区干净 | `git status --short --branch` | 无未提交变更，分支同步远端 | P0 |
 | GA-002 | 前端生产构建 | `bash scripts/docker-build.sh` | `vite build` 成功，`xxl-job-admin-ui/dist` 产物生成 | P0 |
-| GA-003 | 后端应用打包 | `bash scripts/docker-build.sh` | `xxl-job-admin-1.0.0.jar` 和 sample jar 生成 | P0 |
-| GA-004 | Docker 本地镜像构建 | `bash scripts/docker-build.sh` | `pub.lighting/xxl-job-boost-admin:local` 构建成功 | P0 |
+| GA-003 | 后端应用打包 | `bash scripts/docker-build.sh` | `xxl-job-admin-0.9.4.jar` 和 sample jar 生成 | P0 |
+| GA-004 | Docker 本地镜像构建 | `bash scripts/docker-build.sh` | admin-only、all-in-one 和 sample 三个本地镜像构建成功 | P0 |
 | GA-005 | Maven release profile | `JAVA_HOME=/path/to/jdk17 mvn -P release -DskipTests -Dgpg.skip=true verify` | 只构建 7 个库模块并成功生成 sources/javadocs | P0 |
 | GA-006 | 脚本语法检查 | `bash -n scripts/*.sh` | 无语法错误 | P0 |
 | GA-007 | 迁移 SQL 幂等性 | 在匹配的官方测试库重复执行同一份 `docs/db/migrate-from-official-*.sql` | 第 2 次执行仍成功 | P0 |
@@ -277,24 +277,28 @@ flowchart TD
 flowchart TD
     A["bash scripts/docker-build.sh"] --> B["生成 admin-next dist"]
     B --> C["Maven 打包 admin 和 sample"]
-    C --> D["构建 :local 镜像"]
-    D --> E["准备 docker/.env"]
-    E --> F["docker compose up -d"]
-    F --> G["MySQL healthcheck"]
-    G --> H["admin container started"]
+    C --> D["构建 admin-only / all-in-one / sample :local 镜像"]
+    D --> E{"选择部署模式"}
+    E -->|"外部 MySQL"| F["docker-compose.yml"]
+    E -->|"全新单机"| G["docker-compose-all-in-one.yml"]
+    F --> H["数据库和 admin 就绪"]
+    G --> H
     H --> I["访问旧控制台和 admin-next"]
 ```
 
 | 编号 | 用例 | 前置条件 | 步骤 | 期望结果 | 优先级 |
 | --- | --- | --- | --- | --- | --- |
-| DK-001 | 构建本地镜像 | Docker 可用 | 执行 `bash scripts/docker-build.sh` | admin 和 sample 镜像构建成功 | P0 |
+| DK-001 | 构建本地镜像 | Docker 可用 | 执行 `bash scripts/docker-build.sh` | admin-only、all-in-one 和 sample 镜像构建成功 | P0 |
 | DK-002 | Compose 启动 | 镜像已构建，`.env` 合法 | 执行 `docker compose -f docker/docker-compose.yml up -d` | MySQL healthy，admin 启动 | P0 |
 | DK-003 | 容器内 admin-next 静态资源 | Compose 已启动 | 访问 `/xxl-job-admin/admin-next/` | 页面加载的是当前构建产物 | P0 |
 | DK-004 | 容器环境变量传递 | Compose 已启动 | 查看容器启动参数和连接库 | 数据库 URL、context path、端口符合 `.env` | P1 |
 | DK-005 | 容器重启 | Compose 已启动 | `docker restart xxl-job-admin` | admin 恢复，数据不丢 | P1 |
 | DK-006 | MySQL 数据持久化 | Compose 已启动并创建测试任务 | `docker compose down` 后再 `up -d` | 测试任务仍存在 | P0 |
 | DK-007 | 不启动样例执行器的生产模式 | 修改 compose 或生产部署只启动 admin | 启动 admin | admin 可用，未误依赖 sample executor | P1 |
-| DK-008 | 镜像打标 | 本地镜像存在 | 执行 tag 命令到 `1.0.0` | 版本标签存在，sha 与 local 一致 | P1 |
+| DK-008 | 镜像打标 | 本地镜像存在 | 执行 tag 命令到 `0.9.4` | 版本标签存在，sha 与 local 一致 | P1 |
+| DK-009 | all-in-one 首次启动 | 使用空数据卷 | 执行 `docker compose -f docker/docker-compose-all-in-one.yml up -d` | MySQL 自动初始化，admin 进入 healthy | P0 |
+| DK-010 | all-in-one 数据持久化 | 已创建测试任务 | 重建容器但保留命名卷 | 任务和账号数据仍存在 | P0 |
+| DK-011 | all-in-one 进程联动 | 容器运行中 | 终止 MySQL 或 admin 进程 | 容器退出，由 restart policy 整体拉起 | P1 |
 
 ## 数据库迁移测试
 
@@ -319,7 +323,7 @@ flowchart TD
 | 编号 | 用例 | 前置条件 | 步骤 | 期望结果 | 优先级 |
 | --- | --- | --- | --- | --- | --- |
 | DB-001 | 全新初始化 | 空 MySQL | 导入 `docs/db/install-xxl-job-boost.sql` | 所有基础表、Boost 表、默认用户创建成功 | P0 |
-| DB-002 | 官方库迁移幂等性 | 官方 3.4.2 或 2.4.x/2.5.x 测试库 | 对匹配来源版本的迁移 SQL 连续执行两次 | 两次都成功，无重复列或索引错误 | P0 |
+| DB-002 | 官方库迁移幂等性 | 官方 3.4.2、3.0.0 或 2.4.x/2.5.x 测试库 | 对匹配来源版本的迁移 SQL 连续执行两次 | 两次都成功，无重复列或索引错误 | P0 |
 | DB-003 | 旧库补齐 Boost 字段 | 模拟旧库 `xxl_job_info` 缺少 Boost 字段 | 执行迁移 | `job_tag`、`alarm_channel_ids`、`alarm_event_types` 存在 | P0 |
 | DB-004 | 创建告警表 | 旧库缺少告警表 | 执行迁移 | `xxl_job_alarm_channel/rule/record` 存在 | P0 |
 | DB-005 | 创建审计表 | 旧库缺少审计表 | 执行迁移 | `xxl_job_audit_log` 和 `operator_user_id` 存在 | P0 |
@@ -327,6 +331,8 @@ flowchart TD
 | DB-007 | 字符集兼容 | 任务描述包含中文、特殊字符 | 迁移并查看页面 | 中文不乱码 | P1 |
 | DB-008 | 大表迁移耗时 | 日志表较大 | 在预发库执行迁移并记录耗时 | 可接受；生产窗口有足够时间 | P1 |
 | DB-009 | 回滚验证 | 已备份数据库和旧镜像 | 模拟发布失败后恢复 | 旧版本可启动，核心数据可用 | P0 |
+| DB-010 | 官方 3.0.0 直迁 | 官方 3.0.0 数据库副本 | 执行 `migrate-from-official-3.0.0.sql` | 对齐 3.4.2 结构并补齐 Boost 字段和表，历史数据数量不变 | P0 |
+| DB-011 | 官方 3.0.0 密码升级 | 迁移后存在 32 位 MD5 密码用户 | 重置为 SHA-256 并清空 token，启动 Boost 后登录 | 新密码可登录，旧登录态失效 | P0 |
 
 ## Maven Central 发布验证
 
@@ -337,17 +343,17 @@ flowchart TD
 | MV-003 | javadoc jar | MV-001 通过 | 查看各库模块 `target/*-javadoc.jar` | 文件存在 | P0 |
 | MV-004 | GPG 正式签名 | 配好 GPG key 和 passphrase | 执行不带 `-Dgpg.skip=true` 的 release verify | `.asc` 签名生成 | P0 |
 | MV-005 | Central 凭据 | Maven `settings.xml` 有 `central` server | 执行正式 publish | Central Portal 创建 deployment | P0 |
-| MV-006 | 坐标可解析 | Central 发布完成后 | 新建空项目引入 `pub.lighting:xxl-job-boost-spring-boot-starter:1.0.0` | Maven 能解析依赖 | P0 |
+| MV-006 | 坐标可解析 | Central 发布完成后 | 新建空项目引入 `pub.lighting:xxl-job-boost-spring-boot-starter:0.9.4` | Maven 能解析依赖 | P0 |
 | MV-007 | 外部依赖不被错误改名 | 发布后检查依赖树 | `mvn dependency:tree` | `xxl-tool` 和 `xxl-sso-core` 仍来自 `com.xuxueli` | P1 |
 
 ## 生产发布前检查
 
 | 编号 | 用例 | 前置条件 | 步骤 | 期望结果 | 优先级 |
 | --- | --- | --- | --- | --- | --- |
-| PR-001 | 版本一致性 | 准备发布 | 检查 README、POM、镜像 tag、Git tag | 都是 `1.0.0` | P0 |
+| PR-001 | 版本一致性 | 准备发布 | 检查 README、POM、镜像 tag、Git tag | 都是 `0.9.4` | P0 |
 | PR-002 | 配置去默认值 | 准备生产 `.env` 或部署配置 | 检查密码、token、路径、端口 | 不使用 `root_pwd`、`123456` 以外的生产初始风险值 | P0 |
 | PR-003 | 数据库备份 | 发布窗口前 | 执行并校验备份 | 备份可恢复，备份文件可访问 | P0 |
-| PR-004 | 镜像拉取 | 目标生产机器 | `docker pull <admin-image>:1.0.0` | 拉取成功，digest 记录到发布单 | P0 |
+| PR-004 | 镜像拉取 | 目标生产机器 | `docker pull <admin-image>:0.9.4` | 拉取成功，digest 记录到发布单 | P0 |
 | PR-005 | 健康检查 | 部署后 | 访问旧控制台、新控制台和核心 API | 返回正常 | P0 |
 | PR-006 | 日志可观测 | 部署后 | 查看容器日志和应用日志目录 | 错误日志无持续刷屏 | P0 |
 | PR-007 | 权限账号 | 部署后 | 管理员和普通用户登录 | 账号权限符合预期 | P0 |
@@ -385,7 +391,7 @@ flowchart TD
 | CP-003 | 无显式客户端前缀地址 | 执行器地址使用普通 `http://host:port/`，不带 `HTTP::` | 调度触发 | transport factory 可正确匹配 | P1 |
 | CP-004 | 旧控制台任务操作 | 旧控制台新增或编辑任务 | 新控制台查看 | 数据一致 | P0 |
 | CP-005 | 新控制台任务操作 | 新控制台新增或编辑任务 | 旧控制台查看 | 数据一致 | P0 |
-| CP-006 | 官方旧库升级 | 官方 3.x 库副本 | 执行迁移并部署 Boost | 历史任务和执行器可用 | P0 |
+| CP-006 | 官方旧库升级 | 官方 3.0.0 或 3.4.2 库副本 | 执行匹配的迁移脚本并部署 Boost | 历史任务和执行器可用 | P0 |
 
 ## 测试记录模板
 
@@ -404,7 +410,7 @@ flowchart TD
 ## 发布结论模板
 
 ```text
-结论：允许 / 不允许发布 XXL-JOB Boost 1.0.0。
+结论：允许 / 不允许发布 XXL-JOB Boost 0.9.4。
 
 P0：通过 x 项，失败 x 项。
 P1：通过 x 项，失败 x 项，延期 x 项。

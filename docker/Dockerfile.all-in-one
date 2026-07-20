@@ -1,0 +1,36 @@
+FROM mysql:8.4
+
+LABEL maintainer="Jiawei Wu"
+LABEL org.opencontainers.image.title="XXL-JOB Boost All-in-One"
+LABEL org.opencontainers.image.description="XXL-JOB Boost admin server with an embedded MySQL 8.4 database"
+
+RUN microdnf install -y java-17-openjdk-headless \
+    && microdnf clean all
+
+ENV TZ=Asia/Shanghai \
+    MYSQL_DATABASE=xxl_job \
+    MYSQL_USER=xxl_job \
+    SERVER_PORT=8080 \
+    SERVER_SERVLET_CONTEXT_PATH=/xxl-job-admin \
+    DATABASE_STARTUP_TIMEOUT=180 \
+    PARAMS=""
+
+ARG PROJECT_VERSION=0.9.4
+
+COPY xxl-job-admin/target/xxl-job-admin-${PROJECT_VERSION}.jar /opt/xxl-job-boost/app.jar
+COPY docker/logback.xml /opt/xxl-job-boost/logback.xml
+COPY docs/db/install-xxl-job-boost.sql /docker-entrypoint-initdb.d/001-install-xxl-job-boost.sql
+COPY docker/all-in-one-entrypoint.sh /usr/local/bin/xxl-job-boost-all-in-one
+
+RUN chmod 0755 /usr/local/bin/xxl-job-boost-all-in-one \
+    && mkdir -p /data/applogs
+
+VOLUME ["/var/lib/mysql", "/data/applogs"]
+
+EXPOSE 8080 3306
+
+HEALTHCHECK --interval=10s --timeout=5s --start-period=90s --retries=12 \
+    CMD MYSQL_PWD="$MYSQL_PASSWORD" mysqladmin ping --silent --host=127.0.0.1 --user="$MYSQL_USER" \
+        && bash -c "</dev/tcp/127.0.0.1/$SERVER_PORT"
+
+ENTRYPOINT ["/usr/local/bin/xxl-job-boost-all-in-one"]

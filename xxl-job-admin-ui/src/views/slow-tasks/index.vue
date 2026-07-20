@@ -59,7 +59,6 @@ import {
   type PaginationProps,
   type SelectOption
 } from 'naive-ui';
-import { $t } from '@/locales';
 import { fetchSlowTasks, type JobSlowAggregate } from '@/api/slow-tasks';
 import { fetchJobGroups, fetchJobsByGroup, type JobGroupOption, type JobOption } from '@/api/admin-next';
 

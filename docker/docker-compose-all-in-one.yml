@@ -1,0 +1,25 @@
+services:
+  xxl-job-boost-all-in-one:
+    image: javeyswuu/xxl-job-boost-all-in-one:local
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.all-in-one
+      args:
+        PROJECT_VERSION: ${PROJECT_VERSION:-0.9.4}
+    container_name: xxl-job-boost-all-in-one
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in docker/.env}
+      MYSQL_USER: ${MYSQL_USER:-xxl_job}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in docker/.env}
+      SERVER_PORT: 8080
+      SERVER_SERVLET_CONTEXT_PATH: ${XXL_JOB_ADMIN_CONTEXT_PATH:-/xxl-job-admin}
+    ports:
+      - "${XXL_JOB_ADMIN_PORT:-8080}:8080"
+    volumes:
+      - xxl-job-boost-mysql:/var/lib/mysql
+      - xxl-job-boost-logs:/data/applogs
+    restart: unless-stopped
+
+volumes:
+  xxl-job-boost-mysql:
+  xxl-job-boost-logs:

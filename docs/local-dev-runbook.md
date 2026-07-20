@@ -219,8 +219,8 @@ export PATH="/Users/song/.nvm/versions/node/v20.19.0/bin:$PATH"
 
 如果缺少以下 jar：
 
-- `xxl-job-admin/target/xxl-job-admin-1.0.0.jar`
-- `xxl-job-executor-samples/xxl-job-executor-sample-springboot/target/xxl-job-executor-sample-springboot-1.0.0.jar`
+- `xxl-job-admin/target/xxl-job-admin-0.9.4.jar`
+- `xxl-job-executor-samples/xxl-job-executor-sample-springboot/target/xxl-job-executor-sample-springboot-0.9.4.jar`
 
 `scripts/dev-start.sh` 会自动执行：
 

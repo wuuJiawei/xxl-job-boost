@@ -1,5 +1,5 @@
 #
-# XXL-JOB Boost 1.0.0 - full installation schema
+# XXL-JOB Boost 0.9.4 - full installation schema
 # Based on the official XXL-JOB 3.4.2 schema.
 # Use only for a new deployment. Do not run against an existing database.
 

@@ -4,7 +4,7 @@
     <parent>
         <groupId>pub.lighting</groupId>
         <artifactId>xxl-job-boost</artifactId>
-        <version>1.0.0</version>
+        <version>0.9.4</version>
     </parent>
     <artifactId>xxl-job-boost-spring-boot-starter</artifactId>
     <packaging>jar</packaging>

@@ -53,7 +53,6 @@ import {
   type PaginationProps,
   type SelectOption
 } from 'naive-ui';
-import { $t } from '@/locales';
 import { fetchJobGroups, type JobGroupOption } from '@/api/admin-next';
 import { fetchAuditLogs, type AuditLog } from '@/api/audit-logs';
 

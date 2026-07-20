@@ -1,22 +1,25 @@
 # XXL-JOB Boost 生产部署方案
 
-本文档记录 `1.0.0` 版本的生产 Docker 镜像发布和部署建议。当前阶段先固化方案，不执行镜像推送。
+本文档记录 `0.9.4` 测试版本的 Docker 镜像构建、发布和部署方式。
 
 ## 发布产物
 
-建议发布两个镜像：
+面向用户提供两种 admin 镜像：
 
 | 镜像 | 用途 | 是否必需 |
 | --- | --- | --- |
-| `pub.lighting/xxl-job-boost-admin:1.0.0` | 调度中心后端，内置最新版 `admin-next` 静态资源 | 必需 |
-| `pub.lighting/xxl-job-boost-executor-sample-springboot:1.0.0` | Spring Boot 样例执行器，用于演示和联调 | 可选 |
+| `javeyswuu/xxl-job-boost-admin:0.9.4` | 仅调度中心，连接外部 MySQL；适合生产和已有数据库迁移 | 二选一 |
+| `javeyswuu/xxl-job-boost-all-in-one:0.9.4` | 调度中心 + MySQL 8.4；适合全新单机试用和验收 | 二选一 |
+
+可选样例执行器镜像：`javeyswuu/xxl-job-boost-executor-sample-springboot:0.9.4`。
 
 同时保留移动标签：
 
-- `pub.lighting/xxl-job-boost-admin:latest`
-- `pub.lighting/xxl-job-boost-executor-sample-springboot:latest`
+- `javeyswuu/xxl-job-boost-admin:latest`
+- `javeyswuu/xxl-job-boost-all-in-one:latest`
+- `javeyswuu/xxl-job-boost-executor-sample-springboot:latest`
 
-生产环境不建议默认部署样例执行器。样例镜像只用于演示、验收或开发联调。
+all-in-one 和样例执行器都不作为生产默认选择。正式环境建议使用 admin-only 镜像连接独立、高可用、已备份的外部 MySQL。
 
 ## 本地构建
 
@@ -28,46 +31,86 @@ bash scripts/docker-build.sh
 
 1. `xxl-job-admin-ui` 前端生产构建。
 2. Maven 打包 `xxl-job-admin` 和 Spring Boot 样例执行器。
-3. 使用 `docker/docker-compose.yml` 构建本地镜像。
+3. 构建 admin-only、all-in-one 和样例执行器本地镜像。
 
 本地镜像名：
 
-- `pub.lighting/xxl-job-boost-admin:local`
-- `pub.lighting/xxl-job-boost-executor-sample-springboot:local`
+- `javeyswuu/xxl-job-boost-admin:local`
+- `javeyswuu/xxl-job-boost-all-in-one:local`
+- `javeyswuu/xxl-job-boost-executor-sample-springboot:local`
+
+## 运行方式
+
+### admin-only：连接外部 MySQL
+
+已有数据库先执行唯一匹配的迁移 SQL，再启动容器：
+
+```bash
+docker run -d --name xxl-job-boost-admin \
+  -p 8080:8080 \
+  -e PARAMS="--spring.datasource.url=jdbc:mysql://mysql.example.com:3306/xxl_job --spring.datasource.username=xxl_job --spring.datasource.password=change_me" \
+  -v xxl-job-boost-logs:/data/applogs \
+  javeyswuu/xxl-job-boost-admin:0.9.4
+```
+
+镜像内不包含 MySQL，但 admin 本身仍然必须连接 MySQL。
+
+### all-in-one：内置 MySQL 8.4
+
+```bash
+docker run -d --name xxl-job-boost-all-in-one \
+  -p 8080:8080 \
+  -e MYSQL_ROOT_PASSWORD=change_this_root_password \
+  -e MYSQL_PASSWORD=change_this_app_password \
+  -v xxl-job-boost-mysql:/var/lib/mysql \
+  -v xxl-job-boost-logs:/data/applogs \
+  javeyswuu/xxl-job-boost-all-in-one:0.9.4
+```
+
+首次启动空数据卷时，镜像自动导入 `install-xxl-job-boost.sql`。账号密码只在首次初始化时生效；更换环境变量不会修改已有数据卷中的 MySQL 账号。镜像默认不向宿主机暴露 3306。
+
+Compose 方式：
+
+```bash
+cp -n docker/.env.example docker/.env
+docker compose -f docker/docker-compose-all-in-one.yml up -d
+```
+
+all-in-one 不会升级已有官方 XXL-JOB 数据库，也不应直接挂载官方 3.0.0 或其他旧版数据卷。
 
 ## 镜像打标与推送
 
 发布时在构建通过后执行：
 
 ```bash
-docker tag pub.lighting/xxl-job-boost-admin:local pub.lighting/xxl-job-boost-admin:1.0.0
-docker tag pub.lighting/xxl-job-boost-admin:local pub.lighting/xxl-job-boost-admin:latest
-docker push pub.lighting/xxl-job-boost-admin:1.0.0
-docker push pub.lighting/xxl-job-boost-admin:latest
+docker tag javeyswuu/xxl-job-boost-admin:local javeyswuu/xxl-job-boost-admin:0.9.4
+docker tag javeyswuu/xxl-job-boost-admin:local javeyswuu/xxl-job-boost-admin:latest
+docker push javeyswuu/xxl-job-boost-admin:0.9.4
+docker push javeyswuu/xxl-job-boost-admin:latest
+
+docker tag javeyswuu/xxl-job-boost-all-in-one:local javeyswuu/xxl-job-boost-all-in-one:0.9.4
+docker tag javeyswuu/xxl-job-boost-all-in-one:local javeyswuu/xxl-job-boost-all-in-one:latest
+docker push javeyswuu/xxl-job-boost-all-in-one:0.9.4
+docker push javeyswuu/xxl-job-boost-all-in-one:latest
 ```
 
 如需发布样例执行器：
 
 ```bash
-docker tag pub.lighting/xxl-job-boost-executor-sample-springboot:local pub.lighting/xxl-job-boost-executor-sample-springboot:1.0.0
-docker tag pub.lighting/xxl-job-boost-executor-sample-springboot:local pub.lighting/xxl-job-boost-executor-sample-springboot:latest
-docker push pub.lighting/xxl-job-boost-executor-sample-springboot:1.0.0
-docker push pub.lighting/xxl-job-boost-executor-sample-springboot:latest
+docker tag javeyswuu/xxl-job-boost-executor-sample-springboot:local javeyswuu/xxl-job-boost-executor-sample-springboot:0.9.4
+docker tag javeyswuu/xxl-job-boost-executor-sample-springboot:local javeyswuu/xxl-job-boost-executor-sample-springboot:latest
+docker push javeyswuu/xxl-job-boost-executor-sample-springboot:0.9.4
+docker push javeyswuu/xxl-job-boost-executor-sample-springboot:latest
 ```
-
-如果最终使用 GHCR 或 Docker Hub，需要把镜像前缀替换为对应 registry，例如：
-
-- `ghcr.io/wuujiawei/xxl-job-boost-admin:1.0.0`
-- `docker.io/javeyswuu/xxl-job-boost-admin:1.0.0`
 
 ## 生产部署要点
 
 生产环境建议：
 
 1. 使用外部 MySQL 或独立托管的 MySQL 容器，不把 MySQL 数据目录放在临时目录。
-2. 从 `docker/.env.example` 复制生产环境变量，至少修改 `MYSQL_ROOT_PASSWORD` 和 `MYSQL_PATH`。
+2. 从 `docker/.env.example` 复制环境变量，至少修改 MySQL root 和应用账号密码以及数据路径。
 3. `XXL_JOB_ADMIN_CONTEXT_PATH` 默认保持 `/xxl-job-admin`，兼容旧控制台和执行器配置。
-4. 只部署 `xxl-job-boost-admin`，除非需要演示，否则不启动样例执行器。
+4. 生产只部署 admin-only 镜像，除非需要单机试用，否则不部署 all-in-one 和样例执行器。
 5. 首次上线前根据来源版本选择 `docs/db/` 中唯一匹配的 SQL，在预发库演练并验证新旧控制台。
 
 ## 数据库升级
@@ -78,10 +121,11 @@ docker push pub.lighting/xxl-job-boost-executor-sample-springboot:latest
 docs/db/install-xxl-job-boost.sql
 ```
 
-官方旧库升级按来源版本二选一：
+官方旧库升级按来源版本三选一：
 
 ```text
 docs/db/migrate-from-official-3.4.2.sql
+docs/db/migrate-from-official-3.0.0.sql
 docs/db/migrate-from-official-2.4.x-2.5.x.sql
 ```
 
@@ -100,6 +144,6 @@ docs/db/migrate-from-official-2.4.x-2.5.x.sql
 
 ## 当前未执行事项
 
-- 尚未推送生产镜像。
+- 两种 Docker 镜像的构建与运行定义已完成，镜像推送状态以 Docker Hub 为准。
 - 尚未创建 GitHub Release。
-- 尚未发布 Maven Central。
+- Maven Central `0.9.4` 已发布；本文件中的 Docker 镜像仍未发布。

@@ -1,11 +1,11 @@
-import axios from 'axios';
+import { create } from 'axios';
 
 const baseURL =
   import.meta.env.DEV && import.meta.env.VITE_HTTP_PROXY === 'Y'
     ? '/proxy-default'
     : import.meta.env.VITE_SERVICE_BASE_URL;
 
-export const http = axios.create({
+export const http = create({
   baseURL,
   headers: {
     'X-Requested-With': 'XMLHttpRequest'

@@ -281,6 +281,7 @@ http://127.0.0.1:9999/
 
 - [全新部署](./db/install-xxl-job-boost.sql)
 - [从官方 3.4.2 迁移](./db/migrate-from-official-3.4.2.sql)
+- [从官方 3.0.0 迁移](./db/migrate-from-official-3.0.0.sql)
 - [从官方 2.4.x / 2.5.x 迁移](./db/migrate-from-official-2.4.x-2.5.x.sql)
 
 新增或增强的关键字段 / 表：
@@ -291,10 +292,11 @@ http://127.0.0.1:9999/
 - `xxl_job_alarm_channel`
 - `xxl_job_alarm_rule`
 - `xxl_job_alarm_record`
+- `xxl_job_system_config`
 - `xxl_job_audit_log`
 - `xxl_job_audit_log.operator_user_id`
 
-三份 SQL 是按来源版本选择的独立入口，不是连续执行的 migration 链。具体步骤见[完整迁移指南](./migration-from-xxl-job.md)。
+四份 SQL 是按来源版本选择的独立入口，不是连续执行的 migration 链。具体步骤见[完整迁移指南](./migration-from-xxl-job.md)。
 
 ## 样例执行器
 

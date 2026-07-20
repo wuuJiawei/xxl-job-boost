@@ -1,12 +1,21 @@
 FROM eclipse-temurin:17-jre
 
-LABEL maintainer="xuxueli"
+LABEL maintainer="Jiawei Wu"
+LABEL org.opencontainers.image.title="XXL-JOB Boost Admin"
+LABEL org.opencontainers.image.description="XXL-JOB Boost admin server for use with an external MySQL database"
 
-ENV PARAMS=""
-ENV TZ=PRC
+ENV PARAMS="" \
+    TZ=Asia/Shanghai \
+    SERVER_PORT=8080 \
+    SERVER_SERVLET_CONTEXT_PATH=/xxl-job-admin
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-COPY xxl-job-admin/target/xxl-job-admin-*.jar /app.jar
+ARG PROJECT_VERSION=0.9.4
 
-ENTRYPOINT ["sh","-c","java ${LOG_HOME:+-DLOG_HOME=$LOG_HOME} -jar $JAVA_OPTS /app.jar $PARAMS"]
+COPY xxl-job-admin/target/xxl-job-admin-${PROJECT_VERSION}.jar /opt/xxl-job-boost/app.jar
+COPY docker/logback.xml /opt/xxl-job-boost/logback.xml
+
+EXPOSE 8080
+
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -Dlogging.config=file:/opt/xxl-job-boost/logback.xml ${LOG_HOME:+-DLOG_HOME=$LOG_HOME} -jar /opt/xxl-job-boost/app.jar $PARAMS"]
