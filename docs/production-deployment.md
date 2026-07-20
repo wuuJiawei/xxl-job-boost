@@ -8,16 +8,16 @@
 
 | 镜像 | 用途 | 是否必需 |
 | --- | --- | --- |
-| `javeyswuu/xxl-job-boost-admin:0.9.4` | 仅调度中心，连接外部 MySQL；适合生产和已有数据库迁移 | 二选一 |
-| `javeyswuu/xxl-job-boost-all-in-one:0.9.4` | 调度中心 + MySQL 8.4；适合全新单机试用和验收 | 二选一 |
+| `wujiawei0926/xxl-job-boost-admin:0.9.4` | 仅调度中心，连接外部 MySQL；适合生产和已有数据库迁移 | 二选一 |
+| `wujiawei0926/xxl-job-boost-all-in-one:0.9.4` | 调度中心 + MySQL 8.4；适合全新单机试用和验收 | 二选一 |
 
-可选样例执行器镜像：`javeyswuu/xxl-job-boost-executor-sample-springboot:0.9.4`。
+可选样例执行器镜像：`wujiawei0926/xxl-job-boost-executor-sample-springboot:0.9.4`。
 
 同时保留移动标签：
 
-- `javeyswuu/xxl-job-boost-admin:latest`
-- `javeyswuu/xxl-job-boost-all-in-one:latest`
-- `javeyswuu/xxl-job-boost-executor-sample-springboot:latest`
+- `wujiawei0926/xxl-job-boost-admin:latest`
+- `wujiawei0926/xxl-job-boost-all-in-one:latest`
+- `wujiawei0926/xxl-job-boost-executor-sample-springboot:latest`
 
 all-in-one 和样例执行器都不作为生产默认选择。正式环境建议使用 admin-only 镜像连接独立、高可用、已备份的外部 MySQL。
 
@@ -35,9 +35,9 @@ bash scripts/docker-build.sh
 
 本地镜像名：
 
-- `javeyswuu/xxl-job-boost-admin:local`
-- `javeyswuu/xxl-job-boost-all-in-one:local`
-- `javeyswuu/xxl-job-boost-executor-sample-springboot:local`
+- `wujiawei0926/xxl-job-boost-admin:local`
+- `wujiawei0926/xxl-job-boost-all-in-one:local`
+- `wujiawei0926/xxl-job-boost-executor-sample-springboot:local`
 
 ## 运行方式
 
@@ -50,7 +50,7 @@ docker run -d --name xxl-job-boost-admin \
   -p 8080:8080 \
   -e PARAMS="--spring.datasource.url=jdbc:mysql://mysql.example.com:3306/xxl_job --spring.datasource.username=xxl_job --spring.datasource.password=change_me" \
   -v xxl-job-boost-logs:/data/applogs \
-  javeyswuu/xxl-job-boost-admin:0.9.4
+  wujiawei0926/xxl-job-boost-admin:0.9.4
 ```
 
 镜像内不包含 MySQL，但 admin 本身仍然必须连接 MySQL。
@@ -64,7 +64,7 @@ docker run -d --name xxl-job-boost-all-in-one \
   -e MYSQL_PASSWORD=change_this_app_password \
   -v xxl-job-boost-mysql:/var/lib/mysql \
   -v xxl-job-boost-logs:/data/applogs \
-  javeyswuu/xxl-job-boost-all-in-one:0.9.4
+  wujiawei0926/xxl-job-boost-all-in-one:0.9.4
 ```
 
 首次启动空数据卷时，镜像自动导入 `install-xxl-job-boost.sql`。账号密码只在首次初始化时生效；更换环境变量不会修改已有数据卷中的 MySQL 账号。镜像默认不向宿主机暴露 3306。
@@ -83,24 +83,24 @@ all-in-one 不会升级已有官方 XXL-JOB 数据库，也不应直接挂载官
 发布时在构建通过后执行：
 
 ```bash
-docker tag javeyswuu/xxl-job-boost-admin:local javeyswuu/xxl-job-boost-admin:0.9.4
-docker tag javeyswuu/xxl-job-boost-admin:local javeyswuu/xxl-job-boost-admin:latest
-docker push javeyswuu/xxl-job-boost-admin:0.9.4
-docker push javeyswuu/xxl-job-boost-admin:latest
+docker tag wujiawei0926/xxl-job-boost-admin:local wujiawei0926/xxl-job-boost-admin:0.9.4
+docker tag wujiawei0926/xxl-job-boost-admin:local wujiawei0926/xxl-job-boost-admin:latest
+docker push wujiawei0926/xxl-job-boost-admin:0.9.4
+docker push wujiawei0926/xxl-job-boost-admin:latest
 
-docker tag javeyswuu/xxl-job-boost-all-in-one:local javeyswuu/xxl-job-boost-all-in-one:0.9.4
-docker tag javeyswuu/xxl-job-boost-all-in-one:local javeyswuu/xxl-job-boost-all-in-one:latest
-docker push javeyswuu/xxl-job-boost-all-in-one:0.9.4
-docker push javeyswuu/xxl-job-boost-all-in-one:latest
+docker tag wujiawei0926/xxl-job-boost-all-in-one:local wujiawei0926/xxl-job-boost-all-in-one:0.9.4
+docker tag wujiawei0926/xxl-job-boost-all-in-one:local wujiawei0926/xxl-job-boost-all-in-one:latest
+docker push wujiawei0926/xxl-job-boost-all-in-one:0.9.4
+docker push wujiawei0926/xxl-job-boost-all-in-one:latest
 ```
 
 如需发布样例执行器：
 
 ```bash
-docker tag javeyswuu/xxl-job-boost-executor-sample-springboot:local javeyswuu/xxl-job-boost-executor-sample-springboot:0.9.4
-docker tag javeyswuu/xxl-job-boost-executor-sample-springboot:local javeyswuu/xxl-job-boost-executor-sample-springboot:latest
-docker push javeyswuu/xxl-job-boost-executor-sample-springboot:0.9.4
-docker push javeyswuu/xxl-job-boost-executor-sample-springboot:latest
+docker tag wujiawei0926/xxl-job-boost-executor-sample-springboot:local wujiawei0926/xxl-job-boost-executor-sample-springboot:0.9.4
+docker tag wujiawei0926/xxl-job-boost-executor-sample-springboot:local wujiawei0926/xxl-job-boost-executor-sample-springboot:latest
+docker push wujiawei0926/xxl-job-boost-executor-sample-springboot:0.9.4
+docker push wujiawei0926/xxl-job-boost-executor-sample-springboot:latest
 ```
 
 ## 生产部署要点

@@ -27,8 +27,8 @@ services:
       - xxl-job-network
 
   xxl-job-admin:
-    # 4、本地构建使用 :local；生产发布时改用固定版本标签，例如 javeyswuu/xxl-job-boost-admin:0.9.4。
-    image: javeyswuu/xxl-job-boost-admin:local
+    # 4、本地构建使用 :local；生产发布时改用固定版本标签，例如 wujiawei0926/xxl-job-boost-admin:0.9.4。
+    image: wujiawei0926/xxl-job-boost-admin:local
     build:
       context: ..
       dockerfile: docker/Dockerfile.admin
@@ -52,7 +52,7 @@ services:
       - xxl-job-network
 
   xxl-job-executor-sample-springboot:
-    image: javeyswuu/xxl-job-boost-executor-sample-springboot:local
+    image: wujiawei0926/xxl-job-boost-executor-sample-springboot:local
     build:
       context: ..
       dockerfile: docker/Dockerfile.executor-sample-springboot

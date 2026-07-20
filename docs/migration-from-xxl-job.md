@@ -433,10 +433,10 @@ xuxueli/xxl-job-admin:<version>
 Boost 镜像使用：
 
 ```text
-javeyswuu/xxl-job-boost-admin:0.9.4
+wujiawei0926/xxl-job-boost-admin:0.9.4
 ```
 
-迁移已有官方数据库时必须使用 admin-only 镜像。`javeyswuu/xxl-job-boost-all-in-one` 内置的是全新安装 SQL，不用于挂载或自动升级官方 3.0.0、3.4.2 等旧数据卷。
+迁移已有官方数据库时必须使用 admin-only 镜像。`wujiawei0926/xxl-job-boost-all-in-one` 内置的是全新安装 SQL，不用于挂载或自动升级官方 3.0.0、3.4.2 等旧数据卷。
 
 迁移时保持以下挂载和参数语义不变：
 
@@ -449,8 +449,8 @@ javeyswuu/xxl-job-boost-admin:0.9.4
 先拉取并记录镜像 digest，不要仅依赖可移动的 `latest` 标签：
 
 ```bash
-docker pull javeyswuu/xxl-job-boost-admin:0.9.4
-docker image inspect javeyswuu/xxl-job-boost-admin:0.9.4 \
+docker pull wujiawei0926/xxl-job-boost-admin:0.9.4
+docker image inspect wujiawei0926/xxl-job-boost-admin:0.9.4 \
   --format '{{index .RepoDigests 0}}'
 ```
 

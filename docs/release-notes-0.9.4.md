@@ -42,10 +42,10 @@
 
 面向用户提供两种 admin 镜像：
 
-- `javeyswuu/xxl-job-boost-admin:0.9.4`：仅 admin，连接外部 MySQL。
-- `javeyswuu/xxl-job-boost-all-in-one:0.9.4`：admin + MySQL 8.4，仅用于全新单机环境。
+- `wujiawei0926/xxl-job-boost-admin:0.9.4`：仅 admin，连接外部 MySQL。
+- `wujiawei0926/xxl-job-boost-all-in-one:0.9.4`：admin + MySQL 8.4，仅用于全新单机环境。
 
-样例执行器镜像 `javeyswuu/xxl-job-boost-executor-sample-springboot:0.9.4` 不是生产必需项。
+样例执行器镜像 `wujiawei0926/xxl-job-boost-executor-sample-springboot:0.9.4` 不是生产必需项。
 
 ## 数据库迁移
 

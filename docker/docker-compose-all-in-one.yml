@@ -1,6 +1,6 @@
 services:
   xxl-job-boost-all-in-one:
-    image: javeyswuu/xxl-job-boost-all-in-one:local
+    image: wujiawei0926/xxl-job-boost-all-in-one:local
     build:
       context: ..
       dockerfile: docker/Dockerfile.all-in-one
