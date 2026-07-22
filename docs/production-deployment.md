@@ -11,15 +11,12 @@
 | `wujiawei0926/xxl-job-boost-admin:0.9.4` | 仅调度中心，连接外部 MySQL；适合生产和已有数据库迁移 | 二选一 |
 | `wujiawei0926/xxl-job-boost-all-in-one:0.9.4` | 调度中心 + MySQL 8.4；适合全新单机试用和验收 | 二选一 |
 
-可选样例执行器镜像：`wujiawei0926/xxl-job-boost-executor-sample-springboot:0.9.4`。
-
 同时保留移动标签：
 
 - `wujiawei0926/xxl-job-boost-admin:latest`
 - `wujiawei0926/xxl-job-boost-all-in-one:latest`
-- `wujiawei0926/xxl-job-boost-executor-sample-springboot:latest`
 
-all-in-one 和样例执行器都不作为生产默认选择。正式环境建议使用 admin-only 镜像连接独立、高可用、已备份的外部 MySQL。
+all-in-one 不作为生产默认选择。正式环境建议使用 admin-only 镜像连接独立、高可用、已备份的外部 MySQL。样例执行器镜像只支持本地构建或手工发布，不在 tag workflow 的发布范围内。
 
 ## 本地构建
 
@@ -173,8 +170,10 @@ docs/db/migrate-from-official-2.4.x-2.5.x.sql
 - 告警渠道、告警规则、告警记录。
 - 审计日志写入。
 
-## 当前未执行事项
+## 当前发布状态
 
-- 两种 Docker 镜像的构建与运行定义已完成，镜像推送状态以 Docker Hub 为准。
+- `0.9.4` 与 `latest` 标签已发布到 Docker Hub，两种镜像都包含 `linux/amd64`、`linux/arm64`。
+- GitHub Actions 发布任务已成功完成：[Publish Docker Images #29896495534](https://github.com/wuuJiawei/xxl-job-boost/actions/runs/29896495534)。
+- 样例执行器镜像尚未发布。
 - 尚未创建 GitHub Release。
-- Maven Central `0.9.4` 已发布；本文件中的 Docker 镜像仍未发布。
+- Maven Central `0.9.4` 已发布。
