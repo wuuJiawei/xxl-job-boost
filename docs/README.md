@@ -4,6 +4,7 @@
 
 ## 使用与迁移
 
+- [官方 XXL-JOB 3.0.0 迁移到 Boost 0.9.4 SOP](./sop-migrate-official-3.0.0-to-boost-0.9.4.md)
 - [从官方 XXL-JOB 迁移到 XXL-JOB Boost](./migration-from-xxl-job.md)
 - [数据库脚本说明](./db/README.md)
 - [本地运行与排障](./local-dev-runbook.md)
