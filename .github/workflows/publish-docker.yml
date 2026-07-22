@@ -83,11 +83,18 @@ jobs:
           pnpm typecheck
           pnpm build
 
+      - name: Test library modules
+        run: >-
+          mvn -B -ntp -P '!apps,!release'
+          -pl xxl-job-core,xxl-job-executor-transport/xxl-job-transport-api,xxl-job-executor-transport/xxl-job-transport-netty,xxl-job-boost-spring-boot-starter
+          -am -Dmaven.test.skip=false -DskipTests=false
+          test
+
       - name: Build admin application
         run: >-
           mvn -B -ntp -P 'apps,!release'
           -pl xxl-job-admin -am
-          -Dmaven.test.skip=false -DskipTests=false
+          -DskipTests
           clean package
 
       - name: Set up QEMU
