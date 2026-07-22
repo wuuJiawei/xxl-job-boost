@@ -1,0 +1,137 @@
+name: Publish Docker Images
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  DOCKERHUB_NAMESPACE: wujiawei0926
+
+jobs:
+  publish:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.3
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.19.0'
+          cache: pnpm
+          cache-dependency-path: xxl-job-admin-ui/pnpm-lock.yaml
+
+      - name: Validate release tag
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version="${GITHUB_REF_NAME#v}"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Tag must use vX.Y.Z format, got: $GITHUB_REF_NAME" >&2
+            exit 1
+          fi
+
+          pom_version="$(mvn -B -ntp -q -DforceStdout help:evaluate -Dexpression=project.version)"
+          if [[ "$pom_version" != "$version" ]]; then
+            echo "Tag version $version does not match pom.xml version $pom_version" >&2
+            exit 1
+          fi
+
+          git fetch origin master --no-tags
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/master; then
+            echo "Release tag must point to a commit contained in master" >&2
+            exit 1
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Install admin-next dependencies
+        working-directory: xxl-job-admin-ui
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate and build admin-next
+        working-directory: xxl-job-admin-ui
+        run: |
+          pnpm typecheck
+          pnpm build
+
+      - name: Build admin application
+        run: >-
+          mvn -B -ntp -P 'apps,!release'
+          -pl xxl-job-admin -am
+          -Dmaven.test.skip=false -DskipTests=false
+          clean package
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKERHUB_NAMESPACE }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Publish admin-only image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.admin
+          platforms: linux/amd64,linux/arm64
+          push: true
+          build-args: |
+            PROJECT_VERSION=${{ steps.release.outputs.version }}
+          tags: |
+            ${{ env.DOCKERHUB_NAMESPACE }}/xxl-job-boost-admin:${{ steps.release.outputs.version }}
+            ${{ env.DOCKERHUB_NAMESPACE }}/xxl-job-boost-admin:latest
+          cache-from: type=gha,scope=xxl-job-boost-admin
+          cache-to: type=gha,mode=max,scope=xxl-job-boost-admin
+          provenance: true
+          sbom: true
+
+      - name: Publish all-in-one image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.all-in-one
+          platforms: linux/amd64,linux/arm64
+          push: true
+          build-args: |
+            PROJECT_VERSION=${{ steps.release.outputs.version }}
+          tags: |
+            ${{ env.DOCKERHUB_NAMESPACE }}/xxl-job-boost-all-in-one:${{ steps.release.outputs.version }}
+            ${{ env.DOCKERHUB_NAMESPACE }}/xxl-job-boost-all-in-one:latest
+          cache-from: type=gha,scope=xxl-job-boost-all-in-one
+          cache-to: type=gha,mode=max,scope=xxl-job-boost-all-in-one
+          provenance: true
+          sbom: true

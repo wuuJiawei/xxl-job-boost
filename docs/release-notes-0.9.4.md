@@ -74,6 +74,8 @@
 7. Git tag `v0.9.4`
 8. 生产镜像推送
 
+Docker 镜像通过 `.github/workflows/publish-docker.yml` 发布。GitHub 仓库配置 `DOCKERHUB_TOKEN` 后，推送 `v0.9.4` tag 会自动构建并发布 admin-only 和 all-in-one 的 `linux/amd64`、`linux/arm64` 镜像。
+
 Maven Central 发布验证命令：
 
 ```bash

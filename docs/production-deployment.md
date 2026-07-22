@@ -78,9 +78,40 @@ docker compose -f docker/docker-compose-all-in-one.yml up -d
 
 all-in-one 不会升级已有官方 XXL-JOB 数据库，也不应直接挂载官方 3.0.0 或其他旧版数据卷。
 
-## 镜像打标与推送
+## 通过 GitHub Actions 发布
 
-发布时在构建通过后执行：
+Docker Hub 需要先创建两个公开仓库：
+
+- `wujiawei0926/xxl-job-boost-admin`
+- `wujiawei0926/xxl-job-boost-all-in-one`
+
+在 GitHub 仓库的 `Settings > Secrets and variables > Actions` 中增加 Repository secret：
+
+- `DOCKERHUB_TOKEN`：Docker Hub Access Token，需要 Read & Write 权限。
+
+也可以使用 GitHub CLI 配置，命令会交互读取 token：
+
+```bash
+gh secret set DOCKERHUB_TOKEN --repo wuuJiawei/xxl-job-boost
+```
+
+推送 `vX.Y.Z` tag 会触发 `.github/workflows/publish-docker.yml`。workflow 会校验 tag 版本与 `pom.xml` 一致，并确认 tag commit 已包含在 `master` 中，然后发布 admin-only 和 all-in-one 的 `linux/amd64`、`linux/arm64` 镜像：
+
+```bash
+git tag -a v0.9.4 -m "XXL-JOB Boost 0.9.4"
+git push origin v0.9.4
+```
+
+发布完成后检查多架构清单：
+
+```bash
+docker buildx imagetools inspect wujiawei0926/xxl-job-boost-admin:0.9.4
+docker buildx imagetools inspect wujiawei0926/xxl-job-boost-all-in-one:0.9.4
+```
+
+## 本地应急发布
+
+默认使用 GitHub Actions。只有 Actions 不可用时，才在能够访问 Docker Hub 的构建机上执行：
 
 ```bash
 docker tag wujiawei0926/xxl-job-boost-admin:local wujiawei0926/xxl-job-boost-admin:0.9.4
