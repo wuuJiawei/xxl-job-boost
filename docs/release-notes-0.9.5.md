@@ -37,6 +37,8 @@
 
 ## Docker Hub
 
+已发布，admin-only 和 all-in-one 均支持 `linux/amd64`、`linux/arm64`。
+
 - `wujiawei0926/xxl-job-boost-admin:0.9.5`
 - `wujiawei0926/xxl-job-boost-all-in-one:0.9.5`
 

@@ -172,8 +172,8 @@ docs/db/migrate-from-official-2.4.x-2.5.x.sql
 
 ## 当前发布状态
 
-- `0.9.5` Docker 镜像将在推送 `v0.9.5` tag 后由 GitHub Actions 发布；目标架构为 `linux/amd64`、`linux/arm64`。
-- 已发布的上一版本为 `0.9.4`，Docker Hub 两个镜像均有 `0.9.4` 和 `latest`。
+- `0.9.5` 与 `latest` 已发布到 Docker Hub，admin-only 和 all-in-one 均支持 `linux/amd64`、`linux/arm64`。
+- GitHub Actions 发布任务已成功完成：[Publish Docker Images #33600143324](https://github.com/wuuJiawei/xxl-job-boost/actions/runs/33600143324)。
 - 样例执行器镜像尚未发布。
-- 尚未创建 GitHub Release。
+- GitHub Release：[`v0.9.5`](https://github.com/wuuJiawei/xxl-job-boost/releases/tag/v0.9.5)。
 - Maven Central `0.9.5` 已发布，deployment ID：`c698453a-ecd0-4d07-a778-b456f1ca567a`。

@@ -14,7 +14,7 @@
 
 ## 当前发布
 
-Maven Central：
+[Maven Central：`pub.lighting:xxl-job-boost-spring-boot-starter:0.9.5`](https://central.sonatype.com/artifact/pub.lighting/xxl-job-boost-spring-boot-starter/0.9.5)
 
 ```xml
 <dependency>
@@ -26,8 +26,13 @@ Maven Central：
 
 Docker Hub：
 
-- `wujiawei0926/xxl-job-boost-admin:0.9.5`：仅调度中心，连接外部 MySQL。
-- `wujiawei0926/xxl-job-boost-all-in-one:0.9.5`：调度中心 + MySQL 8.4，适合全新单机环境。
+- [`wujiawei0926/xxl-job-boost-admin:0.9.5`](https://hub.docker.com/r/wujiawei0926/xxl-job-boost-admin)：仅调度中心，连接外部 MySQL。
+- [`wujiawei0926/xxl-job-boost-all-in-one:0.9.5`](https://hub.docker.com/r/wujiawei0926/xxl-job-boost-all-in-one)：调度中心 + MySQL 8.4，适合全新单机环境。
+
+```bash
+docker pull wujiawei0926/xxl-job-boost-admin:0.9.5
+docker pull wujiawei0926/xxl-job-boost-all-in-one:0.9.5
+```
 
 完整发布内容见 [0.9.5 发布说明](docs/release-notes-0.9.5.md) 和 [生产部署方案](docs/production-deployment.md)。
 
