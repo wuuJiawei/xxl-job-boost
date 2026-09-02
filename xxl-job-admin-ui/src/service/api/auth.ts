@@ -21,8 +21,22 @@ export function fetchGetUserInfo() {
     userId: string;
     userName: string;
     isAdmin: boolean;
+    passwordChangeRequired: boolean;
     permissionSet: string[] | null;
   }>({
     url: '/api/admin-next/session'
+  });
+}
+
+export function updatePassword(oldPassword: string, password: string) {
+  const form = new URLSearchParams();
+  form.set('oldPassword', oldPassword);
+  form.set('password', password);
+
+  return request<string>({
+    url: '/auth/updatePwd',
+    method: 'post',
+    data: form,
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
   });
 }

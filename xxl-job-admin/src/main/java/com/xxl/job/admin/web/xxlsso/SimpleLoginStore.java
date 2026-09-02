@@ -69,7 +69,8 @@ public class SimpleLoginStore implements LoginStore {
 
         // parse jobGroup permission
         Map<String, String> extraInfo = MapTool.newMap(
-                "jobGroups", user.getPermission()
+                "jobGroups", user.getPermission(),
+                "passwordChangeRequired", String.valueOf(user.isPasswordChangeRequired())
         );
 
         // build LoginInfo

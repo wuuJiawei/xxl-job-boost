@@ -86,6 +86,16 @@ export const generatedRoutes: GeneratedRoute[] = [
     }
   },
   {
+    name: 'force-change-password',
+    path: '/force-change-password',
+    component: 'layout.blank$view.force-change-password',
+    meta: {
+      title: 'force-change-password',
+      i18nKey: 'route.force-change-password',
+      hideInMenu: true
+    }
+  },
+  {
     name: 'help',
     path: '/help',
     component: 'layout.base$view.help',
@@ -141,6 +151,18 @@ export const generatedRoutes: GeneratedRoute[] = [
       i18nKey: 'route.jobs',
       icon: 'mdi:briefcase-outline',
       order: 3
+    }
+  },
+  {
+    name: 'legacy-sync',
+    path: '/legacy-sync',
+    component: 'layout.base$view.legacy-sync',
+    meta: {
+      title: 'legacy-sync',
+      i18nKey: 'route.legacy-sync',
+      icon: 'mdi:database-sync-outline',
+      order: 10,
+      roles: ['R_SUPER']
     }
   },
   {

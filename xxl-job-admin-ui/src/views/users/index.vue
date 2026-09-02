@@ -1,87 +1,3 @@
-<template>
-  <div class="page-stack">
-    <n-card :bordered="false" class="filter-card">
-      <div class="filter-grid">
-        <n-select v-model:value="filters.role" :options="roleOptionsWithAll" placeholder="按角色筛选" />
-        <n-input v-model:value="filters.username" placeholder="按用户名查询" clearable />
-        <div class="filter-actions">
-          <n-button type="primary" @click="search">查询</n-button>
-          <n-button @click="reset">重置</n-button>
-        </div>
-      </div>
-    </n-card>
-
-    <n-card :bordered="false">
-      <template #header>
-        <div class="table-actions">
-          <n-button type="primary" @click="openCreate">新增用户</n-button>
-          <n-button :disabled="selectedRowCount !== 1" @click="() => void openEdit()">编辑</n-button>
-          <n-button :disabled="selectedRowCount !== 1" type="error" ghost @click="() => void deleteSelected()">删除</n-button>
-        </div>
-      </template>
-      <template #header-extra>
-
-      </template>
-
-      <n-data-table
-        remote
-        :columns="columns"
-        :data="rows"
-        :loading="loading"
-        :pagination="pagination"
-        :row-key="rowKey"
-        :scroll-x="900"
-        @update:checked-row-keys="handleCheckedRowKeys"
-      />
-    </n-card>
-
-    <n-modal
-      v-model:show="formModalVisible"
-      preset="card"
-      :title="formMode === 'create' ? '新增用户' : '编辑用户'"
-      style="width: 760px;"
-    >
-      <n-form ref="formRef" :model="formValue" :rules="rules" label-placement="left" label-width="110">
-        <n-form-item path="username" label="用户名">
-          <n-input v-model:value="formValue.username" :disabled="formMode === 'edit'" placeholder="请输入用户名" />
-        </n-form-item>
-        <n-form-item path="password" label="密码">
-          <n-input
-            v-model:value="formValue.password"
-            type="password"
-            show-password-on="mousedown"
-            :placeholder="formMode === 'create' ? '请输入密码' : '留空表示不修改密码'"
-          />
-        </n-form-item>
-        <n-form-item path="role" label="角色">
-          <n-radio-group v-model:value="formValue.role">
-            <n-space>
-              <n-radio v-for="item in roleOptions" :key="item.value" :value="item.value">
-                {{ item.label }}
-              </n-radio>
-            </n-space>
-          </n-radio-group>
-        </n-form-item>
-        <n-form-item path="permissions" label="执行器权限">
-          <n-checkbox-group v-model:value="formValue.permissions" :disabled="formValue.role === 1">
-            <n-space vertical>
-              <n-checkbox v-for="group in groups" :key="group.id" :value="String(group.id)">
-                {{ group.title }} : {{ group.appname }}
-              </n-checkbox>
-            </n-space>
-          </n-checkbox-group>
-        </n-form-item>
-      </n-form>
-      <template #action>
-        <div class="table-actions">
-          <n-button @click="formModalVisible = false">取消</n-button>
-          <n-button type="primary" :loading="submitting" @click="submitForm">保存</n-button>
-        </div>
-      </template>
-    </n-modal>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { computed, h, onMounted, reactive, ref, watch } from 'vue';
 import {
@@ -110,7 +26,7 @@ import {
 import { createUser, deleteUser, fetchUserDetail, fetchUserMetadata, fetchUsers, updateUser, type UserInfo, type UserMetadata } from '@/api/users';
 
 defineOptions({
-  name: 'users'
+  name: 'Users'
 });
 
 const dialog = useDialog();
@@ -168,8 +84,11 @@ const rules: FormRules = {
         if (formMode.value === 'edit' && !value) {
           return true;
         }
-        if (value.length < 4 || value.length > 20) {
-          return new Error('密码长度限制为 4~20');
+        if (!/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^A-Za-z\d])\S{12,64}$/.test(value)) {
+          return new Error('密码必须为12-64位，并同时包含大写字母、小写字母、数字和特殊字符');
+        }
+        if (value.toLowerCase().includes(formValue.username.toLowerCase())) {
+          return new Error('密码不能包含用户名');
         }
         return true;
       },
@@ -409,3 +328,86 @@ onMounted(async () => {
   }
 });
 </script>
+
+<template>
+  <div class="page-stack">
+    <NCard :bordered="false" class="filter-card">
+      <div class="filter-grid">
+        <NSelect v-model:value="filters.role" :options="roleOptionsWithAll" placeholder="按角色筛选" />
+        <NInput v-model:value="filters.username" placeholder="按用户名查询" clearable />
+        <div class="filter-actions">
+          <NButton type="primary" @click="search">查询</NButton>
+          <NButton @click="reset">重置</NButton>
+        </div>
+      </div>
+    </NCard>
+
+    <NCard :bordered="false">
+      <template #header>
+        <div class="table-actions">
+          <NButton type="primary" @click="openCreate">新增用户</NButton>
+          <NButton :disabled="selectedRowCount !== 1" @click="() => void openEdit()">编辑</NButton>
+          <NButton :disabled="selectedRowCount !== 1" type="error" ghost @click="() => void deleteSelected()">删除</NButton>
+        </div>
+      </template>
+      <template #header-extra>
+      </template>
+
+      <NDataTable
+        remote
+        :columns="columns"
+        :data="rows"
+        :loading="loading"
+        :pagination="pagination"
+        :row-key="rowKey"
+        :scroll-x="900"
+        @update:checked-row-keys="handleCheckedRowKeys"
+      />
+    </NCard>
+
+    <NModal
+      v-model:show="formModalVisible"
+      preset="card"
+      :title="formMode === 'create' ? '新增用户' : '编辑用户'"
+      style="width: 760px;"
+    >
+      <NForm ref="formRef" :model="formValue" :rules="rules" label-placement="left" label-width="110">
+        <NFormItem path="username" label="用户名">
+          <NInput v-model:value="formValue.username" :disabled="formMode === 'edit'" placeholder="请输入用户名" />
+        </NFormItem>
+        <NFormItem path="password" label="密码">
+          <NInput
+            v-model:value="formValue.password"
+            type="password"
+            show-password-on="mousedown"
+            :placeholder="formMode === 'create' ? '请输入密码' : '留空表示不修改密码'"
+          />
+        </NFormItem>
+        <NFormItem path="role" label="角色">
+          <NRadioGroup v-model:value="formValue.role">
+            <NSpace>
+              <NRadio v-for="item in roleOptions" :key="item.value" :value="item.value">
+                {{ item.label }}
+              </NRadio>
+            </NSpace>
+          </NRadioGroup>
+        </NFormItem>
+        <NFormItem path="permissions" label="执行器权限">
+          <NCheckboxGroup v-model:value="formValue.permissions" :disabled="formValue.role === 1">
+            <NSpace vertical>
+              <NCheckbox v-for="group in groups" :key="group.id" :value="String(group.id)">
+                {{ group.title }} : {{ group.appname }}
+              </NCheckbox>
+            </NSpace>
+          </NCheckboxGroup>
+        </NFormItem>
+      </NForm>
+      <template #action>
+        <div class="table-actions">
+          <NButton @click="formModalVisible = false">取消</NButton>
+          <NButton type="primary" :loading="submitting" @click="submitForm">保存</NButton>
+        </div>
+      </template>
+    </NModal>
+  </div>
+</template>

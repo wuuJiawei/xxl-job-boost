@@ -2,7 +2,7 @@ import { computed, reactive, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { defineStore } from 'pinia';
 import { useLoading } from '@sa/hooks';
-import { fetchGetUserInfo, fetchLogin } from '@/service/api';
+import { fetchGetUserInfo, fetchLogin, updatePassword } from '@/service/api';
 import { useRouterPush } from '@/hooks/common/router';
 import { localStg } from '@/utils/storage';
 import { SetupStoreId } from '@/enum';
@@ -26,7 +26,8 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
     userName: '',
     roles: [],
     buttons: [],
-    isAdmin: false
+    isAdmin: false,
+    passwordChangeRequired: false
   });
 
   /** is super role in static route */
@@ -151,7 +152,8 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
         userName: info.userName,
         roles: info.isAdmin ? ['R_SUPER'] : ['R_USER'],
         buttons: [],
-        isAdmin: info.isAdmin
+        isAdmin: info.isAdmin,
+        passwordChangeRequired: info.passwordChangeRequired
       });
 
       return true;
@@ -173,6 +175,14 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
     }
   }
 
+  async function changePassword(oldPassword: string, password: string) {
+    const { error } = await updatePassword(oldPassword, password);
+    if (!error) {
+      await resetStore();
+    }
+    return !error;
+  }
+
   return {
     token,
     userInfo,
@@ -181,6 +191,7 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
     loginLoading,
     resetStore,
     login,
+    changePassword,
     initUserInfo
   };
 });

@@ -17,8 +17,8 @@ interface FormModel {
 }
 
 const model: FormModel = reactive({
-  userName: 'admin',
-  password: '123456'
+  userName: '',
+  password: ''
 });
 
 const rules = computed<Record<keyof FormModel, App.Global.FormRule[]>>(() => {
@@ -36,27 +36,6 @@ async function handleSubmit() {
   await authStore.login(model.userName, model.password);
 }
 
-type AccountKey = 'admin';
-
-interface Account {
-  key: AccountKey;
-  label: string;
-  userName: string;
-  password: string;
-}
-
-const accounts = computed<Account[]>(() => [
-  {
-    key: 'admin',
-    label: 'XXL-JOB Admin',
-    userName: 'admin',
-    password: '123456'
-  }
-]);
-
-async function handleAccountLogin(account: Account) {
-  await authStore.login(account.userName, account.password);
-}
 </script>
 
 <template>
@@ -80,12 +59,6 @@ async function handleAccountLogin(account: Account) {
       <NButton type="primary" size="large" round block :loading="authStore.loginLoading" @click="handleSubmit">
         {{ $t('common.confirm') }}
       </NButton>
-      <NDivider class="text-14px text-#666 !m-0">快捷登录</NDivider>
-      <div class="flex-center gap-12px">
-        <NButton v-for="item in accounts" :key="item.key" type="primary" @click="handleAccountLogin(item)">
-          {{ item.label }}
-        </NButton>
-      </div>
     </NSpace>
   </NForm>
 </template>

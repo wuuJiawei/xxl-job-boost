@@ -205,6 +205,21 @@
 		LIMIT 1
 	</select>
 
+	<select id="loadByGroupAndHandlerOrDesc" resultMap="XxlJobInfo">
+		SELECT <include refid="Base_Column_List" />
+		FROM xxl_job_info AS t
+		WHERE t.job_group = #{jobGroup}
+		<choose>
+			<when test="executorHandler != null and executorHandler != ''">
+				AND t.executor_handler = #{executorHandler}
+			</when>
+			<otherwise>
+				AND t.job_desc = #{jobDesc}
+			</otherwise>
+		</choose>
+		LIMIT 1
+	</select>
+
 	<update id="update" parameterType="com.xxl.job.admin.model.XxlJobInfo" >
 		UPDATE xxl_job_info
 		SET

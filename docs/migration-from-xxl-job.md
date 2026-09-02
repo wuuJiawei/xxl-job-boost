@@ -11,13 +11,14 @@
 | 当前系统 | 应执行的数据库脚本 | 推荐路径 |
 | --- | --- | --- |
 | 全新部署，没有历史数据 | [`install-xxl-job-boost.sql`](./db/install-xxl-job-boost.sql) | 直接初始化 Boost |
+| 已有 XXL-JOB Boost 数据库 | [`migrate-password-security.sql`](./db/migrate-password-security.sql) | 停 admin、备份、补充强制改密字段后再部署新版本 |
 | 官方 XXL-JOB `3.4.2` | [`migrate-from-official-3.4.2.sql`](./db/migrate-from-official-3.4.2.sql) | 停 admin、备份、执行脚本、部署 Boost admin |
 | 官方 XXL-JOB `3.0.0` | [`migrate-from-official-3.0.0.sql`](./db/migrate-from-official-3.0.0.sql) | 停 admin 和执行器、清注册表、执行脚本、重置密码、部署 Boost |
 | 官方 XXL-JOB `3.1.x` 至 `3.4.1` | 先升级或核对到官方 `3.4.2`，再执行 `migrate-from-official-3.4.2.sql` | 不要把版本差异留到 Boost 切换窗口处理 |
 | 官方 XXL-JOB `2.4.x / 2.5.x` | [`migrate-from-official-2.4.x-2.5.x.sql`](./db/migrate-from-official-2.4.x-2.5.x.sql) | 停 admin 和执行器、清注册表、执行脚本、重置密码、部署 Boost |
 | 官方 XXL-JOB `2.3.x` 及更早 | 无直迁脚本 | 先按官方升级到 `2.4.2` 或 `2.5.0`，稳定后再走上一行 |
 
-不要对同一个库连续执行多份迁移 SQL。三份迁移文件代表不同的来源版本，不是按顺序执行的 migration 链。
+不要对同一个库连续执行多份官方来源迁移 SQL。四份官方来源脚本代表不同的来源版本，不是按顺序执行的 migration 链；已有 Boost 库只执行单独的密码安全补丁脚本。
 
 ## 2. 哪些不变，哪些会变
 
@@ -33,7 +34,7 @@
 | admin OpenAPI 地址 | 保持原 context path 时，执行器的 `xxl.job.admin.addresses` 不需要修改 |
 | access token | `xxl.job.accessToken` 与执行器 `xxl.job.admin.accessToken` 必须继续保持一致 |
 | 官方 Netty 执行器 | 可以先不升级，Boost admin 保留 HTTP 协议兼容链路 |
-| 旧控制台 | 继续保留，默认入口仍为 `/xxl-job-admin/` |
+| 旧控制台 | 页面入口已关闭，仅开放 `/xxl-job-admin/admin-next/` |
 
 ### 2.2 会发生变化
 
@@ -44,7 +45,8 @@
 | 登录密码 | 官方 3.0.0 和 2.x 的 MD5 密码不能直接用于 SHA-256 登录，对应迁移必须重置密码 |
 | 登录会话 | `xxl_job_user.token` 和 SSO 配置变化后，旧登录会话应视为失效并重新登录 |
 | 数据库 | 增加任务标签、告警、审计相关字段与表；3.0.0 和 2.x 路径还会对齐官方 3.4.2 字段和索引 |
-| 新控制台 | 新增 `/xxl-job-admin/admin-next/`，与旧控制台并存 |
+| 首次登录改密 | `xxl_job_user.password_change_required` 默认置 1，完成强密码修改后置 0 |
+| 新控制台 | 使用 `/xxl-job-admin/admin-next/`，是唯一管理后台页面入口 |
 | 执行器依赖 | 只有使用 Boost starter、声明式同步或 `SPRING_HTTP` 时才需要改依赖 |
 | 执行器传输 | 可继续使用 `NETTY_EMBED`，也可按执行器逐个切换到 `SPRING_HTTP` |
 

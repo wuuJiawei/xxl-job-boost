@@ -241,6 +241,7 @@ CREATE TABLE `xxl_job_user`
     `id`         int(11)     NOT NULL AUTO_INCREMENT,
     `username`   varchar(50) NOT NULL COMMENT '账号',
     `password`   varchar(100) NOT NULL COMMENT '密码加密信息',
+    `password_change_required` tinyint(1) NOT NULL DEFAULT '1' COMMENT '首次登录必须修改密码：0-否，1-是',
     `token`      varchar(100) DEFAULT NULL COMMENT '登录token',
     `role`       tinyint(4)  NOT NULL COMMENT '角色：0-普通用户、1-管理员',
     `permission` varchar(255) DEFAULT NULL COMMENT '权限：执行器ID列表，多个逗号分割',
@@ -288,8 +289,8 @@ VALUES (1, 1, '示例任务01', now(), now(), 'XXL', '', '', '', 'CRON', '0 0 0 
 }', 'SERIAL_EXECUTION', 0, 0, 'BEAN', '', 'GLUE代码初始化',
         now(), '');
 
-INSERT INTO `xxl_job_user`(`id`, `username`, `password`, `role`, `permission`)
-VALUES (1, 'admin', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 1, NULL);
+INSERT INTO `xxl_job_user`(`id`, `username`, `password`, `password_change_required`, `role`, `permission`)
+VALUES (1, 'admin', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 1, 1, NULL);
 
 INSERT INTO `xxl_job_system_config` (`config_key`, `config_value`, `update_time`)
 VALUES ('mail.enabled', 'false', now()),

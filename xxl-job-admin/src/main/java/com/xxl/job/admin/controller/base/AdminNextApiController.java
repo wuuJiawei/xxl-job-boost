@@ -96,6 +96,8 @@ public class AdminNextApiController {
         data.put("userName", loginInfo.getUserName());
         data.put("permissionSet", loginInfo.getPermissionList());
         data.put("isAdmin", XxlSsoHelper.hasRole(loginInfo, Consts.ADMIN_ROLE).isSuccess());
+        data.put("passwordChangeRequired", loginInfo.getExtraInfo() != null
+                && "true".equals(loginInfo.getExtraInfo().get("passwordChangeRequired")));
         return Response.ofSuccess(data);
     }
 

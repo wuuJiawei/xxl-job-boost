@@ -1,6 +1,8 @@
 package com.xxl.job.admin.web.xxlsso;
 
 import com.xxl.sso.core.auth.interceptor.XxlSsoWebInterceptor;
+import com.xxl.job.admin.web.LegacyAdminDisabledInterceptor;
+import com.xxl.job.admin.web.PasswordChangeRequiredInterceptor;
 import com.xxl.sso.core.bootstrap.XxlSsoBootstrap;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,6 +59,8 @@ public class XxlSsoConfig implements WebMvcConfigurer {
 
         // 2.2、add interceptor
         registry.addInterceptor(webInterceptor).addPathPatterns("/**");
+        registry.addInterceptor(new LegacyAdminDisabledInterceptor()).addPathPatterns("/**");
+        registry.addInterceptor(new PasswordChangeRequiredInterceptor()).addPathPatterns("/**");
     }
 
 }

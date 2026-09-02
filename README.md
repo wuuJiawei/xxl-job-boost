@@ -4,6 +4,10 @@
   <img src="xxl-job-admin-ui/public/xxl-job-boost-logo.png" alt="XXL-JOB Boost logo" width="160">
 </p>
 
+当前上游 XXL-JOB `master` 已进入 `3.5.0-SNAPSHOT`；Boost 已同步其基础依赖版本，保留自身模块和 `0.9.4` 坐标。
+
+管理后台只开放 `admin-next`，原版 Freemarker 控制台页面已关闭。新安装或迁移后的用户首次登录必须修改默认/弱密码，密码需满足 12-64 位并包含大小写字母、数字和特殊字符。
+
 <p align="center">
   <strong>XXL-JOB enhanced for modern Java teams.</strong>
 </p>
@@ -124,7 +128,7 @@ Boost 新增 `xxl-job-admin-ui`，基于 Vue 3、TypeScript、Vite、Pinia、Nai
 - 失败聚合、慢任务分析、治理总览
 - 审计日志
 
-旧控制台仍然保留，新控制台挂在：
+旧控制台页面已关闭，新控制台唯一入口为：
 
 ```text
 /xxl-job-admin/admin-next/
@@ -154,7 +158,7 @@ Boost 不只把页面换漂亮了，还补了后台治理链路：
 | 执行日志 | 业务日志通常需显式调用 `XxlJobHelper.log` | 可选 Logback 采集到当前执行日志，带长度和条数限制 |
 | Spring 接入 | 与核心实现耦合更重 | core + transport + adapter/starter 分层 |
 | 管理后台 | 传统后端模板页面 | Vue 3 + TypeScript + Naive UI 新控制台 |
-| 新旧控制台 | 单入口为主 | legacy + `admin-next` 双入口并存 |
+| 管理后台入口 | 单入口为主 | 仅开放 `admin-next`，旧 Freemarker 页面返回 404 |
 | 告警 | 默认邮件告警为主 | 通道、规则、记录完整链路 |
 | 治理 | 依赖日志列表人工排查 | 失败聚合、慢任务、审计、治理总览 |
 
@@ -231,7 +235,7 @@ pnpm dev
 
 ### 本地访问
 
-- 旧控制台：`http://127.0.0.1:8080/xxl-job-admin/`
+- 旧控制台：已关闭，访问返回 404
 - 新控制台：`http://127.0.0.1:8080/xxl-job-admin/admin-next/`
 - 前端开发服务：`http://127.0.0.1:5173/`
 - 样例执行器：`http://127.0.0.1:8081/`
@@ -239,7 +243,8 @@ pnpm dev
 默认管理员账号：
 
 - 用户名：`admin`
-- 密码：`123456`
+- 初始密码：`123456`（仅用于首次登录，登录后会强制修改）
+- 新密码必须为 12-64 位，并包含大写字母、小写字母、数字和特殊字符；否则后台功能不会开放。
 
 ## 执行器接入示例
 
@@ -286,7 +291,7 @@ xxl.job.executor.logretentiondays=30
 
 ```text
 xxl-job-boost
-├── xxl-job-admin                         # 调度中心后端、旧控制台、admin-next 静态资源与 JSON API
+├── xxl-job-admin                         # 调度中心后端、已关闭的旧页面链路、admin-next 静态资源与 JSON API
 ├── xxl-job-admin-ui                      # 新控制台源码，Vue 3 + TypeScript + Vite + Naive UI
 ├── xxl-job-core                          # 核心执行器、handler、日志、回调、任务同步扫描
 ├── xxl-job-executor-transport            # 执行器传输聚合模块
@@ -331,7 +336,7 @@ xxl-job-boost
 ## 兼容性原则
 
 - 不重写 XXL-JOB 调度核心。
-- 不强制替换旧控制台。
+- 旧控制台页面默认关闭，保留旧后端业务接口以兼容执行器和新控制台。
 - 默认保留官方执行器接入方式和 Netty 兼容模式。
 - 新能力优先通过新增模块、接口、字段和页面承载。
 - roadmap 是演进方向，README 和代码才是当前已落地能力依据。

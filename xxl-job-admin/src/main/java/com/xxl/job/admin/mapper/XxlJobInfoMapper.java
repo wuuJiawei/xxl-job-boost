@@ -38,6 +38,10 @@ public interface XxlJobInfoMapper {
 	public XxlJobInfo loadById(@Param("id") int id);
 
 	public XxlJobInfo loadByGroupAndHandler(@Param("jobGroup") int jobGroup, @Param("executorHandler") String executorHandler);
+
+	public XxlJobInfo loadByGroupAndHandlerOrDesc(@Param("jobGroup") int jobGroup,
+										 @Param("executorHandler") String executorHandler,
+										 @Param("jobDesc") String jobDesc);
 	
 	public int update(XxlJobInfo xxlJobInfo);
 	

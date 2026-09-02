@@ -24,11 +24,13 @@ declare module "@elegant-router/types" {
     "audits": "/audits";
     "executors": "/executors";
     "failure-aggregates": "/failure-aggregates";
+    "force-change-password": "/force-change-password";
     "help": "/help";
     "home": "/home";
     "iframe-page": "/iframe-page/:url";
     "job-code": "/job-code";
     "jobs": "/jobs";
+    "legacy-sync": "/legacy-sync";
     "log-detail": "/log-detail";
     "login": "/login/:module(pwd-login|code-login|register|reset-pwd|bind-wechat)?";
     "logs": "/logs";
@@ -73,11 +75,13 @@ declare module "@elegant-router/types" {
     | "audits"
     | "executors"
     | "failure-aggregates"
+    | "force-change-password"
     | "help"
     | "home"
     | "iframe-page"
     | "job-code"
     | "jobs"
+    | "legacy-sync"
     | "log-detail"
     | "login"
     | "logs"
@@ -109,10 +113,12 @@ declare module "@elegant-router/types" {
     | "audits"
     | "executors"
     | "failure-aggregates"
+    | "force-change-password"
     | "help"
     | "home"
     | "job-code"
     | "jobs"
+    | "legacy-sync"
     | "log-detail"
     | "logs"
     | "slow-tasks"

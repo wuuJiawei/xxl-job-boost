@@ -7,6 +7,7 @@
 		<result column="id" property="id" />
 		<result column="username" property="username" />
 	    <result column="password" property="password" />
+		<result column="password_change_required" property="passwordChangeRequired" />
 		<result column="token" property="token" />
 	    <result column="role" property="role" />
 	    <result column="permission" property="permission" />
@@ -16,6 +17,7 @@
 		t.id,
 		t.username,
 		t.password,
+		t.password_change_required,
 		t.token,
 		t.role,
 		t.permission
@@ -80,6 +82,7 @@
 		SET
 			<if test="password != null and password != ''">
 				password = #{password},
+				password_change_required = #{passwordChangeRequired},
 			</if>
 			role = #{role},
 			permission = #{permission}

@@ -11,6 +11,7 @@ declare namespace Api {
       roles: string[];
       buttons: string[];
       isAdmin: boolean;
+      passwordChangeRequired: boolean;
     }
   }
 }

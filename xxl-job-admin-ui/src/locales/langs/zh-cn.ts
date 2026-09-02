@@ -220,6 +220,8 @@ const local: App.I18n.Schema = {
     }
   },
   route: {
+    'legacy-sync': '旧平台任务同步',
+    'force-change-password': '强制修改密码',
     login: '登录',
     403: '无权限',
     404: '页面不存在',

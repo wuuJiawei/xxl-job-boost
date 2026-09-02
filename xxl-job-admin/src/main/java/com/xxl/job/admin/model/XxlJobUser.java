@@ -8,6 +8,7 @@ public class XxlJobUser {
 	private int id;
 	private String username;		// 账号
 	private String password;		// 密码
+	private boolean passwordChangeRequired;	// 是否必须修改密码
 	private String token;			// 登录token
 	private int role;				// 角色：0-普通用户、1-管理员
 	private String permission;		// 权限：执行器ID列表，多个逗号分割
@@ -34,6 +35,14 @@ public class XxlJobUser {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public boolean isPasswordChangeRequired() {
+		return passwordChangeRequired;
+	}
+
+	public void setPasswordChangeRequired(boolean passwordChangeRequired) {
+		this.passwordChangeRequired = passwordChangeRequired;
 	}
 
 	public String getToken() {

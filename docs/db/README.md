@@ -1,11 +1,12 @@
 # 数据库脚本
 
-本目录只保留四份可直接选择的数据库入口 SQL。迁移脚本互斥，不按文件名顺序连续执行。
+本目录保留四份按官方来源版本选择的数据库入口 SQL，以及一份给已有 Boost 数据库补字段的安全升级 SQL。官方来源迁移脚本互斥，不按文件名顺序连续执行。
 
 | 文件 | 用途 | 是否保留原数据 |
 | --- | --- | --- |
 | [`install-xxl-job-boost.sql`](./install-xxl-job-boost.sql) | 空库全新部署 XXL-JOB Boost | 不适用于已有库 |
 | [`migrate-from-official-3.4.2.sql`](./migrate-from-official-3.4.2.sql) | 官方 XXL-JOB `3.4.2` 迁移到 Boost | 是 |
+| [`migrate-password-security.sql`](./migrate-password-security.sql) | 已有 Boost 数据库补充首次登录强制改密字段 | 是 |
 | [`migrate-from-official-3.0.0.sql`](./migrate-from-official-3.0.0.sql) | 官方 XXL-JOB `3.0.0` 迁移到 Boost | 是 |
 | [`migrate-from-official-2.4.x-2.5.x.sql`](./migrate-from-official-2.4.x-2.5.x.sql) | 官方 XXL-JOB `2.4.x / 2.5.x` 迁移到 Boost | 是 |
 

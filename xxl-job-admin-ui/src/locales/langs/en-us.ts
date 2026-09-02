@@ -224,6 +224,8 @@ const local: App.I18n.Schema = {
     }
   },
   route: {
+    'legacy-sync': 'Legacy Job Sync',
+    'force-change-password': 'Change Password',
     login: 'Login',
     403: 'No Permission',
     404: 'Page Not Found',

@@ -7,6 +7,7 @@ import com.xxl.job.admin.model.XxlJobGroup;
 import com.xxl.job.admin.model.XxlJobUser;
 import com.xxl.job.admin.service.AuditLogService;
 import com.xxl.job.admin.util.I18nUtil;
+import com.xxl.job.admin.util.PasswordPolicy;
 import com.xxl.sso.core.annotation.XxlSso;
 import com.xxl.sso.core.helper.XxlSsoHelper;
 import com.xxl.sso.core.model.LoginInfo;
@@ -97,8 +98,8 @@ public class JobUserController {
             return Response.ofFail(I18nUtil.getString("system_please_input")+I18nUtil.getString("user_password") );
         }
         xxlJobUser.setPassword(xxlJobUser.getPassword().trim());
-        if (!(xxlJobUser.getPassword().length()>=4 && xxlJobUser.getPassword().length()<=20)) {
-            return Response.ofFail(I18nUtil.getString("system_length_limit")+"[4-20]" );
+        if (!PasswordPolicy.isStrong(xxlJobUser.getPassword(), xxlJobUser.getUsername())) {
+            return Response.ofFail(PasswordPolicy.validationMessage());
         }
         // md5 password
         String passwordHash = Sha256Tool.sha256(xxlJobUser.getPassword());
@@ -131,12 +132,13 @@ public class JobUserController {
         // valid password
         if (StringTool.isNotBlank(xxlJobUser.getPassword())) {
             xxlJobUser.setPassword(xxlJobUser.getPassword().trim());
-            if (!(xxlJobUser.getPassword().length()>=4 && xxlJobUser.getPassword().length()<=20)) {
-                return Response.ofFail(I18nUtil.getString("system_length_limit")+"[4-20]" );
+            if (!PasswordPolicy.isStrong(xxlJobUser.getPassword(), xxlJobUser.getUsername())) {
+                return Response.ofFail(PasswordPolicy.validationMessage());
             }
             // md5 password
             String passwordHash = Sha256Tool.sha256(xxlJobUser.getPassword());
             xxlJobUser.setPassword(passwordHash);
+            xxlJobUser.setPasswordChangeRequired(true);
         } else {
             xxlJobUser.setPassword(null);
         }

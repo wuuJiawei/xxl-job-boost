@@ -23,6 +23,7 @@ export function createRouteGuard(router: Router) {
     const rootRoute: RouteKey = 'root';
     const loginRoute: RouteKey = 'login';
     const noAuthorizationRoute: RouteKey = '403';
+    const forceChangePasswordRoute: RouteKey = 'force-change-password';
 
     const isLogin = Boolean(localStg.get('token'));
     const needLogin = !to.meta.constant;
@@ -33,6 +34,14 @@ export function createRouteGuard(router: Router) {
 
     // if it is login route when logged in, then switch to the root page
     if (to.name === loginRoute && isLogin) {
+      return { name: rootRoute };
+    }
+
+    if (isLogin && authStore.userInfo.passwordChangeRequired && to.name !== forceChangePasswordRoute) {
+      return { name: forceChangePasswordRoute };
+    }
+
+    if (to.name === forceChangePasswordRoute && !authStore.userInfo.passwordChangeRequired) {
       return { name: rootRoute };
     }
 

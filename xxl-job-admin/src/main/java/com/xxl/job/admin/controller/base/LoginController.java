@@ -18,8 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
 /**
  * index controller
@@ -31,20 +29,6 @@ public class LoginController {
 
 	@Resource
 	private XxlJobUserMapper xxlJobUserMapper;
-
-	@RequestMapping("/login")
-	@XxlSso(login = false)
-	public ModelAndView login(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
-
-		// xxl-sso, logincheck
-		Response<LoginInfo> loginInfoResponse = XxlSsoHelper.loginCheckWithCookie(request, response);
-
-		if (loginInfoResponse.isSuccess()) {
-			modelAndView.setView(new RedirectView("/",true,false));
-			return modelAndView;
-		}
-		return new ModelAndView("base/login");
-	}
 
 	@RequestMapping(value="/doLogin", method=RequestMethod.POST)
 	@ResponseBody
@@ -105,12 +89,9 @@ public class LoginController {
 			return Response.ofFail(I18nUtil.getString("system_please_input") + I18nUtil.getString("change_pwd_field_oldpwd"));
 		}
 		if (password==null || password.trim().isEmpty()){
-			return Response.ofFail(I18nUtil.getString("system_please_input") + I18nUtil.getString("change_pwd_field_oldpwd"));
+			return Response.ofFail(I18nUtil.getString("system_please_input") + I18nUtil.getString("change_pwd_field_newpwd"));
 		}
 		password = password.trim();
-		if (!(password.length()>=4 && password.length()<=20)) {
-			return Response.ofFail(I18nUtil.getString("system_length_limit")+"[4-20]" );
-		}
 
 		// md5 password
 		String oldPasswordHash = Sha256Tool.sha256(oldPassword);
@@ -122,9 +103,13 @@ public class LoginController {
 		if (!oldPasswordHash.equals(existUser.getPassword())) {
 			return Response.ofFail(I18nUtil.getString("change_pwd_field_oldpwd") + I18nUtil.getString("system_invalid"));
 		}
+		if (!com.xxl.job.admin.util.PasswordPolicy.isStrong(password, existUser.getUsername())) {
+			return Response.ofFail(com.xxl.job.admin.util.PasswordPolicy.validationMessage());
+		}
 
 		// write new
 		existUser.setPassword(passwordHash);
+		existUser.setPasswordChangeRequired(false);
 		xxlJobUserMapper.update(existUser);
 
 		return Response.ofSuccess();
