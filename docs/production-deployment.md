@@ -172,8 +172,8 @@ docs/db/migrate-from-official-2.4.x-2.5.x.sql
 
 ## 当前发布状态
 
-- `0.9.5` Docker 镜像待推送 tag 后由 GitHub Actions 发布；目标架构为 `linux/amd64`、`linux/arm64`。
+- `0.9.5` Docker 镜像将在推送 `v0.9.5` tag 后由 GitHub Actions 发布；目标架构为 `linux/amd64`、`linux/arm64`。
 - 已发布的上一版本为 `0.9.4`，Docker Hub 两个镜像均有 `0.9.4` 和 `latest`。
 - 样例执行器镜像尚未发布。
 - 尚未创建 GitHub Release。
-- Maven Central `0.9.5` 待本次 release profile 验证通过后发布。
+- Maven Central `0.9.5` 已发布，deployment ID：`c698453a-ecd0-4d07-a778-b456f1ca567a`。

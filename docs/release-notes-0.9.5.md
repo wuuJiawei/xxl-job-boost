@@ -14,6 +14,8 @@
 
 ## Maven Central
 
+已发布，deployment ID：`c698453a-ecd0-4d07-a778-b456f1ca567a`。
+
 以下库模块发布到 Maven Central，版本均为 `0.9.5`：
 
 - `pub.lighting:xxl-job-core:0.9.5`
