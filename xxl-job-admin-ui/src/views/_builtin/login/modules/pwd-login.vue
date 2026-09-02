@@ -27,7 +27,8 @@ const rules = computed<Record<keyof FormModel, App.Global.FormRule[]>>(() => {
 
   return {
     userName: formRules.userName,
-    password: formRules.pwd
+    // Login must accept the same special characters accepted by password change.
+    password: [formRules.pwd[0]]
   };
 });
 
