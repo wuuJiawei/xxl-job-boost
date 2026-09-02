@@ -4,7 +4,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 JAVA_HOME_DEFAULT="/usr/local/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home"
-PROJECT_VERSION="${PROJECT_VERSION:-0.9.4}"
+PROJECT_VERSION="${PROJECT_VERSION:-0.9.5}"
 
 require_cmd() {
   command -v "$1" >/dev/null 2>&1 || {

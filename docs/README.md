@@ -11,6 +11,7 @@
 - [生产部署方案](./production-deployment.md)
 - [Boost 已落地能力](./boost-features.md)
 - [0.9.4 测试计划](./test-plan-0.9.4.md)
+- [0.9.5 发布说明](./release-notes-0.9.5.md)
 
 ## 设计与发布
 

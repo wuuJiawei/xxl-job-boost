@@ -11,7 +11,7 @@ ENV PARAMS="" \
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-ARG PROJECT_VERSION=0.9.4
+ARG PROJECT_VERSION=0.9.5
 
 COPY xxl-job-admin/target/xxl-job-admin-${PROJECT_VERSION}.jar /opt/xxl-job-boost/app.jar
 COPY docker/logback.xml /opt/xxl-job-boost/logback.xml

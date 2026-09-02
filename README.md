@@ -4,7 +4,7 @@
   <img src="xxl-job-admin-ui/public/xxl-job-boost-logo.png" alt="XXL-JOB Boost logo" width="160">
 </p>
 
-当前上游 XXL-JOB `master` 已进入 `3.5.0-SNAPSHOT`；Boost 已同步其基础依赖版本，保留自身模块和 `0.9.4` 坐标。
+当前版本为 `0.9.5`。上游 XXL-JOB `master` 已进入 `3.5.0-SNAPSHOT`；Boost 已同步其基础依赖版本，保留自身模块和 `pub.lighting` 坐标。
 
 管理后台只开放 `admin-next`，原版 Freemarker 控制台页面已关闭。新安装或迁移后的用户首次登录必须修改默认/弱密码，密码需满足 12-64 位并包含大小写字母、数字和特殊字符。
 
@@ -12,9 +12,28 @@
   <strong>XXL-JOB enhanced for modern Java teams.</strong>
 </p>
 
+## 当前发布
+
+Maven Central：
+
+```xml
+<dependency>
+    <groupId>pub.lighting</groupId>
+    <artifactId>xxl-job-boost-spring-boot-starter</artifactId>
+    <version>0.9.5</version>
+</dependency>
+```
+
+Docker Hub：
+
+- `wujiawei0926/xxl-job-boost-admin:0.9.5`：仅调度中心，连接外部 MySQL。
+- `wujiawei0926/xxl-job-boost-all-in-one:0.9.5`：调度中心 + MySQL 8.4，适合全新单机环境。
+
+完整发布内容见 [0.9.5 发布说明](docs/release-notes-0.9.5.md) 和 [生产部署方案](docs/production-deployment.md)。
+
 <p align="center">
   <a href="https://github.com/xuxueli/xxl-job"><img src="https://img.shields.io/badge/upstream-XXL--JOB-blue" alt="Upstream XXL-JOB"></a>
-  <img src="https://img.shields.io/badge/version-0.9.4-orange" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.9.5-orange" alt="Version">
   <img src="https://img.shields.io/badge/JDK-17%2B-brightgreen" alt="JDK 17+">
   <img src="https://img.shields.io/badge/Spring%20Boot-4.x-6DB33F" alt="Spring Boot 4">
   <img src="https://img.shields.io/badge/Vue-3-42b883" alt="Vue 3">
@@ -254,7 +273,7 @@ Spring Boot 执行器只需要引入 starter：
 <dependency>
     <groupId>pub.lighting</groupId>
     <artifactId>xxl-job-boost-spring-boot-starter</artifactId>
-    <version>0.9.4</version>
+    <version>0.9.5</version>
 </dependency>
 ```
 
@@ -329,6 +348,7 @@ xxl-job-boost
 - [管理后台迁移计划](docs/admin-ui-migration-plan.md)：admin-next 的迁移思路
 - [源码增强策略](docs/upstream-extension-strategy.md)：为什么采用源码内渐进增强
 - [0.9.4 发布说明](docs/release-notes-0.9.4.md)：首个自有坐标发布准备说明
+- [0.9.5 发布说明](docs/release-notes-0.9.5.md)：安全登录、旧平台任务迁移和上游依赖同步
 - [项目版本说明](docs/release-notes-2026-06-10.md)：早期可用基线说明
 - [官方中文文档镜像](docs/upstream/XXL-JOB官方文档.md)
 - [Official English Documentation mirror](docs/upstream/XXL-JOB-English-Documentation.md)

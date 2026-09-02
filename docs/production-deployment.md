@@ -1,6 +1,6 @@
 # XXL-JOB Boost 生产部署方案
 
-本文档记录 `0.9.4` 测试版本的 Docker 镜像构建、发布和部署方式。
+本文档记录 `0.9.5` 版本的 Docker 镜像构建、发布和部署方式。
 
 ## 发布产物
 
@@ -8,8 +8,8 @@
 
 | 镜像 | 用途 | 是否必需 |
 | --- | --- | --- |
-| `wujiawei0926/xxl-job-boost-admin:0.9.4` | 仅调度中心，连接外部 MySQL；适合生产和已有数据库迁移 | 二选一 |
-| `wujiawei0926/xxl-job-boost-all-in-one:0.9.4` | 调度中心 + MySQL 8.4；适合全新单机试用和验收 | 二选一 |
+| `wujiawei0926/xxl-job-boost-admin:0.9.5` | 仅调度中心，连接外部 MySQL；适合生产和已有数据库迁移 | 二选一 |
+| `wujiawei0926/xxl-job-boost-all-in-one:0.9.5` | 调度中心 + MySQL 8.4；适合全新单机试用和验收 | 二选一 |
 
 同时保留移动标签：
 
@@ -47,7 +47,7 @@ docker run -d --name xxl-job-boost-admin \
   -p 8080:8080 \
   -e PARAMS="--spring.datasource.url=jdbc:mysql://mysql.example.com:3306/xxl_job --spring.datasource.username=xxl_job --spring.datasource.password=change_me" \
   -v xxl-job-boost-logs:/data/applogs \
-  wujiawei0926/xxl-job-boost-admin:0.9.4
+  wujiawei0926/xxl-job-boost-admin:0.9.5
 ```
 
 镜像内不包含 MySQL，但 admin 本身仍然必须连接 MySQL。
@@ -61,7 +61,7 @@ docker run -d --name xxl-job-boost-all-in-one \
   -e MYSQL_PASSWORD=change_this_app_password \
   -v xxl-job-boost-mysql:/var/lib/mysql \
   -v xxl-job-boost-logs:/data/applogs \
-  wujiawei0926/xxl-job-boost-all-in-one:0.9.4
+  wujiawei0926/xxl-job-boost-all-in-one:0.9.5
 ```
 
 首次启动空数据卷时，镜像自动导入 `install-xxl-job-boost.sql`。账号密码只在首次初始化时生效；更换环境变量不会修改已有数据卷中的 MySQL 账号。镜像默认不向宿主机暴露 3306。
@@ -95,15 +95,15 @@ gh secret set DOCKERHUB_TOKEN --repo wuuJiawei/xxl-job-boost
 推送 `vX.Y.Z` tag 会触发 `.github/workflows/publish-docker.yml`。workflow 会校验 tag 版本与 `pom.xml` 一致，并确认 tag commit 已包含在 `master` 中，然后发布 admin-only 和 all-in-one 的 `linux/amd64`、`linux/arm64` 镜像：
 
 ```bash
-git tag -a v0.9.4 -m "XXL-JOB Boost 0.9.4"
-git push origin v0.9.4
+git tag -a v0.9.5 -m "XXL-JOB Boost 0.9.5"
+git push origin v0.9.5
 ```
 
 发布完成后检查多架构清单：
 
 ```bash
-docker buildx imagetools inspect wujiawei0926/xxl-job-boost-admin:0.9.4
-docker buildx imagetools inspect wujiawei0926/xxl-job-boost-all-in-one:0.9.4
+docker buildx imagetools inspect wujiawei0926/xxl-job-boost-admin:0.9.5
+docker buildx imagetools inspect wujiawei0926/xxl-job-boost-all-in-one:0.9.5
 ```
 
 ## 本地应急发布
@@ -111,23 +111,23 @@ docker buildx imagetools inspect wujiawei0926/xxl-job-boost-all-in-one:0.9.4
 默认使用 GitHub Actions。只有 Actions 不可用时，才在能够访问 Docker Hub 的构建机上执行：
 
 ```bash
-docker tag wujiawei0926/xxl-job-boost-admin:local wujiawei0926/xxl-job-boost-admin:0.9.4
+docker tag wujiawei0926/xxl-job-boost-admin:local wujiawei0926/xxl-job-boost-admin:0.9.5
 docker tag wujiawei0926/xxl-job-boost-admin:local wujiawei0926/xxl-job-boost-admin:latest
-docker push wujiawei0926/xxl-job-boost-admin:0.9.4
+docker push wujiawei0926/xxl-job-boost-admin:0.9.5
 docker push wujiawei0926/xxl-job-boost-admin:latest
 
-docker tag wujiawei0926/xxl-job-boost-all-in-one:local wujiawei0926/xxl-job-boost-all-in-one:0.9.4
+docker tag wujiawei0926/xxl-job-boost-all-in-one:local wujiawei0926/xxl-job-boost-all-in-one:0.9.5
 docker tag wujiawei0926/xxl-job-boost-all-in-one:local wujiawei0926/xxl-job-boost-all-in-one:latest
-docker push wujiawei0926/xxl-job-boost-all-in-one:0.9.4
+docker push wujiawei0926/xxl-job-boost-all-in-one:0.9.5
 docker push wujiawei0926/xxl-job-boost-all-in-one:latest
 ```
 
 如需发布样例执行器：
 
 ```bash
-docker tag wujiawei0926/xxl-job-boost-executor-sample-springboot:local wujiawei0926/xxl-job-boost-executor-sample-springboot:0.9.4
+docker tag wujiawei0926/xxl-job-boost-executor-sample-springboot:local wujiawei0926/xxl-job-boost-executor-sample-springboot:0.9.5
 docker tag wujiawei0926/xxl-job-boost-executor-sample-springboot:local wujiawei0926/xxl-job-boost-executor-sample-springboot:latest
-docker push wujiawei0926/xxl-job-boost-executor-sample-springboot:0.9.4
+docker push wujiawei0926/xxl-job-boost-executor-sample-springboot:0.9.5
 docker push wujiawei0926/xxl-job-boost-executor-sample-springboot:latest
 ```
 
@@ -172,8 +172,8 @@ docs/db/migrate-from-official-2.4.x-2.5.x.sql
 
 ## 当前发布状态
 
-- `0.9.4` 与 `latest` 标签已发布到 Docker Hub，两种镜像都包含 `linux/amd64`、`linux/arm64`。
-- GitHub Actions 发布任务已成功完成：[Publish Docker Images #29896495534](https://github.com/wuuJiawei/xxl-job-boost/actions/runs/29896495534)。
+- `0.9.5` Docker 镜像待推送 tag 后由 GitHub Actions 发布；目标架构为 `linux/amd64`、`linux/arm64`。
+- 已发布的上一版本为 `0.9.4`，Docker Hub 两个镜像均有 `0.9.4` 和 `latest`。
 - 样例执行器镜像尚未发布。
 - 尚未创建 GitHub Release。
-- Maven Central `0.9.4` 已发布。
+- Maven Central `0.9.5` 待本次 release profile 验证通过后发布。

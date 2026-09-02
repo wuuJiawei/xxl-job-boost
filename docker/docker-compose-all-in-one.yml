@@ -5,7 +5,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.all-in-one
       args:
-        PROJECT_VERSION: ${PROJECT_VERSION:-0.9.4}
+        PROJECT_VERSION: ${PROJECT_VERSION:-0.9.5}
     container_name: xxl-job-boost-all-in-one
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in docker/.env}
